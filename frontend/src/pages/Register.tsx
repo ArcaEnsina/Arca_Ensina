@@ -1,24 +1,28 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { AxiosError } from 'axios'
 import { useAuth } from '../context/AuthContext'
+import type { Profile } from '../types/auth'
 
-const PROFILES = [
+const PROFILES: ReadonlyArray<{ value: Profile; label: string }> = [
   { value: 'medico', label: 'Médico' },
   { value: 'admin', label: 'Admin' },
   { value: 'pesquisador', label: 'Pesquisador' },
 ]
 
+type FieldErrors = Record<string, string | string[]>
+
 export default function Register() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [profile, setProfile] = useState('medico')
+  const [profile, setProfile] = useState<Profile>('medico')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setSubmitting(true)
@@ -27,18 +31,18 @@ export default function Register() {
       await register(username, email, password, profile)
       navigate('/dashboard')
     } catch (err) {
-      const data = err.response?.data
-      // DRF returns field errors as { field: [messages] }
-      if (data && typeof data === 'object') {
+      const fallback = 'Erro ao registrar. Tente novamente.'
+      if (err instanceof AxiosError && err.response?.data && typeof err.response.data === 'object') {
+        const data = err.response.data as FieldErrors
         const messages = Object.entries(data)
           .map(([field, msgs]) => {
             const list = Array.isArray(msgs) ? msgs : [msgs]
             return `${field}: ${list.join(', ')}`
           })
           .join('; ')
-        setError(messages || 'Erro ao registrar. Tente novamente.')
+        setError(messages || fallback)
       } else {
-        setError('Erro ao registrar. Tente novamente.')
+        setError(fallback)
       }
     } finally {
       setSubmitting(false)
@@ -90,7 +94,7 @@ export default function Register() {
           <select
             id="profile"
             value={profile}
-            onChange={(e) => setProfile(e.target.value)}
+            onChange={(e) => setProfile(e.target.value as Profile)}
             required
           >
             {PROFILES.map((p) => (

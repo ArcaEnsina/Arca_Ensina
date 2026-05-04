@@ -1,4 +1,5 @@
-import axios from 'axios'
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
+import type { AuthTokens } from '../types/auth'
 
 const api = axios.create({
   baseURL: '/api/v1/',
@@ -7,7 +8,6 @@ const api = axios.create({
   },
 })
 
-// Request interceptor: attach access token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token')
@@ -16,16 +16,19 @@ api.interceptors.request.use(
     }
     return config
   },
-  (error) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error),
 )
 
-// Response interceptor: handle 401 with token refresh
-let isRefreshing = false
-let failedQueue = []
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
+type Resolver = (token: string) => void
+type Rejecter = (error: unknown) => void
 
-const processQueue = (error, token = null) => {
+let isRefreshing = false
+let failedQueue: Array<{ resolve: Resolver; reject: Rejecter }> = []
+
+const processQueue = (error: unknown, token: string | null = null): void => {
   failedQueue.forEach((prom) => {
-    if (error) {
+    if (error || token === null) {
       prom.reject(error)
     } else {
       prom.resolve(token)
@@ -36,30 +39,29 @@ const processQueue = (error, token = null) => {
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetriableConfig | undefined
 
-    // Skip refresh for login/register/refresh endpoints
     if (
+      !originalRequest ||
       error.response?.status !== 401 ||
       originalRequest._retry ||
-      originalRequest.url.includes('auth/refresh') ||
-      originalRequest.url.includes('auth/login') ||
-      originalRequest.url.includes('auth/register')
+      originalRequest.url?.includes('auth/refresh') ||
+      originalRequest.url?.includes('auth/login') ||
+      originalRequest.url?.includes('auth/register')
     ) {
       return Promise.reject(error)
     }
 
     if (isRefreshing) {
-      // Queue requests while refresh is in progress
-      return new Promise((resolve, reject) => {
+      return new Promise<string>((resolve, reject) => {
         failedQueue.push({ resolve, reject })
       })
         .then((token) => {
           originalRequest.headers.Authorization = `Bearer ${token}`
           return api(originalRequest)
         })
-        .catch((err) => Promise.reject(err))
+        .catch((err: unknown) => Promise.reject(err))
     }
 
     originalRequest._retry = true
@@ -76,20 +78,18 @@ api.interceptors.response.use(
     }
 
     try {
-      const { data } = await axios.post('/api/v1/auth/refresh/', {
+      const { data } = await axios.post<AuthTokens>('/api/v1/auth/refresh/', {
         refresh: refreshToken,
       })
 
-      const newAccessToken = data.access
-      localStorage.setItem('access_token', newAccessToken)
-
+      localStorage.setItem('access_token', data.access)
       if (data.refresh) {
         localStorage.setItem('refresh_token', data.refresh)
       }
 
-      processQueue(null, newAccessToken)
+      processQueue(null, data.access)
 
-      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+      originalRequest.headers.Authorization = `Bearer ${data.access}`
       return api(originalRequest)
     } catch (refreshError) {
       processQueue(refreshError, null)
@@ -100,7 +100,7 @@ api.interceptors.response.use(
     } finally {
       isRefreshing = false
     }
-  }
+  },
 )
 
 export default api

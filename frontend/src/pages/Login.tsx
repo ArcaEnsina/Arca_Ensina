@@ -1,6 +1,12 @@
-import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useState, type FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { AxiosError } from 'axios'
 import { useAuth } from '../context/AuthContext'
+
+interface LoginErrorPayload {
+  detail?: string
+  error?: string
+}
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -10,7 +16,7 @@ export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setSubmitting(true)
@@ -19,10 +25,11 @@ export default function Login() {
       await login(username, password)
       navigate('/dashboard')
     } catch (err) {
-      const detail =
-        err.response?.data?.detail ||
-        err.response?.data?.error ||
-        'Credenciais inválidas. Tente novamente.'
+      let detail = 'Credenciais inválidas. Tente novamente.'
+      if (err instanceof AxiosError) {
+        const data = err.response?.data as LoginErrorPayload | undefined
+        detail = data?.detail ?? data?.error ?? detail
+      }
       setError(detail)
     } finally {
       setSubmitting(false)
