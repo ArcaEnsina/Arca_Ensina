@@ -97,7 +97,7 @@ Depois:
 3. Defina models — use `settings.AUTH_USER_MODEL` para FK de usuário
 4. Crie serializers herdando de `project.serializers.BaseSerializer`
 5. Crie views com `apps.audit.mixins.AuditableMixin` antes de `ModelViewSet`
-6. Crie `urls.py` e inclua em `backend/project/urls.py` sob `api/<str:version>/`
+6. Crie `urls.py` e inclua em `backend/project/urls.py` usando `path(f'{V}/...', include(...))`
 7. Gere e aplique migrations
 
 > Para detalhes sobre a infraestrutura (auth, auditoria, DRF config), veja `docs/architecture.md`.

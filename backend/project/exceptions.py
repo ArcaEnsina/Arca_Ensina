@@ -1,6 +1,35 @@
 from rest_framework import status
 from rest_framework.views import exception_handler
 
+DEFAULT_MESSAGES = {
+    status.HTTP_401_UNAUTHORIZED: (
+        "authentication_error",
+        "Authentication credentials were not provided or are invalid.",
+    ),
+    status.HTTP_403_FORBIDDEN: (
+        "permission_denied",
+        "You do not have permission to perform this action.",
+    ),
+    status.HTTP_404_NOT_FOUND: (
+        "not_found",
+        "The requested resource was not found.",
+    ),
+    status.HTTP_405_METHOD_NOT_ALLOWED: (
+        "method_not_allowed",
+        "The HTTP method is not allowed for this endpoint.",
+    ),
+    status.HTTP_429_THROTTLED: (
+        "throttled",
+        "Request was throttled. Please try again later.",
+    ),
+}
+
+
+def _extract_detail(data):
+    if isinstance(data, dict):
+        return data.get("detail")
+    return data
+
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
@@ -12,37 +41,18 @@ def custom_exception_handler(exc, context):
             code = "validation_error"
             message = "Invalid request data."
             details = response.data
-        elif status_code == status.HTTP_401_UNAUTHORIZED:
-            code = "authentication_error"
-            original = response.data.get("detail") if isinstance(response.data, dict) else response.data
-            message = str(original) if original else "Authentication credentials were not provided or are invalid."
-            details = None
-        elif status_code == status.HTTP_403_FORBIDDEN:
-            code = "permission_denied"
-            original = response.data.get("detail") if isinstance(response.data, dict) else response.data
-            message = str(original) if original else "You do not have permission to perform this action."
-            details = None
-        elif status_code == status.HTTP_404_NOT_FOUND:
-            code = "not_found"
-            original = response.data.get("detail") if isinstance(response.data, dict) else response.data
-            message = str(original) if original else "The requested resource was not found."
-            details = None
-        elif status_code == status.HTTP_405_METHOD_NOT_ALLOWED:
-            code = "method_not_allowed"
-            original = response.data.get("detail") if isinstance(response.data, dict) else response.data
-            message = str(original) if original else "The HTTP method is not allowed for this endpoint."
-            details = None
-        elif status_code == status.HTTP_429_THROTTLED:
-            code = "throttled"
-            original = response.data.get("detail") if isinstance(response.data, dict) else response.data
-            message = str(original) if original else "Request was throttled. Please try again later."
+        elif status_code in DEFAULT_MESSAGES:
+            code, default_msg = DEFAULT_MESSAGES[status_code]
+            original = _extract_detail(response.data)
+            message = str(original) if original else default_msg
             details = None
         else:
             code = "error"
-            message = str(response.data.get("detail", "An error occurred."))
+            message = str(
+                response.data.get("detail", "An error occurred.")
+            )
             details = None
 
-        # If details is just a string, move it to message
         if isinstance(details, str):
             message = details
             details = None

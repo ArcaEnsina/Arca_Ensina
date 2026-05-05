@@ -15,6 +15,7 @@ Resumo rápido (dois terminais):
 
 ```bash
 # Terminal 1 — backend
+cp .env.example .env              # obrigatório (SECRET_KEY, etc.)
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r backend/requirements.txt
 cd backend

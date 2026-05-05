@@ -237,7 +237,7 @@ router.register(r'protocols', ProtocolViewSet, basename='protocol')
 urlpatterns = router.urls
 
 # backend/project/urls.py — adicionar:
-# path('api/<str:version>/', include('apps.protocols.urls')),
+# path(f'{V}/', include('apps.protocols.urls')),
 ```
 
 ---
@@ -279,6 +279,6 @@ O que testar em cada feature:
 - [ ] ViewSet usa `AuditableMixin` e define `audit_resource_type`
 - [ ] Permission class adequada (`IsDoctor`, `IsAdmin`, `IsResearcher`)
 - [ ] Erros via exceções DRF (não `Response` com status de erro)
-- [ ] URLs sob `api/<str:version>/`
+- [ ] URLs sob `f'{V}/...'` (ver `backend/project/urls.py`)
 - [ ] Frontend usa `ApiErrorResponse` para tipar erros de API (nunca renderizar `error` como string)
 - [ ] Testes cobrindo auth, permissões, validação, auditoria

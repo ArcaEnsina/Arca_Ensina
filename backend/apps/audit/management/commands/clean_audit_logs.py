@@ -22,4 +22,5 @@ class Command(BaseCommand):
         days = options["days"] or getattr(settings, "AUDIT_LOG_RETENTION_DAYS", 90)
         cutoff = timezone.now() - timedelta(days=days)
         deleted, _ = AuditLog.objects.filter(timestamp__lt=cutoff).delete()
-        self.stdout.write(self.style.SUCCESS(f"Deleted {deleted} audit log(s) older than {days} days."))
+        msg = f"Deleted {deleted} audit log(s) older than {days} days."
+        self.stdout.write(self.style.SUCCESS(msg))

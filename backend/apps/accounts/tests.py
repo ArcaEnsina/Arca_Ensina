@@ -140,7 +140,10 @@ class AuthEndpointTests(TestCase):
         )
         self.assertEqual(resp.status_code, 403)
         self.assertEqual(resp.data["error"]["code"], "permission_denied")
-        self.assertEqual(resp.data["error"]["message"], "Token does not belong to user.")
+        self.assertEqual(
+            resp.data["error"]["message"],
+            "Token does not belong to user.",
+        )
 
     def test_logout_without_refresh_returns_400(self):
         login_resp = self.client.post(
