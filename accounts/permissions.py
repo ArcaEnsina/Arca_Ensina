@@ -1,22 +1,28 @@
+from typing import cast
+
 from rest_framework.permissions import BasePermission
 
+from .models import User
 
-class IsDoctor(BasePermission):
+
+class IsProfile(BasePermission):
+    profile: str
+    message = "Você não tem o perfil necessário para esta ação."
+
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
+        if not request.user.is_authenticated:
             return False
-        return request.user.is_superuser or request.user.profile == "medico"
+        user = cast(User, request.user)
+        return user.is_superuser or user.profile == self.profile
 
 
-class IsAdmin(BasePermission):
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-        return request.user.is_superuser or request.user.profile == "admin"
+class IsDoctor(IsProfile):
+    profile = User.Profile.MEDICO
 
 
-class IsResearcher(BasePermission):
-    def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-        return request.user.is_superuser or request.user.profile == "pesquisador"
+class IsAdmin(IsProfile):
+    profile = User.Profile.ADMIN
+
+
+class IsResearcher(IsProfile):
+    profile = User.Profile.PESQUISADOR
