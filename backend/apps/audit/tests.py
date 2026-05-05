@@ -5,8 +5,8 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from accounts.models import User
-from audit.models import AuditLog
+from apps.accounts.models import User
+from apps.audit.models import AuditLog
 
 
 class AuditLogModelTests(TestCase):
@@ -34,7 +34,7 @@ class AuditableMixinTests(TestCase):
         )
 
     def test_log_audit_helper(self):
-        from audit.utils import log_audit
+        from apps.audit.utils import log_audit
 
         log_audit(
             user=self.user,
@@ -51,7 +51,7 @@ class AuditableMixinTests(TestCase):
         self.assertEqual(log.payload["method"], "PATCH")
 
     def test_payload_does_not_contain_body(self):
-        from audit.utils import log_audit
+        from apps.audit.utils import log_audit
 
         log_audit(
             user=self.user,

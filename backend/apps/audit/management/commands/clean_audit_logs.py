@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from audit.models import AuditLog
+from apps.audit.models import AuditLog
 
 
 class Command(BaseCommand):
