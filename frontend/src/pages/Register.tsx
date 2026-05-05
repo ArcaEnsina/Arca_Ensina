@@ -2,15 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { useAuth } from '../context/AuthContext'
-import type { Profile } from '../types/auth'
+import type { ApiErrorResponse, Profile } from '../types/auth'
 
 const PROFILES: ReadonlyArray<{ value: Profile; label: string }> = [
   { value: 'medico', label: 'Médico' },
   { value: 'admin', label: 'Admin' },
   { value: 'pesquisador', label: 'Pesquisador' },
 ]
-
-type FieldErrors = Record<string, string | string[]>
 
 export default function Register() {
   const [username, setUsername] = useState('')
@@ -33,14 +31,19 @@ export default function Register() {
     } catch (err) {
       const fallback = 'Erro ao registrar. Tente novamente.'
       if (err instanceof AxiosError && err.response?.data && typeof err.response.data === 'object') {
-        const data = err.response.data as FieldErrors
-        const messages = Object.entries(data)
-          .map(([field, msgs]) => {
-            const list = Array.isArray(msgs) ? msgs : [msgs]
-            return `${field}: ${list.join(', ')}`
-          })
-          .join('; ')
-        setError(messages || fallback)
+        const data = err.response.data as ApiErrorResponse
+        const details = data.error?.details
+        if (details && typeof details === 'object') {
+          const messages = Object.entries(details)
+            .map(([field, msgs]) => {
+              const list = Array.isArray(msgs) ? msgs : [msgs]
+              return `${field}: ${list.join(', ')}`
+            })
+            .join('; ')
+          setError(messages || fallback)
+        } else {
+          setError(data.error?.message ?? fallback)
+        }
       } else {
         setError(fallback)
       }

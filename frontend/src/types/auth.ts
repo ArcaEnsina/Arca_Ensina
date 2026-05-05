@@ -15,3 +15,12 @@ export interface AuthTokens {
 }
 
 export type RegisterResponse = AuthTokens & Pick<User, 'id' | 'username' | 'email' | 'profile'>
+
+export interface ApiErrorResponse {
+  success: false
+  error: {
+    code: string
+    message: string
+    details?: Record<string, string | string[]>
+  }
+}

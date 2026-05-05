@@ -22,3 +22,6 @@ types-psycopg2==2.9.21.20260422
 types-PyYAML==6.0.12.20260408
 typing_extensions==4.15.0
 uritemplate==4.2.0
+psycopg2-binary==2.9.10
+ruff==0.11.12
+gunicorn==23.0.0

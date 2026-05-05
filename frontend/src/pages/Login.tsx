@@ -2,11 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { useAuth } from '../context/AuthContext'
-
-interface LoginErrorPayload {
-  detail?: string
-  error?: string
-}
+import type { ApiErrorResponse } from '../types/auth'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -27,8 +23,8 @@ export default function Login() {
     } catch (err) {
       let detail = 'Credenciais inválidas. Tente novamente.'
       if (err instanceof AxiosError) {
-        const data = err.response?.data as LoginErrorPayload | undefined
-        detail = data?.detail ?? data?.error ?? detail
+        const data = err.response?.data as ApiErrorResponse | undefined
+        detail = data?.error?.message ?? detail
       }
       setError(detail)
     } finally {
