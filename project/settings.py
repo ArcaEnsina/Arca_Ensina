@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'django_filters',
+    'drf_spectacular',
     'accounts',
     'audit',
 ]
@@ -149,6 +150,12 @@ REST_FRAMEWORK = {
         'anon': '100/hour',
         'user': '1000/hour',
     },
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',
+    'DEFAULT_VERSION': 'v1',
+    'ALLOWED_VERSIONS': ['v1'],
+    'VERSION_PARAM': 'version',
+    'EXCEPTION_HANDLER': 'project.exceptions.custom_exception_handler',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -164,3 +171,11 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 AUDIT_LOG_RETENTION_DAYS = 90
+
+# drf-spectacular
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Arca Ensina API',
+    'DESCRIPTION': 'Plataforma de saude digital',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
