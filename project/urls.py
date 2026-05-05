@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.views import LogoutView, RegisterView, UserMeView
@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/v1/auth/register/', RegisterView.as_view(), name='register'),
     path('api/v1/auth/user/', UserMeView.as_view(), name='user_me'),
     path('api/v1/auth/logout/', LogoutView.as_view(), name='logout'),
+    path('api/v1/', include('audit.urls')),
 ]
