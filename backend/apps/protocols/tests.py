@@ -267,3 +267,48 @@ class ProtocolVersionViewSetTest(TestCase):
         self.client.force_authenticate(user=self.doctor)
         response = self.client.get("/api/v1/protocol-versions/?protocol_type=guiado")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class FixtureLoadTest(TestCase):
+
+    def test_dengue_fixture_structure(self):
+        import json
+        from pathlib import Path
+
+        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        self.assertEqual(len(data), 2)
+        self.assertEqual(data[0]["model"], "protocols.protocol")
+        self.assertEqual(data[1]["model"], "protocols.protocolversion")
+
+        steps_data = data[1]["fields"]["steps_data"]
+        self.assertIn("steps", steps_data)
+        self.assertGreater(len(steps_data["steps"]), 0)
+
+        valid_types = {
+            "info", "yes_no", "multiple_choice", "checklist",
+            "numeric_input", "derived_calc", "medication_prescription",
+            "wait_reassess", "titration_loop",
+        }
+        for step in steps_data["steps"]:
+            self.assertIn(step["type"], valid_types, f"Invalid type: {step['type']}")
+
+    def test_sedacao_fixture_structure(self):
+        import json
+        from pathlib import Path
+
+        fixture_path = Path(__file__).parent / "fixtures" / "sedacao_painel.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        self.assertEqual(len(data), 2)
+        self.assertEqual(data[0]["model"], "protocols.protocol")
+        self.assertEqual(data[1]["model"], "protocols.protocolversion")
+
+        panel_data = data[1]["fields"]["panel_data"]
+        self.assertIn("sections", panel_data)
+        self.assertIn("calculators", panel_data)
+        self.assertGreater(len(panel_data["sections"]), 0)
+        self.assertGreater(len(panel_data["calculators"]), 0)
