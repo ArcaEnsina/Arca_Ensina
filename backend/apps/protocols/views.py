@@ -1,3 +1,5 @@
+import django_filters
+from django.db.models import Q
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -16,11 +18,26 @@ from .serializers import (
 )
 
 
+class ProtocolFilter(django_filters.FilterSet):
+    gender_applicable = django_filters.CharFilter(method="filter_gender")
+
+    class Meta:
+        model = Protocol
+        fields = ["is_active", "specialty"]
+
+    def filter_gender(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(gender_applicable=value) | Q(gender_applicable__isnull=True)
+        )
+
+
 class ProtocolViewSet(AuditableMixin, ModelViewSet):
     """ViewSet para protocolos clínicos."""
     audit_resource_type = "protocol"
     permission_classes = [IsAuthenticated]
-    filterset_fields = ["is_active", "sex_applicable", "specialty"]
+    filterset_class = ProtocolFilter
     search_fields = ["title", "cid", "author", "tags"]
     ordering_fields = ["title", "created_at", "updated_at"]
 
