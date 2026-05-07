@@ -19,7 +19,7 @@ class ProtocolVersionInline(admin.TabularInline):
 @admin.register(Protocol)
 class ProtocolAdmin(admin.ModelAdmin):
     list_display = ["title", "cid", "specialty", "is_active", "created_at"]
-    list_filter = ["is_active", "sex_applicable", "specialty"]
+    list_filter = ["is_active", "gender_applicable", "specialty"]
     search_fields = ["title", "cid", "author"]
     inlines = [ProtocolVersionInline]
 

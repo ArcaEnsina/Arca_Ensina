@@ -17,16 +17,17 @@ class Protocol(models.Model):
         null=True, blank=True, verbose_name="Idade máxima (meses)"
     )
 
-    class SexApplicable(models.TextChoices):
+    class GenderApplicable(models.TextChoices):
         MASCULINO = "M", "Masculino"
         FEMININO = "F", "Feminino"
-        AMBOS = "A", "Ambos"
 
-    sex_applicable = models.CharField(
+    gender_applicable = models.CharField(
         max_length=1,
-        choices=SexApplicable.choices,
-        default=SexApplicable.AMBOS,
-        verbose_name="Sexo aplicável",
+        choices=GenderApplicable.choices,
+        blank=True,
+        null=True,
+        default=None,
+        verbose_name="Gênero aplicável",
     )
     is_active = models.BooleanField(default=True, verbose_name="Ativo")
     created_at = models.DateTimeField(auto_now_add=True)
