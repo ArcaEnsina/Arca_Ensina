@@ -81,9 +81,7 @@ class ProtocolVersion(models.Model):
     panel_data = models.JSONField(
         default=dict, blank=True, verbose_name="Dados de painel"
     )
-    metadata = models.JSONField(
-        default=dict, blank=True, verbose_name="Metadados"
-    )
+    metadata = models.JSONField(default=dict, blank=True, verbose_name="Metadados")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
