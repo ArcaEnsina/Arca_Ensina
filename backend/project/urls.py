@@ -13,11 +13,9 @@ urlpatterns = [
     # Auditoria
     #path(f'{V}/audit/', include('apps.audit.urls')),
     
-    # Pacientes (Onde incluímos o app que acabamos de criar)
     path(f'{V}/', include('apps.pacientes.urls')), 
 ]
 
-# Docs Swagger (se estiver usando)
 if settings.DEBUG:
     from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
     urlpatterns += [

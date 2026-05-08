@@ -1,11 +1,11 @@
 from rest_framework import viewsets
-from .models import Paciente, Visita
-from .serializers import PacienteSerializer, VisitaSerializer
+from .models import Paciente, Consulta
+from .serializers import PacienteSerializer, ConsultaSerializer
 
 class PacienteViewSet(viewsets.ModelViewSet):
     queryset = Paciente.objects.all()
     serializer_class = PacienteSerializer
 
-class VisitaViewSet(viewsets.ModelViewSet):
-    queryset = Visita.objects.all()
-    serializer_class = VisitaSerializer
+class ConsultaViewSet(viewsets.ModelViewSet):
+    queryset = Consulta.objects.all()
+    serializer_class = ConsultaSerializer
