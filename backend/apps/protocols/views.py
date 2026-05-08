@@ -101,7 +101,9 @@ class ProtocolVersionViewSet(AuditableMixin, ModelViewSet):
         return ProtocolVersionSerializer
 
     def get_permissions(self):
-        if self.action in ("create", "update", "partial_update", "destroy", "set_current"):
+        if self.action in (
+            "create", "update", "partial_update", "destroy", "set_current"
+        ):
             return [IsAuthenticated(), IsAdmin()]
         return [IsAuthenticated()]
 
