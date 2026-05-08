@@ -9,7 +9,6 @@ User = get_user_model()
 
 
 class ProtocolModelTest(TestCase):
-
     def test_create_protocol_creates_first_version(self):
         protocol = Protocol.objects.create(title="Teste Protocolo")
         self.assertEqual(protocol.versions.count(), 1)
@@ -23,7 +22,6 @@ class ProtocolModelTest(TestCase):
 
 
 class ProtocolVersionModelTest(TestCase):
-
     def setUp(self):
         self.protocol = Protocol.objects.create(title="Protocolo Teste")
 
@@ -74,7 +72,6 @@ class ProtocolVersionModelTest(TestCase):
 
 
 class ProtocolSerializerTest(TestCase):
-
     def setUp(self):
         self.protocol = Protocol.objects.create(title="Protocolo Serializer")
         self.version = self.protocol.versions.first()
@@ -123,7 +120,6 @@ class ProtocolSerializerTest(TestCase):
 
 
 class ProtocolViewSetTest(TestCase):
-
     def setUp(self):
         self.client = APIClient()
         self.admin = User.objects.create_user(
@@ -216,7 +212,6 @@ class ProtocolViewSetTest(TestCase):
 
 
 class ProtocolVersionViewSetTest(TestCase):
-
     def setUp(self):
         self.client = APIClient()
         self.admin = User.objects.create_user(
@@ -246,7 +241,7 @@ class ProtocolVersionViewSetTest(TestCase):
             "protocol_type": "guiado",
             "steps_data": {"steps": []},
         }
-        response = self.client.post("/api/v1/protocol-versions/", data, format='json')
+        response = self.client.post("/api/v1/protocol-versions/", data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_doctor_cannot_create_version(self):
@@ -276,7 +271,6 @@ class ProtocolVersionViewSetTest(TestCase):
 
 
 class FixtureLoadTest(TestCase):
-
     def test_dengue_fixture_structure(self):
         import json
         from pathlib import Path
@@ -294,9 +288,15 @@ class FixtureLoadTest(TestCase):
         self.assertGreater(len(steps_data["steps"]), 0)
 
         valid_types = {
-            "info", "yes_no", "multiple_choice", "checklist",
-            "numeric_input", "derived_calc", "medication_prescription",
-            "wait_reassess", "titration_loop",
+            "info",
+            "yes_no",
+            "multiple_choice",
+            "checklist",
+            "numeric_input",
+            "derived_calc",
+            "medication_prescription",
+            "wait_reassess",
+            "titration_loop",
         }
         for step in steps_data["steps"]:
             self.assertIn(step["type"], valid_types, f"Invalid type: {step['type']}")

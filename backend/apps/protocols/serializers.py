@@ -7,6 +7,7 @@ from .models import Protocol, ProtocolVersion
 
 class ProtocolVersionSerializer(BaseSerializer):
     """Serializer completo para versão de protocolo."""
+
     protocol_title = serializers.CharField(source="protocol.title", read_only=True)
 
     class Meta:
@@ -78,6 +79,7 @@ class ProtocolVersionCreateSerializer(BaseSerializer):
 
 class ProtocolSerializer(BaseSerializer):
     """Serializer completo para protocolo com versão atual."""
+
     current_version = serializers.SerializerMethodField()
     versions_count = serializers.SerializerMethodField()
 
@@ -114,6 +116,7 @@ class ProtocolSerializer(BaseSerializer):
 
 class ProtocolListSerializer(BaseSerializer):
     """Serializer leve para listagem (sem steps_data/panel_data)."""
+
     current_version_type = serializers.SerializerMethodField()
 
     class Meta:

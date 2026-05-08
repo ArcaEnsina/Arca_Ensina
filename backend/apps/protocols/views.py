@@ -35,6 +35,7 @@ class ProtocolFilter(django_filters.FilterSet):
 
 class ProtocolViewSet(AuditableMixin, ModelViewSet):
     """ViewSet para protocolos clínicos."""
+
     audit_resource_type = "protocol"
     permission_classes = [IsAuthenticated]
     filterset_class = ProtocolFilter
@@ -78,14 +79,17 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
         except ProtocolVersion.DoesNotExist:
             raise NotFound("Versão não encontrada.")
 
-        return Response({
-            "from": ProtocolVersionSerializer(v_from).data,
-            "to": ProtocolVersionSerializer(v_to).data,
-        })
+        return Response(
+            {
+                "from": ProtocolVersionSerializer(v_from).data,
+                "to": ProtocolVersionSerializer(v_to).data,
+            }
+        )
 
 
 class ProtocolVersionViewSet(AuditableMixin, ModelViewSet):
     """ViewSet para versões de protocolo."""
+
     audit_resource_type = "protocol_version"
     permission_classes = [IsAuthenticated]
     serializer_class = ProtocolVersionSerializer
@@ -102,7 +106,11 @@ class ProtocolVersionViewSet(AuditableMixin, ModelViewSet):
 
     def get_permissions(self):
         if self.action in (
-            "create", "update", "partial_update", "destroy", "set_current"
+            "create",
+            "update",
+            "partial_update",
+            "destroy",
+            "set_current",
         ):
             return [IsAuthenticated(), IsAdmin()]
         return [IsAuthenticated()]
