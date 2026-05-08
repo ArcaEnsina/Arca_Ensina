@@ -7,7 +7,9 @@ class Protocol(models.Model):
 
     title = models.CharField(max_length=255)
     cid = models.CharField(max_length=20, blank=True, verbose_name="CID")
-    specialty = models.CharField(max_length=100, blank=True, verbose_name="Especialidade")
+    specialty = models.CharField(
+        max_length=100, blank=True, verbose_name="Especialidade"
+    )
     author = models.CharField(max_length=255, blank=True, verbose_name="Autor")
     tags = models.JSONField(default=list, blank=True, verbose_name="Tags")
     age_range_min = models.PositiveIntegerField(
