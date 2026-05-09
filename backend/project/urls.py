@@ -1,24 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings
+from rest_framework.routers import DefaultRouter
+from apps.pacientes.views import PacienteViewSet, ConsultaViewSet 
 
-V = 'api/v1'
+router = DefaultRouter()
+router.register(r'pacientes', PacienteViewSet)
+router.register(r'consultas', ConsultaViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    # Auth e Contas
-    #path(f'{V}/auth/', include('apps.accounts.urls')),
-    
-    # Auditoria
-    #path(f'{V}/audit/', include('apps.audit.urls')),
-    
-    path(f'{V}/', include('apps.pacientes.urls')), 
+    path('api/v1/', include(router.urls)),
 ]
-
-if settings.DEBUG:
-    from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-    urlpatterns += [
-        path(f'{V}/schema/', SpectacularAPIView.as_view(), name='schema'),
-        path(f'{V}/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    ]
