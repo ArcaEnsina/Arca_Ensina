@@ -3,12 +3,12 @@ from django.utils import timezone
 from django.core.validators import RegexValidator
 
 class Alergia(models.Model):
-    nome = models.CharField(max_length=100, unique=True)
-    def __str__(self): return self.nome
+    descricao = models.CharField(max_length=100, unique=True)
+    def __str__(self): return self.descricao
 
 class Sintoma(models.Model):
-    nome = models.CharField(max_length=100, unique=True)
-    def __str__(self): return self.nome
+    descricao = models.CharField(max_length=100, unique=True)
+    def __str__(self): return self.descricao
 
 class Paciente(models.Model):
     GENDER_CHOICES = [
@@ -29,6 +29,6 @@ class Paciente(models.Model):
 
 class Consulta(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
-    criado_at = models.DateTimeField(default=timezone.now)
+    data_atendimento = models.DateTimeField(default=timezone.now)
     sintomas = models.ManyToManyField(Sintoma, blank=True)
-    def __str__(self): return f"Consulta {self.paciente.nome} - {self.criado_at}"
+    def __str__(self): return f"Consulta {self.paciente.nome} - {self.data_atendimento}"

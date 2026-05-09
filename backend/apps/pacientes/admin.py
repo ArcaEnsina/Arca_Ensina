@@ -18,7 +18,7 @@ class PacienteAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['alergias_input'].initial = ", ".join(
-                [a.nome for a in self.instance.alergias.all()]
+                [a.descricao for a in self.instance.alergias.all()]
             )
 
 class ConsultaAdminForm(forms.ModelForm):
@@ -36,13 +36,13 @@ class ConsultaAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['sintomas_input'].initial = ", ".join(
-                [s.nome for s in self.instance.sintomas.all()]
+                [s.descricao for s in self.instance.sintomas.all()]
             )
 
     def clean(self):
         cleaned_data = super().clean()
         paciente = cleaned_data.get("paciente")
-        data_consulta = cleaned_data.get("criado_at")
+        data_consulta = cleaned_data.get("data_atendimento")
         agora = timezone.now()
 
         if data_consulta:
@@ -57,7 +57,12 @@ class ConsultaInline(admin.TabularInline):
     model = Consulta
     form = ConsultaAdminForm
     extra = 1
-    fields = ('criado_at', 'sintomas_input')
+    fields = ('data_atendimento', 'sintomas_input', 'protocolos_vazio')
+    readonly_fields = ('protocolos_vazio',)
+
+    def protocolos_vazio(self, obj):
+        return "" 
+    protocolos_vazio.short_description = "Protocolos Recomendados"
 
 @admin.register(Paciente)
 class PacienteAdmin(admin.ModelAdmin):
@@ -72,7 +77,7 @@ class PacienteAdmin(admin.ModelAdmin):
             obj.alergias.clear()
             nomes = [n.strip() for n in alergias_texto.split(',') if n.strip()]
             for nome in nomes:
-                alergia, _ = Alergia.objects.get_or_create(nome=nome)
+                alergia, _ = Alergia.objects.get_or_create(descricao=nome)
                 obj.alergias.add(alergia)
 
     def save_formset(self, request, form, formset, change):
@@ -89,7 +94,7 @@ class PacienteAdmin(admin.ModelAdmin):
                     instance.sintomas.clear()
                     nomes = [n.strip() for n in sintomas_texto.split(',') if n.strip()]
                     for nome in nomes:
-                        sintoma, _ = Sintoma.objects.get_or_create(nome=nome)
+                        sintoma, _ = Sintoma.objects.get_or_create(descricao=nome)
                         instance.sintomas.add(sintoma)
         
         formset.save_m2m()
@@ -97,7 +102,21 @@ class PacienteAdmin(admin.ModelAdmin):
 @admin.register(Consulta)
 class ConsultaAdmin(admin.ModelAdmin):
     form = ConsultaAdminForm
-    list_display = ('paciente', 'criado_at')
+    list_display = ('paciente', 'data_atendimento')
+    readonly_fields = ('protocolos_vazio',)
+
+    fieldsets = (
+        ("Dados da Consulta", {
+            'fields': ('paciente', 'data_atendimento', 'sintomas_input')
+        }),
+        ("Sugestões Clínicas", {
+            'fields': ('protocolos_vazio',),
+        }),
+    )
+
+    def protocolos_vazio(self, obj):
+        return "" 
+    protocolos_vazio.short_description = "Protocolos Recomendados"
     
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
@@ -106,13 +125,13 @@ class ConsultaAdmin(admin.ModelAdmin):
             obj.sintomas.clear()
             nomes = [n.strip() for n in sintomas_texto.split(',') if n.strip()]
             for nome in nomes:
-                sintoma, _ = Sintoma.objects.get_or_create(nome=nome)
+                sintoma, _ = Sintoma.objects.get_or_create(descricao=nome)
                 obj.sintomas.add(sintoma)
 
 @admin.register(Alergia)
 class AlergiaAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
+    list_display = ('descricao',)
 
 @admin.register(Sintoma)
 class SintomaAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
+    list_display = ('descricao',)
