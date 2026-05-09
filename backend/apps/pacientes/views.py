@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from project.serializers import PacienteSerializer, ConsultaSerializer
+from .serializers import PacienteSerializer, ConsultaSerializer
 from .models import Paciente, Consulta
 
 class PacienteViewSet(viewsets.ModelViewSet):
