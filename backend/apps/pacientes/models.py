@@ -39,3 +39,10 @@ class Consulta(models.Model):
     data_atendimento = models.DateTimeField(default=timezone.now)
     sintomas = models.ManyToManyField(Sintoma, blank=True)
     def __str__(self): return f"Consulta {self.paciente.nome} - {self.data_atendimento}"
+
+class CalculadoraMedicamento(models.Model):
+    class Meta:
+        verbose_name = "Calculadora de Medicamento"
+        verbose_name_plural = "Calculadora de Medicamentos"
+    def __str__(self):
+        return "Acessar Calculadora"

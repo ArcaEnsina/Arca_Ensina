@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from django.utils import timezone
-from .models import Paciente, Consulta, Alergia, Sintoma
+from .models import Paciente, Consulta, Alergia, Sintoma, CalculadoraMedicamento
 
 class PacienteAdminForm(forms.ModelForm):
     alergias_input = forms.CharField(
@@ -134,3 +134,10 @@ class AlergiaAdmin(admin.ModelAdmin):
 @admin.register(Sintoma)
 class SintomaAdmin(admin.ModelAdmin):
     list_display = ('descricao',)
+
+@admin.register(CalculadoraMedicamento)
+class CalculadoraMedicamentoAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
