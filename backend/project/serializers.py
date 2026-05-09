@@ -1,3 +1,4 @@
+''''
 from rest_framework import serializers
 from apps.pacientes.models import Paciente, Consulta, Alergia, Sintoma 
 from django.utils import timezone
@@ -41,3 +42,4 @@ class ConsultaSerializer(serializers.ModelSerializer):
                 })
                 
         return data
+'''
