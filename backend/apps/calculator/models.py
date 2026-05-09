@@ -1,17 +1,21 @@
 from django.db import models
+#modelo de medicamentos foi para outro app
 
-class Medication(models.Model):
-    name = models.CharField(max_length=100, unique=True, verbose_name="Nome do Medicamento")
-    unit = models.CharField(max_length=50, verbose_name="Unidade de Medida") #Ex: "mg/ml", "mcg/kg/min", etc
-    concentration = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Concentração") # Informações sobre a apresentação do medicamento
-    
-    """
-    adicionar:
-    - dose minima em mg/kg/dia
-    - dose maxima em mg/kg/dia
-    - dose maxima absoluta em mg/dia
-    - faixa etaria para uso
-    """
-    
-    def __str__(self):
-        return self.name
+#criar calculadora
+
+#criar historico da calculadora
+"""
+CalculadoraHistorico
+├── paciente          (ForeignKey → model de paciente, se existir)
+├── medicamento       (CharField por enquanto, ForeignKey depois)
+├── peso              (FloatField)
+├── altura            (FloatField, nullable)
+├── idade_dias        (IntegerField, nullable)
+├── prescricao        (FloatField)
+├── frequencia_horas  (IntegerField)
+├── dose_total_mg     (FloatField)
+├── dose_por_dose_mg  (FloatField)
+├── volume_ml         (FloatField, nullable)
+├── warnings          (JSONField)
+└── criado_em         (DateTimeField auto_now_add)
+"""
