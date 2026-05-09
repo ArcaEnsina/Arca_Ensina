@@ -48,9 +48,8 @@ class ConsultaAdminForm(forms.ModelForm):
         if data_consulta:
             if data_consulta > agora:
                 raise forms.ValidationError("Data Inválida!")
-            
             if paciente and data_consulta.date() < paciente.data_nascimento:
-                raise forms.ValidationError("Data Inválida!")
+                raise forms.ValidationError("Data indisponível para este paciente.")
         return cleaned_data
 
 class ConsultaInline(admin.TabularInline):
@@ -84,12 +83,11 @@ class PacienteAdmin(admin.ModelAdmin):
         instances = formset.save(commit=False)
         for instance in instances:
             if isinstance(instance, Consulta):
-                instance.save()
-                
+                instance.save()               
                 prefix = formset.prefix
                 index = instances.index(instance)
                 sintomas_texto = request.POST.get(f"{prefix}-{index}-sintomas_input")
-
+                
                 if sintomas_texto:
                     instance.sintomas.clear()
                     nomes = [n.strip() for n in sintomas_texto.split(',') if n.strip()]
@@ -104,7 +102,6 @@ class ConsultaAdmin(admin.ModelAdmin):
     form = ConsultaAdminForm
     list_display = ('paciente', 'data_atendimento')
     readonly_fields = ('protocolos_vazio',)
-
     fieldsets = (
         ("Dados da Consulta", {
             'fields': ('paciente', 'data_atendimento', 'sintomas_input')
@@ -113,7 +110,6 @@ class ConsultaAdmin(admin.ModelAdmin):
             'fields': ('protocolos_vazio',),
         }),
     )
-
     def protocolos_vazio(self, obj):
         return "" 
     protocolos_vazio.short_description = "Protocolos Recomendados"
