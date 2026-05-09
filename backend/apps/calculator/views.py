@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import CalculatorSerializer
 from .models import Calculator
-from medications.models import Medication
 from . import services
 
 class CalculatorView(APIView):
