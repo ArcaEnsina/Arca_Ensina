@@ -1,21 +1,17 @@
 from django.db import models
-#modelo de medicamentos foi para outro app
 
-#criar calculadora
-
-#criar historico da calculadora
-"""
-CalculadoraHistorico
-├── paciente          (ForeignKey → model de paciente, se existir)
-├── medicamento       (CharField por enquanto, ForeignKey depois)
-├── peso              (FloatField)
-├── altura            (FloatField, nullable)
-├── idade_dias        (IntegerField, nullable)
-├── prescricao        (FloatField)
-├── frequencia_horas  (IntegerField)
-├── dose_total_mg     (FloatField)
-├── dose_por_dose_mg  (FloatField)
-├── volume_ml         (FloatField, nullable)
-├── warnings          (JSONField)
-└── criado_em         (DateTimeField auto_now_add)
-"""
+class Calculator(models.Model):
+    patient = models.IntegerField() #campo para identificar o paciente, pode ser um ID ou outro identificador, por enquanto é um inteiro, mas pode ser alterado para uma relação com um modelo de paciente no futuro
+    medication = models.ForeignKey('medications.Medication', on_delete=models.PROTECT) #relaciona com o modelo de medicamento
+    weight = models.FloatField() #peso em kg
+    height = models.FloatField(null=True, blank=True) #altura em cm, opcional
+    age_days = models.IntegerField(null=True, blank=True) #idade em dias, opcional
+    frequency_hours = models.IntegerField() #frequência em horas, ex: a cada 6h -> 6
+    dose_total_mg = models.FloatField() #dose total calculada em mg
+    dose_per_dose_mg = models.FloatField() #dose por dose calculada em mg
+    volume_ml = models.FloatField(null=True, blank=True) #volume em ml, opcional, calculado com base na concentração do medicamento
+    warnings = models.JSONField(default=list) #aviso sobre a dose calculada, ex: "Dose acima do limite seguro para a idade do paciente"
+    created_at = models.DateTimeField(auto_now_add=True) #data e hora da criação do registro
+    
+    def __str__(self):
+        return f"Cálculo {self.medication} - Paciente {self.patient} - {self.created_at.strftime('%d/%m/%Y %H:%M')}"
