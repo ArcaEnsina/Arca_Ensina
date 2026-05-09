@@ -1,5 +1,5 @@
 from math import sqrt
-from django.apps import AppConfig
+
 #funções dos calculos da calculadora:
 """
 1. Calcular dose total em miligramas
@@ -61,7 +61,6 @@ def validate_dosage(dosage_per_dose_mg, weight, min_dose, max_dose, max_absolute
     return warning, dosage_per_dose_mg
 
 def validate_dosage_per_age(dosage_per_dose_mg, age_days, limits, weight): #limits deve receber um dicionario com as chaves: "{faixa": {"min": valor, "max": valor, "absolute_max": valor}}
-    
     #classificando a idade com a faixa etaria:
     if age_days < 28:
         faixa = "neonatal"
