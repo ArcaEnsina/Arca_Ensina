@@ -54,13 +54,13 @@ def calculate_dosage_per_dose(total_dosage_mg, frequency_per_day):
     return round(total_dosage_mg / frequency_per_day, 2)
 
 #2- validação da dose calculada
-def validate_dosage(dosage_per_dose_mg, weight, min_dose, max_dose, max_absolute_dose):
+def validate_dosage(total_dosage_mg, weight, min_dose, max_dose, max_absolute_dose):
     warning = []
-    dosage_convert = dosage_per_dose_mg / weight #converte a dose por dose para mg/kg/dose, para comparar com os limites que estão em mg/kg/dia
-    warning, dosage_convert = _check_limits(dosage_convert,dosage_per_dose_mg, min_dose, max_dose, max_absolute_dose)
-    return warning, dosage_per_dose_mg
+    dosage_convert = total_dosage_mg / weight #converte a dose por dose para mg/kg/dose, para comparar com os limites que estão em mg/kg/dia
+    warning, dosage_convert = _check_limits(dosage_convert,total_dosage_mg, min_dose, max_dose, max_absolute_dose)
+    return warning, total_dosage_mg
 
-def validate_dosage_per_age(dosage_per_dose_mg, age_days, limits, weight): #limits deve receber um dicionario com as chaves: "{faixa": {"min": valor, "max": valor, "absolute_max": valor}}
+def validate_dosage_per_age(total_dosage_mg, age_days, limits, weight): #limits deve receber um dicionario com as chaves: "{faixa": {"min": valor, "max": valor, "absolute_max": valor}}
     #classificando a idade com a faixa etaria:
     if age_days < 28:
         faixa = "neonatal"
@@ -77,12 +77,12 @@ def validate_dosage_per_age(dosage_per_dose_mg, age_days, limits, weight): #limi
         raise ValueError("Faixa etária não encontrada nos limites fornecidos.")
     else:
         warning = []
-        dosage_convert = dosage_per_dose_mg / weight #converte a dose por dose para mg/kg/dose, para comparar com os limites que estão em mg/kg/dia
+        dosage_convert = total_dosage_mg / weight #converte a dose por dose para mg/kg/dose, para comparar com os limites que estão em mg/kg/dia
         min_dose = limits[faixa].get("min", None)
         max_dose = limits[faixa].get("max", None)
         max_absolute_dose = limits[faixa].get("absolute_max", None)
-        warning, dosage_convert = _check_limits(dosage_convert, dosage_per_dose_mg, min_dose, max_dose, max_absolute_dose)
-        return warning, dosage_per_dose_mg
+        warning, dosage_convert = _check_limits(dosage_convert, total_dosage_mg, min_dose, max_dose, max_absolute_dose)
+        return warning, total_dosage_mg
 
 #funcao privada que checa os limites
 def _check_limits(converted_dose, dosage_per_dose_mg, min_dose, max_dose, max_absolute_dose):

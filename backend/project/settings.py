@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "apps.audit",
     "apps.calculator",
     "apps.medications",
+    "django_extensions",
 ]
 
 MIDDLEWARE = [

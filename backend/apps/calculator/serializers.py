@@ -7,7 +7,7 @@ class CalculatorSerializer(serializers.Serializer):
     medication_id = serializers.IntegerField(required=True) #id do medicamento, para buscar a concentração e unidade
     
     def validate_medication_id(self, value): #validar se o medicamento existe no banco de dados
-        from medications.models import Medication
+        from apps.medications.models import Medication
         try:
            return Medication.objects.get(id=value)
         except Medication.DoesNotExist:

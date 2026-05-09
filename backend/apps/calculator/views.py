@@ -5,6 +5,8 @@ from rest_framework import status
 from .serializers import CalculatorSerializer
 from .models import Calculator
 from . import services
+from rest_framework.permissions import AllowAny
+from apps.medications.models import Medication
 
 class CalculatorView(APIView):
     def post(self, request):
