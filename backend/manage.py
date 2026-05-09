@@ -5,7 +5,10 @@ import os
 import sys
 
 
+
 def main():
+    import dotenv
+    dotenv.load_dotenv()
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
     try:
