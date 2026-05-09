@@ -41,9 +41,8 @@ def prescription_to_frequency(prescription_time):
     if prescription_time <= 0:
         raise ValueError("Tempo da prescrição deve ser maior que zero.")
     frequency_per_day = 24 / prescription_time
-    if type(frequency_per_day) != int:
-        frequency_per_day = round(frequency_per_day) #arredonda o numero para intero mais próximo, ex: 4.5 -> 5
-    return frequency_per_day
+    
+    return round(frequency_per_day) #arredonda o numero para intero mais próximo, ex: 4.5 -> 5
 
 def calculate_dosage_per_dose(total_dosage_mg, frequency_per_day):
     """
@@ -55,7 +54,47 @@ def calculate_dosage_per_dose(total_dosage_mg, frequency_per_day):
     return round(total_dosage_mg / frequency_per_day, 2)
 
 #2- validação da dose calculada
+def validate_dosage(dosage_per_dose_mg, weight, min_dose, max_dose, max_absolute_dose):
+    warning = []
+    dosage_convert = dosage_per_dose_mg / weight #converte a dose por dose para mg/kg/dose, para comparar com os limites que estão em mg/kg/dia
+    warning, dosage_convert = _check_limits(dosage_convert,dosage_per_dose_mg, min_dose, max_dose, max_absolute_dose)
+    return warning, dosage_per_dose_mg
 
+def validate_dosage_per_age(dosage_per_dose_mg, age_days, limits, weight): #limits deve receber um dicionario com as chaves: "{faixa": {"min": valor, "max": valor, "absolute_max": valor}}
+    
+    #classificando a idade com a faixa etaria:
+    if age_days < 28:
+        faixa = "neonatal"
+    elif age_days >= 28 and age_days < 365:
+        faixa = "lactente"
+    elif age_days >= 365 and age_days < 365*12: #1 a 12 anos
+        faixa = "crianca"
+    elif age_days >= 365*12 and age_days < 365*18: #12 a 18 anos
+        faixa = "adolescente"
+    else:
+        faixa = "adulto"
+        
+    if faixa not in limits:
+        raise ValueError("Faixa etária não encontrada nos limites fornecidos.")
+    else:
+        warning = []
+        dosage_convert = dosage_per_dose_mg / weight #converte a dose por dose para mg/kg/dose, para comparar com os limites que estão em mg/kg/dia
+        min_dose = limits[faixa].get("min", None)
+        max_dose = limits[faixa].get("max", None)
+        max_absolute_dose = limits[faixa].get("absolute_max", None)
+        warning, dosage_convert = _check_limits(dosage_convert, dosage_per_dose_mg, min_dose, max_dose, max_absolute_dose)
+        return warning, dosage_per_dose_mg
+
+#funcao privada que checa os limites
+def _check_limits(converted_dose, dosage_per_dose_mg, min_dose, max_dose, max_absolute_dose):
+    warning = []
+    if min_dose != None and converted_dose < min_dose:
+        warning.append("BAIXO")
+    if max_dose != None and converted_dose > max_dose:
+        warning.append("ALTO")
+    if max_absolute_dose != None and dosage_per_dose_mg > max_absolute_dose:
+        warning.append("CRITICO")
+    return warning, dosage_per_dose_mg
 
 #3- calculo de conversao para liquidos
 def convert_dosage_to_ml(validated_dosage_mg, concentration_mg, concentration_ml):
