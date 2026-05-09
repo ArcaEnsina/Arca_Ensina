@@ -22,8 +22,15 @@ class Paciente(models.Model):
         message="O CPF deve conter exatamente 11 números."
     )
     cpf = models.CharField(max_length=11, unique=True, validators=[cpf_validator])
+    telefone_validator = RegexValidator(
+        regex=r'^\d{11,13}$',
+        message="O telefone deve conter apenas números, incluindo o código do país e DDD (ex: 5581999999999)."
+    )
+    telefone = models.CharField(validators=[telefone_validator], max_length=13)
     data_nascimento = models.DateField(verbose_name="Data de Nascimento")
     genero = models.CharField(max_length=1, choices=GENDER_CHOICES, default='M')
+    nome_responsavel = models.CharField(max_length=255, blank=True, null=True)
+    cidade = models.CharField(max_length=100)
     alergias = models.ManyToManyField(Alergia, blank=True)
     def __str__(self): return self.nome
 

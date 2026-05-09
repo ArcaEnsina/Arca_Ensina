@@ -12,7 +12,10 @@ class PacienteAdminForm(forms.ModelForm):
 
     class Meta:
         model = Paciente
-        fields = ['nome', 'cpf', 'data_nascimento', 'genero', 'alergias_input']
+        fields = [
+            'nome', 'cpf', 'data_nascimento', 'genero', 
+            'nome_responsavel', 'cidade', 'telefone','alergias_input',           
+            ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -66,7 +69,7 @@ class ConsultaInline(admin.TabularInline):
 @admin.register(Paciente)
 class PacienteAdmin(admin.ModelAdmin):
     form = PacienteAdminForm
-    list_display = ('nome', 'cpf', 'data_nascimento', 'genero')
+    list_display = ('nome', 'cpf', 'data_nascimento', 'genero', 'cidade', 'telefone', 'nome_responsavel')
     inlines = [ConsultaInline]
 
     def save_model(self, request, obj, form, change):
