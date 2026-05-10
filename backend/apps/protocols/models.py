@@ -114,3 +114,141 @@ class ProtocolVersion(models.Model):
                 protocol=self.protocol, is_current=True
             ).exclude(pk=self.pk).update(is_current=False)
         super().save(*args, **kwargs)
+
+class ProtocolStep(models.Model):
+
+    class StepType(models.TextChoices):
+        INFORMATIVO = "informativo", "Informativo"
+        SIM_NAO = "sim_nao", "Sim/Não"
+        MULTIPLA_ESCOLHA = "multipla_escolha", "Múltipla Escolha"
+        CHECKLIST = "checklist", "Checklist com Regra de Avanço"
+        INPUT_NUMERICO = "input_numerico", "Input Numérico"
+        CALCULO_DERIVADO = "calculo_derivado", "Cálculo Derivado"
+        PRESCRICAO = "prescricao", "Prescrição de Medicação"
+        AGUARDAR_REAVALIAR = "aguardar", "Aguardar/Reavaliar"
+        LOOP_TITULACAO = "loop_titulacao", "Loop de Titulação"
+
+    version = models.ForeignKey(
+        ProtocolVersion,
+        on_delete=models.CASCADE,
+        related_name="steps",
+        verbose_name="Versão do protocolo",
+    )
+    
+    step_type = models.CharField(
+        max_length=20,
+        choices=StepType.choices,
+        verbose_name="Tipo do passo",
+    )
+    
+    order = models.PositiveIntegerField(verbose_name="Ordem")
+    title = models.CharField(max_length=255, verbose_name="Título")
+    content = models.TextField(blank=True, verbose_name="Conteúdo / instrução")
+    next_step = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="previous_steps",
+        verbose_name="Próximo passo padrão",
+    )
+    config = models.JSONField(default=dict, blank=True, verbose_name="Configuração")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["version", "order"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["version", "order"],
+                name="unique_step_order_per_version",
+            )
+        ]
+        verbose_name = "Passo do Protocolo"
+        verbose_name_plural = "Passos do Protocolo"
+
+    def __str__(self):
+        return f"{self.version} — {self.order}. {self.title}"
+
+class ProtocolExecution(models.Model):
+
+    class Status(models.TextChoices):
+        EM_ANDAMENTO = "em_andamento", "Em andamento"
+        CONCLUIDO = "concluido", "Concluído"
+        ABANDONADO = "abandonado", "Abandonado"
+
+    version = models.ForeignKey(
+        ProtocolVersion,
+        on_delete=models.PROTECT,
+        related_name="executions",
+        verbose_name="Versão do protocolo",
+    )
+    physician = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="protocol_executions",
+        verbose_name="Médico",
+    )
+    patient_name = models.CharField(max_length=255, verbose_name="Nome do paciente")
+    status = models.CharField(
+        max_length=15,
+        choices=Status.choices,
+        default=Status.EM_ANDAMENTO,
+        db_index=True,
+        verbose_name="Status",
+    )
+    current_step = models.ForeignKey(
+        ProtocolStep,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="active_executions",
+        verbose_name="Passo atual",
+    )
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True, verbose_name="Finalizado em")
+
+    class Meta:
+        ordering = ["-started_at"]
+        verbose_name = "Execução de Protocolo"
+        verbose_name_plural = "Execuções de Protocolo"
+
+    def __str__(self):
+        return f"{self.version} — {self.patient_name} ({self.get_status_display()})"
+
+
+class ProtocolExecutionState(models.Model):
+
+    execution = models.ForeignKey(
+        ProtocolExecution,
+        on_delete=models.CASCADE,
+        related_name="states",
+        verbose_name="Execução",
+    )
+    step = models.ForeignKey(
+        ProtocolStep,
+        on_delete=models.PROTECT,
+        related_name="execution_states",
+        verbose_name="Passo",
+    )
+    values = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Valores informados / cálculos derivados",
+    )
+    loop_count = models.PositiveIntegerField(default=0, verbose_name="Contador de loop")
+    answered_at = models.DateTimeField(auto_now_add=True, verbose_name="Respondido em")
+
+    class Meta:
+        ordering = ["answered_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["execution", "step"],
+                name="unique_state_per_step_execution",
+            )
+        ]
+        verbose_name = "Estado de Execução"
+        verbose_name_plural = "Estados de Execução"
+
+    def __str__(self):
+        return f"{self.execution} — step {self.step.order}"

@@ -2,7 +2,6 @@ from django.contrib import admin
 
 from .models import Protocol, ProtocolVersion
 
-
 class ProtocolVersionInline(admin.TabularInline):
     model = ProtocolVersion
     extra = 0
@@ -37,3 +36,5 @@ class ProtocolVersionAdmin(admin.ModelAdmin):
     list_filter = ["protocol_type", "is_current"]
     search_fields = ["protocol__title"]
     raw_id_fields = ["protocol", "created_by"]
+
+
