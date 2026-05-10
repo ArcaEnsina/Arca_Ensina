@@ -6,6 +6,11 @@
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
 
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+    },
+
     "useDefineForClassFields": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -21,7 +26,7 @@
     "noUnusedParameters": true,
     "noImplicitOverride": true,
 
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
-  "include": ["src"]
+  "include": ["src"],
 }
