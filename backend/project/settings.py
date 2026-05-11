@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     "apps.calculator",
     "apps.medications",
     "django_extensions",
+    "apps.pacientes",
+    "apps.protocols",
 ]
 
 MIDDLEWARE = [
