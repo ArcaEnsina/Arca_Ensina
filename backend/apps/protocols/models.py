@@ -118,15 +118,15 @@ class ProtocolVersion(models.Model):
 class ProtocolStep(models.Model):
 
     class StepType(models.TextChoices):
-        INFORMATIVO = "informativo", "Informativo"
-        SIM_NAO = "sim_nao", "Sim/Não"
-        MULTIPLA_ESCOLHA = "multipla_escolha", "Múltipla Escolha"
+        INFORMATIVO = "info", "Informativo"
+        SIM_NAO = "yes_no", "Sim/Não"
+        MULTIPLA_ESCOLHA = "multiple_choice", "Múltipla Escolha"
         CHECKLIST = "checklist", "Checklist com Regra de Avanço"
-        INPUT_NUMERICO = "input_numerico", "Input Numérico"
-        CALCULO_DERIVADO = "calculo_derivado", "Cálculo Derivado"
-        PRESCRICAO = "prescricao", "Prescrição de Medicação"
-        AGUARDAR_REAVALIAR = "aguardar", "Aguardar/Reavaliar"
-        LOOP_TITULACAO = "loop_titulacao", "Loop de Titulação"
+        INPUT_NUMERICO = "numeric_input", "Input Numérico"
+        CALCULO_DERIVADO = "derived_calc", "Cálculo Derivado"
+        PRESCRICAO = "medication_prescription", "Prescrição de Medicação"
+        AGUARDAR_REAVALIAR = "wait_reassess", "Aguardar/Reavaliar"
+        LOOP_TITULACAO = "titration_loop", "Loop de Titulação"
 
     version = models.ForeignKey(
         ProtocolVersion,
@@ -136,7 +136,7 @@ class ProtocolStep(models.Model):
     )
     
     step_type = models.CharField(
-        max_length=20,
+        max_length=25,
         choices=StepType.choices,
         verbose_name="Tipo do passo",
     )
@@ -215,6 +215,14 @@ class ProtocolExecution(models.Model):
 
     def __str__(self):
         return f"{self.version} — {self.patient_name} ({self.get_status_display()})"
+    
+    def clean(self):
+        if self.version and self.version.protocol_type != ProtocolVersion.ProtocolType.GUIADO:
+            raise DjangoValidationError("Só é possível executar protocolos do tipo guiado.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class ProtocolExecutionState(models.Model):
