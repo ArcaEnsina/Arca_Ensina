@@ -4,12 +4,14 @@ import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import DesignSystem from './pages/DesignSystem'
+import { Toaster } from '@/components/ui/sonner'
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth()
 
   if (loading) {
-    return <p style={{ textAlign: 'center', marginTop: '80px' }}>Carregando...</p>
+    return <p className="text-center mt-20">Carregando...</p>
   }
 
   if (!isAuthenticated) {
@@ -23,7 +25,7 @@ function GuestRoute({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth()
 
   if (loading) {
-    return <p style={{ textAlign: 'center', marginTop: '80px' }}>Carregando...</p>
+    return <p className="text-center mt-20">Carregando...</p>
   }
 
   if (isAuthenticated) {
@@ -36,6 +38,7 @@ function GuestRoute({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster />
       <Routes>
         <Route
           path="/login"
@@ -58,6 +61,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/_/design-system"
+          element={
+            <ProtectedRoute>
+              <DesignSystem />
             </ProtectedRoute>
           }
         />

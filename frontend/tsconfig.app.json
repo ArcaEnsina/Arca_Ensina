@@ -1,10 +1,16 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "target": "ES2022",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+    },
 
     "useDefineForClassFields": true,
     "allowImportingTsExtensions": true,
@@ -21,7 +27,7 @@
     "noUnusedParameters": true,
     "noImplicitOverride": true,
 
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
-  "include": ["src"]
+  "include": ["src"],
 }
