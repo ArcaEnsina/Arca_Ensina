@@ -1,0 +1,344 @@
+[
+  {
+    "model": "protocols.protocol",
+    "pk": 2,
+    "fields": {
+      "title": "Protocolo de Sedação e Analgesia em UTIP",
+      "cid": "",
+      "specialty": "Terapia Intensiva Pediátrica",
+      "author": "Arca Ensina",
+      "tags": ["sedação", "analgesia", "UTIP", "ventilação mecânica", "sedativos"],
+      "age_range_min": 0,
+      "age_range_max": 216,
+      "gender_applicable": null,
+      "is_active": true,
+      "created_at": "2026-01-01T00:00:00Z",
+      "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "protocols.protocolversion",
+    "pk": 2,
+    "fields": {
+      "protocol": 2,
+      "version_number": 1,
+      "protocol_type": "painel",
+      "steps_data": {},
+      "panel_data": {
+        "sections": [
+          {
+            "id": "equiv_midaz_diaz",
+            "title": "Equivalência: Midazolam ↔ Diazepam",
+            "type": "equivalence_table",
+            "description": "Conversão entre benzodiazepínicos para desmame e substituição.",
+            "rows": [
+              {
+                "drug_a": "Midazolam IV",
+                "drug_b": "Diazepam IV",
+                "conversion_factor": 0.5,
+                "formula": "dose_midazolam_mg * 0.5",
+                "notes": "Diazepam tem meia-vida mais longa. Ajustar intervalo."
+              },
+              {
+                "drug_a": "Midazolam IV",
+                "drug_b": "Diazepam VO",
+                "conversion_factor": 0.5,
+                "formula": "dose_midazolam_mg * 0.5",
+                "notes": "Biodisponibilidade oral ~80%"
+              },
+              {
+                "drug_a": "Midazolam IV contínua",
+                "drug_b": "Lorazepam IV",
+                "conversion_factor": 0.33,
+                "formula": "dose_midazolam_mg_h * 0.33",
+                "notes": "Lorazepam: 1 mg ≈ 3 mg midazolam. Meia-vida mais longa."
+              }
+            ],
+            "dose_limits": {
+              "midazolam_iv": {"max_dose": "0.2 mg/kg/h", "max_bolus": "0.1 mg/kg"},
+              "diazepam_iv": {"max_dose": "0.1 mg/kg/dose", "intervalo": "4-6h"},
+              "lorazepam_iv": {"max_dose": "0.1 mg/kg/dose", "intervalo": "4-6h"}
+            }
+          },
+          {
+            "id": "equiv_morfina_metadona",
+            "title": "Equivalência: Morfina ↔ Metadona",
+            "type": "equivalence_table",
+            "description": "Conversão para desmame de opióides. Metadona tem meia-vida longa e variável.",
+            "rows": [
+              {
+                "drug_a": "Morfina IV contínua",
+                "drug_b": "Metadona VO",
+                "conversion_factor": 1.0,
+                "formula": "dose_morfina_mg_dia * 1.0",
+                "notes": "Iniciar com 1/3 a 1/2 da dose calculada. Reavaliar em 24h."
+              },
+              {
+                "drug_a": "Morfina IV",
+                "drug_b": "Morfina VO",
+                "conversion_factor": 3.0,
+                "formula": "dose_morfina_iv_mg * 3.0",
+                "notes": "Biodisponibilidade oral ~30%. Dose VO = 3x dose IV."
+              },
+              {
+                "drug_a": "Fentanil IV (mcg/h)",
+                "drug_b": "Morfina IV (mg/dia)",
+                "conversion_factor": 0.1,
+                "formula": "dose_fentanil_mcg_h * 24 * 0.1",
+                "notes": "Fentanil 1 mcg/h ≈ 0.1 mg/dia de morfina IV"
+              }
+            ],
+            "dose_limits": {
+              "morfina_iv": {"max_dose": "0.1 mg/kg/h contínua", "bolus": "0.05-0.1 mg/kg"},
+              "morfina_vo": {"max_dose": "0.3 mg/kg/dose", "intervalo": "4h"},
+              "metadona_vo": {"max_dose": "0.1 mg/kg/dose", "intervalo": "6-12h"},
+              "fentanil_iv": {"max_dose": "2 mcg/kg/h contínua", "bolus": "0.5-1 mcg/kg"}
+            }
+          },
+          {
+            "id": "equiv_dexmed_clonidina",
+            "title": "Equivalência: Dexmedetomidina ↔ Clonidina",
+            "type": "equivalence_table",
+            "description": "Agonistas alfa-2. Dexmedetomidina mais seletiva e de ação mais curta.",
+            "rows": [
+              {
+                "drug_a": "Dexmedetomidina IV (mcg/kg/h)",
+                "drug_b": "Clonidina IV (mcg/kg/h)",
+                "conversion_factor": 10.0,
+                "formula": "dose_dexmed_mcg_kg_h * 10",
+                "notes": "Clonidina 10x menos potente que dexmedetomidina."
+              },
+              {
+                "drug_a": "Dexmedetomidina IV",
+                "drug_b": "Clonidina VO/SL",
+                "conversion_factor": 10.0,
+                "formula": "dose_dexmed_total_mcg_dia * 10",
+                "notes": "Clonidina VO: biodisponibilidade ~75%"
+              }
+            ],
+            "dose_limits": {
+              "dexmedetomidina": {"loading": "0.5-1 mcg/kg em 10min", "maintenance": "0.2-0.7 mcg/kg/h"},
+              "clonidina_iv": {"max_dose": "1-2 mcg/kg/h"},
+              "clonidina_vo": {"max_dose": "2-5 mcg/kg/dose", "intervalo": "8h"}
+            }
+          },
+          {
+            "id": "equiv_loraz_diaz",
+            "title": "Equivalência: Lorazepam ↔ Diazepam",
+            "type": "equivalence_table",
+            "description": "Conversão entre benzodiazepínicos de longa ação.",
+            "rows": [
+              {
+                "drug_a": "Lorazepam IV",
+                "drug_b": "Diazepam IV",
+                "conversion_factor": 2.0,
+                "formula": "dose_lorazepam_mg * 2.0",
+                "notes": "Lorazepam 1 mg ≈ Diazepam 2 mg IV"
+              },
+              {
+                "drug_a": "Lorazepam IV",
+                "drug_b": "Diazepam VO",
+                "conversion_factor": 2.0,
+                "formula": "dose_lorazepam_mg * 2.0",
+                "notes": "Diazepam VO: biodisponibilidade ~80%"
+              }
+            ]
+          }
+        ],
+        "taper_schedules": [
+          {
+            "id": "desmame_morfina_metadona",
+            "title": "Desmame: Morfina IV → Metadona VO",
+            "type": "taper_schedule",
+            "description": "Protocolo de desmame de morfina IV para metadona VO em 5-7 dias.",
+            "steps": [
+              {
+                "day": 1,
+                "action": "Calcular dose total de morfina IV nas últimas 24h",
+                "formula": "dose_morfina_24h_mg",
+                "notes": "Usar dose real administrada, não prescrita"
+              },
+              {
+                "day": 1,
+                "action": "Iniciar metadona VO",
+                "dose": "1/3 da dose calculada de morfina",
+                "formula": "dose_morfina_24h_mg / 3",
+                "intervalo": "8h (3x/dia)",
+                "notes": "Manter morfina IV em 50% da dose original"
+              },
+              {
+                "day": 2,
+                "action": "Reduzir morfina IV para 25%",
+                "formula": "dose_morfina_original * 0.25",
+                "notes": "Manter metadona"
+              },
+              {
+                "day": 3,
+                "action": "Suspender morfina IV",
+                "notes": "Manter metadona. Monitorar sinais de abstinência (escala SOS)."
+              },
+              {
+                "day": 4,
+                "action": "Avaliar necessidade de ajuste de metadona",
+                "notes": "Se SOS > 4, aumentar metadona em 25%"
+              },
+              {
+                "day": 5,
+                "action": "Iniciar redução de metadona",
+                "formula": "dose_metadona_atual * 0.8",
+                "notes": "Reduzir 20% a cada 2-3 dias"
+              },
+              {
+                "day": 7,
+                "action": "Avaliar descontinuação",
+                "notes": "Se estável, reduzir para 1x/dia e suspender em 2-3 dias"
+              }
+            ],
+            "monitoring": {
+              "scale": "SOS (Sophia Observation withdrawal Symptoms)",
+              "frequency": "A cada 4h durante desmame",
+              "threshold": "SOS ≥ 4 → considerar aumento de dose"
+            }
+          },
+          {
+            "id": "desmame_midazolam",
+            "title": "Desmame: Midazolam IV",
+            "type": "taper_schedule",
+            "description": "Protocolo de desmame de midazolam contínuo.",
+            "steps": [
+              {
+                "day": 1,
+                "action": "Reduzir infusão em 20%",
+                "formula": "dose_midazolam_atual * 0.8"
+              },
+              {
+                "day": 2,
+                "action": "Reduzir infusão em mais 20%",
+                "formula": "dose_midazolam_atual * 0.8"
+              },
+              {
+                "day": 3,
+                "action": "Se < 0.05 mg/kg/h, tentar interromper",
+                "notes": "Monitorar RASS/SBS. Se agitação, considerar troca para lorazepam intermitente."
+              }
+            ],
+            "monitoring": {
+              "scale": "RASS (Richmond Agitation-Sedation Scale)",
+              "target": "RASS 0 a -2 (conforme indicação)",
+              "frequency": "A cada 2h durante desmame"
+            }
+          }
+        ],
+        "calculators": [
+          {
+            "id": "calc_morfina_metadona",
+            "title": "Conversão Morfina IV → Metadona VO",
+            "inputs": [
+              {"name": "dose_morfina_24h", "label": "Dose total de Morfina IV nas últimas 24h (mg)", "unit": "mg"},
+              {"name": "peso", "label": "Peso do paciente (kg)", "unit": "kg"}
+            ],
+            "formula": "dose_morfina_24h / 3",
+            "output_label": "Dose de Metadona VO (total/dia)",
+            "output_unit": "mg/dia",
+            "output_divisions": 3,
+            "output_division_label": "mg a cada 8h",
+            "notes": "Iniciar com 1/3. Reavaliar em 24h."
+          },
+          {
+            "id": "calc_fentanil_morfina",
+            "title": "Conversão Fentanil IV → Morfina IV",
+            "inputs": [
+              {"name": "dose_fentanil_mcg_h", "label": "Dose de Fentanil IV (mcg/h)", "unit": "mcg/h"},
+              {"name": "peso", "label": "Peso do paciente (kg)", "unit": "kg"}
+            ],
+            "formula": "dose_fentanil_mcg_h * 24 * 0.1",
+            "output_label": "Dose equivalente de Morfina IV (total/dia)",
+            "output_unit": "mg/dia",
+            "notes": "Fentanil 1 mcg/h ≈ 0.1 mg/dia de morfina IV"
+          },
+          {
+            "id": "calc_midaz_diaz",
+            "title": "Conversão Midazolam IV → Diazepam",
+            "inputs": [
+              {"name": "dose_midazolam_mg_h", "label": "Dose de Midazolam IV (mg/h)", "unit": "mg/h"},
+              {"name": "peso", "label": "Peso do paciente (kg)", "unit": "kg"}
+            ],
+            "formula": "dose_midazolam_mg_h * 0.5",
+            "output_label": "Dose equivalente de Diazepam IV",
+            "output_unit": "mg/h",
+            "notes": "Diazepam tem meia-vida mais longa. Ajustar intervalo para 4-6h."
+          },
+          {
+            "id": "calc_dexmed_clonidina",
+            "title": "Conversão Dexmedetomidina → Clonidina",
+            "inputs": [
+              {"name": "dose_dexmed_mcg_kg_h", "label": "Dose de Dexmedetomidina (mcg/kg/h)", "unit": "mcg/kg/h"},
+              {"name": "peso", "label": "Peso do paciente (kg)", "unit": "kg"}
+            ],
+            "formula": "dose_dexmed_mcg_kg_h * peso * 10",
+            "output_label": "Dose equivalente de Clonidina IV",
+            "output_unit": "mcg/h",
+            "notes": "Clonidina 10x menos potente. Considerar meia-vida mais longa."
+          },
+          {
+            "id": "calc_sedation_score",
+            "title": "Meta de Sedação (RASS/SBS)",
+            "inputs": [
+              {"name": "rass_target", "label": "RASS alvo", "unit": "score", "min": -5, "max": 4},
+              {"name": "current_rass", "label": "RASS atual", "unit": "score", "min": -5, "max": 4}
+            ],
+            "formula": "rass_target - current_rass",
+            "output_label": "Ajuste necessário",
+            "output_unit": "pontos",
+            "interpretation": {
+              "positive": "Paciente mais agitado que o alvo → aumentar sedação",
+              "negative": "Paciente mais sedado que o alvo → reduzir sedação",
+              "zero": "Dentro do alvo"
+            }
+          }
+        ],
+        "reference_tables": {
+          "rass_scale": {
+            "title": "Richmond Agitation-Sedation Scale (RASS)",
+            "scores": [
+              {"score": 4, "description": "Combativo, violento, perigo imediato"},
+              {"score": 3, "description": "Puxa tubos/cateteres, agressivo"},
+              {"score": 2, "description": "Movimentos não propositais frequentes"},
+              {"score": 1, "description": "Agitado, ansioso"},
+              {"score": 0, "description": "Alerta e calmo"},
+              {"score": -1, "description": "Sonolento, desperta com estímulo verbal > 10s"},
+              {"score": -2, "description": "Sedado leve, desperta com estímulo verbal < 10s"},
+              {"score": -3, "description": "Sedado moderado, desperta com estímulo físico"},
+              {"score": -4, "description": "Sedado profundo, resposta ao estímulo físico"},
+              {"score": -5, "description": "Não desperta a nenhum estímulo"}
+            ]
+          },
+          "sos_scale": {
+            "title": "Sophia Observation withdrawal Symptoms (SOS)",
+            "description": "Escala de avaliação de abstinência em pediatria. SOS ≥ 4 indica necessidade de intervenção.",
+            "items": [
+              "Tremores",
+              "Agitação",
+              "Choro inconsolável",
+              "Hipertonia",
+              "Mioclonias",
+              "Sudorese",
+              "Fezes explosivas",
+              "Vômitos",
+              "Febre"
+            ],
+            "threshold": 4
+          }
+        }
+      },
+      "metadata": {
+        "source": "Diretrizes UTIP - Sedação e Analgesia",
+        "target_population": "Crianças e adolescentes em UTIP (0-18 anos)",
+        "age_range_months": "0-216",
+        "version_notes": "Versão inicial do painel de sedação"
+      },
+      "created_at": "2026-01-01T00:00:00Z",
+      "is_current": true
+    }
+  }
+]
