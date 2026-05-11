@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Paciente, Consulta, Alergia, Sintoma 
+
+from .models import Alergia, Consulta, Paciente, Sintoma
+
 
 class AlergiaSerializer(serializers.ModelSerializer):
     class Meta:

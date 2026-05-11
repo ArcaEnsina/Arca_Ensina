@@ -1,6 +1,8 @@
 from rest_framework import viewsets
-from .serializers import PacienteSerializer, ConsultaSerializer
-from .models import Paciente, Consulta
+
+from .models import Consulta, Paciente
+from .serializers import ConsultaSerializer, PacienteSerializer
+
 
 class PacienteViewSet(viewsets.ModelViewSet):
     queryset = Paciente.objects.all()
