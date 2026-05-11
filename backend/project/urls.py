@@ -50,6 +50,7 @@ def em_breve(request):
     """
     return HttpResponse(html_content)
 
+
 V = "api/<str:version>"
 
 urlpatterns = [
