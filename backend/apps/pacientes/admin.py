@@ -13,7 +13,7 @@ class PacienteAdminForm(forms.ModelForm):
     class Meta:
         model = Paciente
         fields = [
-            'nome', 'cpf', 'data_nascimento', 'genero', 
+            'nome', 'data_nascimento', 'genero', 
             'nome_responsavel', 'cidade', 'telefone','alergias_input',           
             ]
 
@@ -69,7 +69,7 @@ class ConsultaInline(admin.TabularInline):
 @admin.register(Paciente)
 class PacienteAdmin(admin.ModelAdmin):
     form = PacienteAdminForm
-    list_display = ('nome', 'cpf', 'data_nascimento', 'genero', 'cidade', 'telefone', 'nome_responsavel')
+    list_display = ('nome', 'data_nascimento', 'genero', 'cidade', 'telefone', 'nome_responsavel')
     inlines = [ConsultaInline]
 
     def save_model(self, request, obj, form, change):

@@ -17,11 +17,6 @@ class Paciente(models.Model):
         ('O', 'Outro'),
     ]
     nome = models.CharField(max_length=100)
-    cpf_validator = RegexValidator(
-        regex=r'^\d{11}$',
-        message="O CPF deve conter exatamente 11 números."
-    )
-    cpf = models.CharField(max_length=11, unique=True, validators=[cpf_validator])
     telefone_validator = RegexValidator(
         regex=r'^\d{11,13}$',
         message="O telefone deve conter apenas números, incluindo o código do país e DDD (ex: 5581999999999)."
