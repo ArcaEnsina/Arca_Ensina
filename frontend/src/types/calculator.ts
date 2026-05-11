@@ -7,6 +7,7 @@ export interface Medication{
 //dados recebidos do formulário de cálculo
 export interface CalculatorFormData {
     weight: number | null
+    height: number | null
     age_days: number | null
     medication_id: number | null
 }
