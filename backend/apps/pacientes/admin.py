@@ -1,7 +1,9 @@
-from django.contrib import admin
 from django import forms
+from django.contrib import admin
 from django.utils import timezone
-from .models import Paciente, Consulta, Alergia, Sintoma, CalculadoraMedicamento
+
+from .models import Alergia, CalculadoraMedicamento, Consulta, Paciente, Sintoma
+
 
 class PacienteAdminForm(forms.ModelForm):
     alergias_input = forms.CharField(
@@ -59,7 +61,9 @@ class ConsultaInline(admin.TabularInline):
     model = Consulta
     form = ConsultaAdminForm
     extra = 1
-    fields = ('data_atendimento', 'peso', 'altura', 'sintomas_input', 'protocolos_vazio')
+    fields = (
+        'data_atendimento', 'peso', 'altura', 
+        'sintomas_input', 'protocolos_vazio')
     readonly_fields = ('protocolos_vazio',)
 
     def protocolos_vazio(self, obj):
@@ -69,7 +73,9 @@ class ConsultaInline(admin.TabularInline):
 @admin.register(Paciente)
 class PacienteAdmin(admin.ModelAdmin):
     form = PacienteAdminForm
-    list_display = ('nome', 'data_nascimento', 'genero', 'cidade', 'telefone', 'nome_responsavel')
+    list_display = ('nome', 'data_nascimento',
+                     'genero', 'cidade', 
+                     'telefone', 'nome_responsavel')
     inlines = [ConsultaInline]
 
     def save_model(self, request, obj, form, change):
@@ -103,11 +109,13 @@ class PacienteAdmin(admin.ModelAdmin):
 @admin.register(Consulta)
 class ConsultaAdmin(admin.ModelAdmin):
     form = ConsultaAdminForm
-    list_display = ('paciente', 'data_atendimento', 'peso', 'altura')
+    list_display = ('paciente', 'data_atendimento', 
+                    'peso', 'altura')
     readonly_fields = ('protocolos_vazio',)
     fieldsets = (
         ("Dados da Consulta", {
-            'fields': ('paciente', 'data_atendimento', 'peso', 'altura', 'sintomas_input')
+            'fields': ('paciente', 'data_atendimento', 
+                       'peso', 'altura', 'sintomas_input')
         }),
         ("Sugestões Clínicas", {
             'fields': ('protocolos_vazio',),
