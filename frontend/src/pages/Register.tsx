@@ -66,7 +66,6 @@ export default function Register() {
             onChange={(e) => setUsername(e.target.value)}
             required
             autoComplete="username"
-            autoFocus
           />
         </div>
         <div className="form-group">
