@@ -1,6 +1,5 @@
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils import timezone
 
 
 class Alergia(models.Model):
@@ -28,22 +27,17 @@ class Paciente(models.Model):
     telefone = models.CharField(validators=[telefone_validator], max_length=13)
     data_nascimento = models.DateField(verbose_name="Data de Nascimento")
     genero = models.CharField(max_length=1, choices=GENDER_CHOICES, default='M')
+    peso = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        help_text="Peso em kg", null=True, blank=True
+        )
+    altura = models.PositiveIntegerField(
+        help_text="Altura em centímetros", null=True, blank=True)
+    sintomas = models.ManyToManyField(Sintoma, blank=True)
     nome_responsavel = models.CharField(max_length=255, blank=True, null=True)
     cidade = models.CharField(max_length=100)
     alergias = models.ManyToManyField(Alergia, blank=True)
     def __str__(self): return self.nome
-
-class Consulta(models.Model):
-    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
-    data_atendimento = models.DateTimeField(default=timezone.now)
-    peso = models.DecimalField(
-        max_digits=5, decimal_places=2, 
-        help_text="Peso em kg", null=True, blank=True
-        )    
-    altura = models.PositiveIntegerField(
-        help_text="Altura em centímetros", null=True, blank=True)    
-    sintomas = models.ManyToManyField(Sintoma, blank=True)
-    def __str__(self): return f"Consulta {self.paciente.nome} - {self.data_atendimento}"
 
 class CalculadoraMedicamento(models.Model):
     class Meta:

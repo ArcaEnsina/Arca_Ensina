@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Alergia, Consulta, Paciente, Sintoma
+from .models import Alergia, Paciente, Sintoma
 
 
 class AlergiaSerializer(serializers.ModelSerializer):
@@ -19,11 +19,6 @@ class PacienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paciente
         fields = [
-            'id', 'nome', 'data_nascimento', 'genero', 
+            'id', 'nome', 'data_nascimento', 'genero',
             'nome_responsavel', 'cidade', 'telefone', 'alergias'
         ]
-
-class ConsultaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Consulta
-        fields = ['id', 'paciente', 'data_atendimento', 'peso', 'altura', 'descricao']
