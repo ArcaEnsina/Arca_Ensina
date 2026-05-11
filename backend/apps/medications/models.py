@@ -3,6 +3,8 @@ from django.db import models
 class Medication(models.Model):
     name = models.CharField(max_length=255)
     prescription = models.FloatField() #dose (mg/kg/dia ou mg/m²/dia)
+    category = models.CharField(default="Outro", max_length=100)
+    description = models.TextField(default="Nenhuma descrição disponível.", blank=True)
     is_per_m2 = models.BooleanField(default=False) #indica se a prescrição é por m² ou por kg
     frequency_hours = models.IntegerField() #frequência em horas, ex: a cada 6h -> 6
     min_dose_mg_kg = models.FloatField(null=True, blank=True) #dose mínima segura em mg/kg/dia
