@@ -37,6 +37,8 @@ class Paciente(models.Model):
 class Consulta(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
     data_atendimento = models.DateTimeField(default=timezone.now)
+    peso = models.DecimalField(max_digits=5, decimal_places=2, help_text="Peso em kg", null=True, blank=True)    
+    altura = models.PositiveIntegerField(help_text="Altura em centímetros", null=True, blank=True)    
     sintomas = models.ManyToManyField(Sintoma, blank=True)
     def __str__(self): return f"Consulta {self.paciente.nome} - {self.data_atendimento}"
 
