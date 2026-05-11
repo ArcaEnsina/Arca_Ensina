@@ -5,7 +5,6 @@ import os
 import sys
 
 
-
 def main():
     try:
         import dotenv

@@ -50,12 +50,11 @@ def em_breve(request):
     """
     return HttpResponse(html_content)
 
-V = "api/v1"
+V = "api/<str:version>"
 
 urlpatterns = [
     path("", em_breve),
     path("admin/", admin.site.urls),
-    path('api/v1/', include('apps.pacientes.urls')),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
@@ -68,5 +67,6 @@ urlpatterns = [
     path(f"{V}/auth/user/", UserMeView.as_view(), name="user_me"),
     path(f"{V}/auth/logout/", LogoutView.as_view(), name="logout"),
     path(f"{V}/", include("apps.audit.urls")),
+    path(f"{V}/", include("apps.pacientes.urls")),
     path(f"{V}/", include("apps.protocols.urls")),
 ]
