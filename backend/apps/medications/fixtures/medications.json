@@ -4,6 +4,7 @@
         "pk": 1,
         "fields": {
             "name": "Amoxicilina",
+            "type": "Sedativo",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -21,6 +22,7 @@
         "pk": 2,
         "fields": {
             "name": "Morfina",
+            "type": "Analgésico Opioide", 
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 4,
@@ -37,6 +39,7 @@
         "pk": 3,
         "fields": {
             "name": "Diazepam",
+            "type": "Sedativo",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -54,6 +57,7 @@
         "pk": 4,
         "fields": {
             "name": "Dipirona",
+            "type": "Analgésico",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -70,6 +74,7 @@
         "pk": 5,
         "fields": {
             "name": "Midazolam",
+            "type": "Sedativo",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -86,6 +91,7 @@
         "pk": 6,
         "fields": {
             "name": "Fetanil",
+            "type": "Anestésico e analgésico",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -102,6 +108,28 @@
         "pk": 7,
         "fields": {
             "name": "Clonidina",
+            "type": "Sedativo ou analgésico",
+            "prescription": 50,
+            "is_per_m2": false,
+            "frequency_hours": 6,
+            "min_dose_mg_kg": 0.5,
+            "max_dose_mg_kg": 2.5,
+            "max_absolute_dose_mg": 0.8,
+            "concentration_mg": 250,
+            "concentration_ml": 5,
+            "limits_by_age": null
+        }
+},
+  {"model": "medications.medication",
+        "pk": 7,
+        "fields": {
+            "name": "Paracetamol",
+            "type": " Analgésico",
+            "prescription": 50,
+            "is_per_m2": false,
+            "frequency_hours": 6,
+            "min_dose_mg_kg": 15,
+            "max_dose_mg_kg": 60,
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -112,10 +140,5 @@
             "concentration_ml": 5,
             "limits_by_age": null
         }
-}
-
-
-        
-    
-    
+}   
 ]
