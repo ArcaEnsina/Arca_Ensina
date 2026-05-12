@@ -39,9 +39,6 @@ const SINTOMAS_PADRAO = [
   "Perda de apetite",
 ];
 
-const labelClass =
-  "text-[10px] font-bold text-arca-blue-700 uppercase tracking-wider";
-
 interface FormData {
   nome: string;
   data_nascimento: string;
@@ -57,6 +54,9 @@ export default function PatientsPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const labelClass =
+    "text-[10px] font-bold text-arca-blue-700 uppercase tracking-wider";
 
   const [form, setForm] = useState<FormData>({
     nome: "",
@@ -120,16 +120,15 @@ export default function PatientsPage() {
 
     try {
       await api.post("pacientes/", payload);
-
       toast.success("Paciente cadastrado com sucesso!", { id: toastId });
-
       setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
       console.error("Erro na requisição:", err);
       let message = "Erro ao salvar. Verifique a conexão.";
 
       if (err instanceof AxiosError) {
-        const data = err.response?.data;
+        const axiosError = err as AxiosError<ApiErrorResponse>;
+        const data = axiosError.response?.data;
         if (data && typeof data === "object") {
           message = Object.values(data).flat().join(" | ");
         }
@@ -166,8 +165,11 @@ export default function PatientsPage() {
               </CardHeader>
               <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="md:col-span-2 space-y-2">
-                  <label className={labelClass}>Nome Completo *</label>
+                  <label htmlFor="nome" className={labelClass}>
+                    Nome Completo *
+                  </label>
                   <Input
+                    id="nome"
                     required
                     value={form.nome}
                     onChange={(e) => setField("nome", e.target.value)}
@@ -175,8 +177,11 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className={labelClass}>Data de Nasc. *</label>
+                  <label htmlFor="data_nasc" className={labelClass}>
+                    Data de Nasc. *
+                  </label>
                   <Input
+                    id="data_nasc"
                     type="date"
                     required
                     value={form.data_nascimento}
@@ -187,12 +192,14 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className={labelClass}>Gênero</label>
+                  <label htmlFor="genero" className={labelClass}>
+                    Gênero
+                  </label>
                   <Select
                     value={form.genero}
                     onValueChange={(v) => setField("genero", v as any)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="genero">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -204,10 +211,11 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className={labelClass}>
+                  <label htmlFor="telefone" className={labelClass}>
                     Telefone (Apenas números) *
                   </label>
                   <Input
+                    id="telefone"
                     required
                     type="tel"
                     placeholder="Ex: 5581999999999"
@@ -217,18 +225,22 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className={labelClass}>Cidade</label>
+                  <label htmlFor="cidade" className={labelClass}>
+                    Cidade
+                  </label>
                   <Input
+                    id="cidade"
                     value={form.cidade}
                     onChange={(e) => setField("cidade", e.target.value)}
                   />
                 </div>
 
                 <div className="md:col-span-3 space-y-2">
-                  <label className={labelClass}>
+                  <label htmlFor="responsavel" className={labelClass}>
                     Nome do Responsável (Opcional)
                   </label>
                   <Input
+                    id="responsavel"
                     value={form.nome_responsavel || ""}
                     onChange={(e) =>
                       setField("nome_responsavel", e.target.value)
@@ -247,8 +259,11 @@ export default function PatientsPage() {
               <CardContent className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className={labelClass}>Peso (kg)</label>
+                    <label htmlFor="peso" className={labelClass}>
+                      Peso (kg)
+                    </label>
                     <Input
+                      id="peso"
                       type="number"
                       step="0.1"
                       value={form.peso}
@@ -256,8 +271,11 @@ export default function PatientsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className={labelClass}>Altura (cm)</label>
+                    <label htmlFor="altura" className={labelClass}>
+                      Altura (cm)
+                    </label>
                     <Input
+                      id="altura"
                       type="number"
                       value={form.altura}
                       onChange={(e) => setField("altura", e.target.value)}
@@ -266,10 +284,13 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <label className={labelClass}>Sintomas Atuais</label>
+                  <label htmlFor="sintoma-search" className={labelClass}>
+                    Sintomas Atuais
+                  </label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                     <Input
+                      id="sintoma-search"
                       className="pl-10"
                       placeholder="Pesquisar ou digitar novo sintoma..."
                       value={sintomaSearch}
@@ -322,7 +343,7 @@ export default function PatientsPage() {
                             variant="outline"
                             className="bg-slate-50"
                           >
-                            {s}{" "}
+                            {s}
                             <span
                               className="ml-1 cursor-pointer hover:text-red-500"
                               onClick={() => toggleSintoma(s)}
@@ -337,9 +358,12 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className={labelClass}>Alergias Conhecidas</label>
+                  <label htmlFor="alergia-input" className={labelClass}>
+                    Alergias Conhecidas
+                  </label>
                   <div className="flex gap-2">
                     <Input
+                      id="alergia-input"
                       placeholder="Adicionar alergia..."
                       value={alergiaInput}
                       onChange={(e) => setAlergiaInput(e.target.value)}
