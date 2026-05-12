@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from .services import ProtocolExecutionEngine
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -539,3 +540,52 @@ class ProtocolExecutionStateModelTest(TestCase):
         )
         self.assertIn("step", str(state))
         self.assertIn("1", str(state))
+class EngineTest(TestCase):
+    #criando o usuario, o protocolo e seus passos p teste xd
+    User=get_user_model()
+    
+    def setUp(self):
+        self.protocolo=Protocol.objects.create(
+            title="Teste Protocol Engine",
+            author="venicio!"
+            )
+        self.versao = self.protocolo.versions.first()
+        
+
+        self.medico = User.objects.create_user(
+            username="medic_o",
+            email="medico@gmail.com",
+            password="testpass123",
+            profile="medico"
+        )
+        self.exec = ProtocolExecution.objects.create(
+            version=self.versao,
+            physician=self.medico,
+            patient_name="paciente"
+        )
+
+        self.passo2=ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=2,
+            title="Segundo Passo"
+            )
+        
+        self.passo1=ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=1,
+            title="Primeiro Passo"
+            )
+
+        self.engine = ProtocolExecutionEngine()
+    
+    def test_retorna_ou_nao_o_primeiro_step(self):
+        first_step = self.engine.primeiro_step(self.versao)
+
+        self.assertEqual(first_step, self.passo1)
+    
+    def test_primeiro_como_atual(self):
+        exec = self.engine.comecar(self.exec)
+
+        self.assertEqual(exec.current_step, self.passo1)
