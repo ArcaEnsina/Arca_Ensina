@@ -197,7 +197,9 @@ export default function PatientsPage() {
                   </label>
                   <Select
                     value={form.genero}
-                    onValueChange={(v) => setField("genero", v as any)}
+                    onValueChange={(v: FormData["genero"]) =>
+                      setField("genero", v)
+                    }
                   >
                     <SelectTrigger id="genero">
                       <SelectValue placeholder="Selecione" />
@@ -341,12 +343,21 @@ export default function PatientsPage() {
                           <Badge
                             key={s}
                             variant="outline"
-                            className="bg-slate-50"
+                            className="bg-slate-50 flex items-center gap-1"
                           >
                             {s}
                             <span
-                              className="ml-1 cursor-pointer hover:text-red-500"
+                              className="ml-1 cursor-pointer hover:text-red-500 font-bold px-1"
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Remover sintoma ${s}`}
                               onClick={() => toggleSintoma(s)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  toggleSintoma(s);
+                                }
+                              }}
                             >
                               ×
                             </span>
