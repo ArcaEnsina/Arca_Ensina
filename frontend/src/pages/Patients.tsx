@@ -44,13 +44,9 @@ const labelClass =
 interface FormData {
   nome: string;
   data_nascimento: string;
-  horario: string;
-  prontuario: string;
-  data_atendimento: string;
-  cpf: string;
-  cidade: string;
   genero: "M" | "F" | "O" | "";
   nome_responsavel: string;
+  cidade: string;
   telefone: string;
   peso: string;
   altura: string;
@@ -58,22 +54,15 @@ interface FormData {
 
 export default function PatientsPage() {
   const navigate = useNavigate();
-  const today = new Date().toISOString().split("T")[0];
-  const nowTime = new Date().toTimeString().slice(0, 5);
-
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState<FormData>({
-    prontuario: "",
-    data_atendimento: today,
-    horario: nowTime,
     nome: "",
     data_nascimento: "",
-    cpf: "",
-    cidade: "",
-    genero: "",
+    genero: "M",
     nome_responsavel: "",
+    cidade: "",
     telefone: "",
     peso: "",
     altura: "",
@@ -87,13 +76,6 @@ export default function PatientsPage() {
   const sintomasFiltrados = SINTOMAS_PADRAO.filter((s) =>
     s.toLowerCase().includes(sintomaSearch.toLowerCase()),
   );
-
-  const sintomaCustomizado =
-    sintomaSearch.trim() !== "" &&
-    !SINTOMAS_PADRAO.some(
-      (s) => s.toLowerCase() === sintomaSearch.toLowerCase(),
-    ) &&
-    !sintomas.includes(sintomaSearch.trim());
 
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -119,14 +101,24 @@ export default function PatientsPage() {
     setSubmitting(true);
     const toastId = toast.loading("Salvando registro...");
 
+    const payload = {
+      ...form,
+      telefone: form.telefone.replace(/\D/g, ""),
+      peso: form.peso ? parseFloat(form.peso) : null,
+      altura: form.altura ? parseInt(form.altura) : null,
+      alergias: alergias,
+      sintomas: sintomas,
+    };
+
     try {
-      toast.success("Paciente e consulta registrados!", { id: toastId });
+      console.log("Enviando para o Django:", payload);
+
+      toast.success("Paciente cadastrado com sucesso!", { id: toastId });
       navigate("/dashboard");
     } catch (err) {
       let message = "Erro ao salvar. Verifique a conexão.";
       if (err instanceof AxiosError) {
         const data = err.response?.data as ApiErrorResponse | undefined;
-
         if (data?.error?.details) {
           message = Object.entries(data.error.details)
             .map(
@@ -161,38 +153,13 @@ export default function PatientsPage() {
           </header>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            <Card>
+            <Card className="border-slate-200 shadow-sm">
               <CardHeader className="border-b border-slate-100 pb-4">
                 <CardTitle className="text-lg font-semibold text-arca-blue-800">
-                  Identificação
+                  Identificação do Paciente
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <label className={labelClass}>Nº Prontuário</label>
-                  <Input
-                    value={form.prontuario}
-                    onChange={(e) => setField("prontuario", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className={labelClass}>Data do Registro</label>
-                  <Input
-                    type="date"
-                    value={form.data_atendimento}
-                    onChange={(e) =>
-                      setField("data_atendimento", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className={labelClass}>Hora</label>
-                  <Input
-                    type="time"
-                    value={form.horario}
-                    onChange={(e) => setField("horario", e.target.value)}
-                  />
-                </div>
                 <div className="md:col-span-2 space-y-2">
                   <label className={labelClass}>Nome Completo *</label>
                   <Input
@@ -201,6 +168,7 @@ export default function PatientsPage() {
                     onChange={(e) => setField("nome", e.target.value)}
                   />
                 </div>
+
                 <div className="space-y-2">
                   <label className={labelClass}>Data de Nasc. *</label>
                   <Input
@@ -212,6 +180,7 @@ export default function PatientsPage() {
                     }
                   />
                 </div>
+
                 <div className="space-y-2">
                   <label className={labelClass}>Gênero</label>
                   <Select
@@ -228,15 +197,20 @@ export default function PatientsPage() {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <label className={labelClass}>Contato *</label>
+                  <label className={labelClass}>
+                    Telefone (Apenas números) *
+                  </label>
                   <Input
                     required
                     type="tel"
+                    placeholder="Ex: 5581999999999"
                     value={form.telefone}
                     onChange={(e) => setField("telefone", e.target.value)}
                   />
                 </div>
+
                 <div className="space-y-2">
                   <label className={labelClass}>Cidade</label>
                   <Input
@@ -244,12 +218,24 @@ export default function PatientsPage() {
                     onChange={(e) => setField("cidade", e.target.value)}
                   />
                 </div>
+
+                <div className="md:col-span-3 space-y-2">
+                  <label className={labelClass}>
+                    Nome do Responsável (Opcional)
+                  </label>
+                  <Input
+                    value={form.nome_responsavel || ""}
+                    onChange={(e) =>
+                      setField("nome_responsavel", e.target.value)
+                    }
+                  />
+                </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-arca-blue-800">
+            <Card className="border-slate-200 shadow-sm">
+              <CardHeader className="border-b border-slate-100 pb-4">
+                <CardTitle className="text-lg font-semibold text-arca-blue-800">
                   Avaliação Inicial
                 </CardTitle>
               </CardHeader>
@@ -275,12 +261,12 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <label className={labelClass}>Sintomas</label>
+                  <label className={labelClass}>Sintomas Atuais</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                     <Input
                       className="pl-10"
-                      placeholder="Pesquisar..."
+                      placeholder="Pesquisar sintomas..."
                       value={sintomaSearch}
                       onChange={(e) => setSintomaSearch(e.target.value)}
                     />
@@ -301,7 +287,7 @@ export default function PatientsPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className={labelClass}>Alergias</label>
+                  <label className={labelClass}>Alergias Conhecidas</label>
                   <div className="flex gap-2">
                     <Input
                       placeholder="Adicionar alergia..."
@@ -325,7 +311,7 @@ export default function PatientsPage() {
                         key={a}
                         variant="destructive"
                         onClick={() =>
-                          setAlergias((prev) => prev.filter((i) => i !== a))
+                          setAlergias((p) => p.filter((i) => i !== a))
                         }
                         className="cursor-pointer"
                       >
@@ -347,7 +333,7 @@ export default function PatientsPage() {
                   <Loader2 className="mr-2 animate-spin" /> Salvando...
                 </>
               ) : (
-                "Concluir Atendimento"
+                "Concluir Cadastro"
               )}
             </Button>
           </form>
