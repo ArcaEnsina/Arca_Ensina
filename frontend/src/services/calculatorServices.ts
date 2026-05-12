@@ -15,5 +15,5 @@ function getMedicationById(id: number): Promise<Medication> {
 
 //calcular dosagem via api
 function calculate(data: CalculatorFormData): Promise<CalculationResult> {
-    return api.post("calculator/calculate", data).then((response) => response.data);
+    return api.post(`calculator/calculate/`, data).then((response) => response.data);
 }

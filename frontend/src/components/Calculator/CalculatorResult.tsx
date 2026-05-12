@@ -22,12 +22,12 @@ function CalculatorResult(props: CalculatorResultProps) {
 
     return (
         <div>
-            <p>Resultado: Dose diária é {props.result.dosage_mg} mg, {props.result.dosage_per_dose} mg por dose, a cada {frequencyText}.</p>
+            <p>Resultado: Dose diária é {props.result.dosage_mg} mg/dia, {props.result.dosage_per_dose} mg por dose, a cada {frequencyText}.</p>
             {props.warnings.map((w) => (
                 <div key={w} className={`warning warning-${w.toLowerCase()}`}>
-                    {w === "BAIXO" && "Dose abaixo do mínimo recomendado"}
-                    {w === "ALTO" && "Dose acima do máximo recomendado"}
-                    {w === "CRITICO" && "Dose acima do teto absoluto — revise a prescrição"}
+                    {w === "BAIXO" && "Dose abaixo do mínimo recomendado (BAIXO)"}
+                    {w === "ALTO" && "Dose acima do máximo recomendado (ALTO)"}
+                    {w === "CRITICO" && "Dose acima do teto absoluto — revise a prescrição (CRÍTICO)"}
                 </div>
             ))}
 

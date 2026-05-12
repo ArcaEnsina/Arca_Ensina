@@ -35,11 +35,11 @@ class CalculatorView(APIView):
         #2-validação
         if age_days != None:
             if medication.limits_by_age:
-                warning, dosage_per_dose = services.validate_dosage_per_age(dosage, age_days, medication.limits_by_age, weight)
+                warning, _ = services.validate_dosage_per_age(dosage, age_days, medication.limits_by_age, weight)
             else:
-                warning, dosage_per_dose = services.validate_dosage(dosage, weight, medication.min_dose_mg_kg, medication.max_dose_mg_kg, medication.max_absolute_dose_mg)
+                warning, _ = services.validate_dosage(dosage, weight, medication.min_dose_mg_kg, medication.max_dose_mg_kg, medication.max_absolute_dose_mg)
         else:
-            warning, dosage_per_dose = services.validate_dosage(dosage, weight, medication.min_dose_mg_kg, medication.max_dose_mg_kg, medication.max_absolute_dose_mg)
+            warning, _ = services.validate_dosage(dosage, weight, medication.min_dose_mg_kg, medication.max_dose_mg_kg, medication.max_absolute_dose_mg)
                 
         #3-conversao
         if medication.concentration_mg != None and medication.concentration_ml != None:
