@@ -4,28 +4,28 @@ import type { Medication } from "../types/calculator"
 import { getMedicationById } from "../services/calculatorServices"
 
 export function useMedicationById() {
-    const { id } = useParams<{ id: string }>()
+    const { medicationId } = useParams<{ medicationId: string }>()
     const [medication, setMedication] = useState<Medication | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         async function fetchMedication() {
-            if (!id) {
+            if (!medicationId) {
                 setError("ID inválido")
                 setLoading(false)
                 return
             }
 
-            const medicationId = Number(id)
-            if (Number.isNaN(medicationId)) {
+            const id = Number(medicationId)
+            if (Number.isNaN(id)) {
                 setError("ID inválido")
                 setLoading(false)
                 return
             }
 
             try {
-                const data = await getMedicationById(medicationId)
+                const data = await getMedicationById(id)
                 setMedication(data)
             } catch {
                 setError("Erro ao buscar medicamento")
@@ -35,7 +35,7 @@ export function useMedicationById() {
         }
 
         fetchMedication()
-    }, [id])
+    }, [medicationId])
 
     return { medication, loading, error }
 }

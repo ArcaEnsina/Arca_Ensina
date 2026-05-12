@@ -75,7 +75,7 @@ export default function App() {
           }
         />
         <Route
-          path="/calculator/:medicationId"
+          path="/calculator/calculate/:medicationId"
           element={
             <ProtectedRoute>
               <Calculator />

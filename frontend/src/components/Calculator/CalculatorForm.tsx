@@ -3,9 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { CalculatorFormData } from "@/types/calculator";
 
-import { convertAge } from "@/utils/conversions";
-import { convertBirthDate } from "@/utils/conversions";
-import { convertHeight } from "@/utils/conversions";
 import { convertWeight } from "@/utils/conversions";
 
 interface CalculatorFormProps {
@@ -17,7 +14,7 @@ interface CalculatorFormProps {
 
 function CalculatorForm(props: CalculatorFormProps) {
     return (
-        <div>
+        <form onSubmit={props.onSubmit} className="max-w-md mx-auto p-4 bg-white rounded shadow">
             <div className="flex flex-col gap-1">
                 <label className="text-sm font-medium text-foreground">Peso</label>
                 <UnitInput
@@ -31,9 +28,8 @@ function CalculatorForm(props: CalculatorFormProps) {
                         if (props.formData.weight !== null) {
                             props.onChange({...props.formData, weight: convertWeight(props.formData.weight, unit as "kg" | "g")});
                         }
-                        setWeightUnit(unit as "kg" | "g");
-                    }
-                }
+                    }}
+                
                 />
                 <label className="text-sm font-medium text-foreground">Altura</label>
                 <UnitInput
@@ -58,7 +54,7 @@ function CalculatorForm(props: CalculatorFormProps) {
                 </Button>
             </div>
 
-        </div>
+        </form>
     );
 }
 export default CalculatorForm;

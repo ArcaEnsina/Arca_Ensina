@@ -1,47 +1,38 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useMedications } from '@/hooks/useMedications';
 
-import { Select } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 
-type Medication = {
-  id: string;
-  name: string;
-};
-
 function MedicationsList() {
-  const [medications, setMedications] = useState<Medication[]>([]);
-  const [selectedId, setSelectedId] = useState('');
+  const [selectedId, setSelectedId] = useState<string>("");
   const navigate = useNavigate();
-
-  useEffect(() => {
-    async function fetchMedications() {
-      try {
-        const res = await fetch('/api/v1/medications/');
-        if (!res.ok) throw new Error('Network response was not ok');
-        const data: Medication[] = await res.json();
-        setMedications(data);
-        if (data.length > 0) setSelectedId(data[0].id);
-      } catch (err) {
-        console.error('Failed to fetch medications:', err);
-      }
-    }
-
-    fetchMedications();
-  }, []);
+  const { medications} = useMedications()
 
   return (
     <div>
-        <h2>Lista de medicamentos</h2>
-        <Select value={selectedId} onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedId(e.target.value)}>
+      <h2>Lista de medicamentos</h2>
+      <Select value={selectedId} onValueChange={(value)=>setSelectedId((value))}>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione" />
+        </SelectTrigger>
+        <SelectContent>
           {medications.map((medication) => (
-            <option key={medication.id} value={medication.id}>
+            <SelectItem key={medication.id} value={String(medication.id)}>
               {medication.name}
-            </option>
+            </SelectItem>
           ))}
-        </Select>
+        </SelectContent>
+      </Select>
 
-        <Button onClick={() => { if (selectedId) navigate(`/calculator/${selectedId}`); }}>Adicionar</Button>
+      <Button onClick={() => { if (selectedId) navigate(`/calculator/calculate/${selectedId}`); }}>Calcular</Button>
     </div>
   );
 }
