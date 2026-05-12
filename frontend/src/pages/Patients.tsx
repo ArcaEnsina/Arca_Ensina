@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 import { Search, Plus, Loader2 } from "lucide-react";
+import api from "@/services/api";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
@@ -77,6 +78,13 @@ export default function PatientsPage() {
     s.toLowerCase().includes(sintomaSearch.toLowerCase()),
   );
 
+  const sintomaCustomizado =
+    sintomaSearch.trim() !== "" &&
+    !SINTOMAS_PADRAO.some(
+      (s) => s.toLowerCase() === sintomaSearch.toLowerCase(),
+    ) &&
+    !sintomas.includes(sintomaSearch.trim());
+
   function setField<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -111,25 +119,22 @@ export default function PatientsPage() {
     };
 
     try {
-      console.log("Enviando para o Django:", payload);
+      await api.post("pacientes/", payload);
 
       toast.success("Paciente cadastrado com sucesso!", { id: toastId });
-      navigate("/dashboard");
+
+      setTimeout(() => navigate("/dashboard"), 1500);
     } catch (err) {
+      console.error("Erro na requisição:", err);
       let message = "Erro ao salvar. Verifique a conexão.";
+
       if (err instanceof AxiosError) {
-        const data = err.response?.data as ApiErrorResponse | undefined;
-        if (data?.error?.details) {
-          message = Object.entries(data.error.details)
-            .map(
-              ([field, msgs]) =>
-                `${field}: ${Array.isArray(msgs) ? msgs.join(", ") : msgs}`,
-            )
-            .join("; ");
-        } else {
-          message = data?.error?.message ?? message;
+        const data = err.response?.data;
+        if (data && typeof data === "object") {
+          message = Object.values(data).flat().join(" | ");
         }
       }
+
       setError(message);
       toast.error("Falha ao salvar", { id: toastId });
     } finally {
@@ -266,24 +271,69 @@ export default function PatientsPage() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                     <Input
                       className="pl-10"
-                      placeholder="Pesquisar sintomas..."
+                      placeholder="Pesquisar ou digitar novo sintoma..."
                       value={sintomaSearch}
                       onChange={(e) => setSintomaSearch(e.target.value)}
                     />
                   </div>
+
                   <div className="flex flex-wrap gap-2">
                     {sintomasFiltrados.map((s) => (
-                      <Button
+                      <button
                         key={s}
                         type="button"
-                        variant={sintomas.includes(s) ? "default" : "outline"}
-                        size="sm"
                         onClick={() => toggleSintoma(s)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors border ${
+                          sintomas.includes(s)
+                            ? "bg-arca-blue-600 text-white border-arca-blue-600"
+                            : "bg-white text-slate-600 border-slate-200 hover:border-arca-blue-300"
+                        }`}
                       >
                         {s}
-                      </Button>
+                      </button>
                     ))}
+
+                    {sintomaCustomizado && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="rounded-full bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                        onClick={() => {
+                          toggleSintoma(sintomaSearch.trim());
+                          setSintomaSearch("");
+                        }}
+                      >
+                        <Plus className="mr-1 size-3" />
+                        Adicionar "{sintomaSearch}"
+                      </Button>
+                    )}
                   </div>
+
+                  {sintomas.length > 0 && (
+                    <div className="pt-2 border-t border-slate-100">
+                      <p className="text-[10px] text-slate-400 uppercase font-bold mb-2">
+                        Selecionados:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {sintomas.map((s) => (
+                          <Badge
+                            key={s}
+                            variant="outline"
+                            className="bg-slate-50"
+                          >
+                            {s}{" "}
+                            <span
+                              className="ml-1 cursor-pointer hover:text-red-500"
+                              onClick={() => toggleSintoma(s)}
+                            >
+                              ×
+                            </span>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-3">
