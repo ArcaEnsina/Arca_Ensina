@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from apps.medications.models import Medication
 
 class CalculatorView(APIView):
-    def post(self, request):
+    def post(self, request, version=None):
         #verificar a entrada:
         serializer = CalculatorSerializer(data=request.data)
         if not serializer.is_valid():
