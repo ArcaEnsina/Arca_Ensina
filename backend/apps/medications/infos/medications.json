@@ -118,6 +118,7 @@
         "fields": {
             "name": "Paracetamol",
             "type": " Analgésico",
+            "prescription": 50,
             "frequency_hours": 8,
             "min_dose_mg_kg": 25,
             "max_dose_mg_kg": 90,

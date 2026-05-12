@@ -19,6 +19,7 @@ class Command(BaseCommand):
 
         for item in data:
             fields = item['fields']
+            print(f"Importando: {fields.get('name', 'SEM NOME')}")
             _, was_created = Medication.objects.update_or_create(
                 name=fields['name'],
                 defaults={
