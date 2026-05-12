@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import CalculatorForm from '@/components/Calculator/CalculatorForm';
@@ -23,8 +22,8 @@ function Calculator() {
 
     return (
         <div>
-            <h2>Calculadora</h2>
-            <h3>{medication.name}</h3>
+            <h1 className="text-2xl font-bold">Calculadora</h1>
+            <h2 className="text-xl font-semibold text-blue-500">{medication.name}</h2>
             <p>{medication.category}</p>
             <p>{medication.description}</p>
 

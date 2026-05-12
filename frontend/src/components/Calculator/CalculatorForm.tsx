@@ -1,9 +1,10 @@
-import  UnitInput  from "@/components/ui/unitInput";
+import UnitInput from "@/components/ui/unitInput";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { CalculatorFormData } from "@/types/calculator";
+import { useState } from "react";
 
-import { convertWeight } from "@/utils/conversions";
+import { convertWeight, convertHeight, convertAge } from "@/utils/conversions";
 
 interface CalculatorFormProps {
     formData: CalculatorFormData
@@ -12,41 +13,97 @@ interface CalculatorFormProps {
     loading: boolean
 }
 
+
 function CalculatorForm(props: CalculatorFormProps) {
+    const [weightValue, setWeightValue] = useState<string>("")
+    const [heightValue, setHeightValue] = useState<string>("")
+    const [weightUnit, setWeightUnit] = useState<"kg" | "g">("kg") //unidade pra o select
+    const [heightUnit, setHeightUnit] = useState<"cm" | "m">("cm")
+
+    const [years, setYears] = useState<string>("")
+    const [months, setMonths] = useState<string>("")
+
+
+    function ageChange(newYears: string, newMonths: string) {
+        const y = parseInt(newYears) || 0
+        const m = parseInt(newMonths) || 0
+        const days = convertAge(y, m)
+        props.onChange({ ...props.formData, age_days: days })
+    }
+
     return (
         <form onSubmit={props.onSubmit} className="max-w-md mx-auto p-4 bg-white rounded shadow">
             <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-foreground">Peso</label>
                 <UnitInput
                     label="Peso"
                     value={props.formData.weight ?? ""}
                     placeholder="Digite o peso"
-                    onChange={(value) => props.onChange({...props.formData, weight: parseFloat(value)})}
-                    unit="kg"
-                    units={["kg", "g"]}
-                    onUnitChange={(unit) => {
-                        if (props.formData.weight !== null) {
-                            props.onChange({...props.formData, weight: convertWeight(props.formData.weight, unit as "kg" | "g")});
+                    onChange={(value) => {
+                        setWeightValue(value)
+                        const parsed = parseFloat(value)
+                        if (!isNaN(parsed)) {
+                            props.onChange({ ...props.formData, weight: parsed })
                         }
                     }}
-                
+                    units={["kg", "g"]}
+                    unit={weightUnit}
+                    onUnitChange={(newUnit) => {
+                        const unit = newUnit as "kg" | "g"
+                        if (props.formData.weight !== null) {
+                            props.onChange({
+                                ...props.formData,
+                                weight: convertWeight(props.formData.weight, unit)
+                            })
+                        }
+                        setWeightValue(unit)
+                    }}
+
                 />
-                <label className="text-sm font-medium text-foreground">Altura</label>
                 <UnitInput
                     label="Altura"
                     value={props.formData.height ?? ""}
                     placeholder="Digite a altura"
-                    onChange={(value) => props.onChange({...props.formData, height: parseFloat(value)})}
-                    unit="cm"
+                    onChange={(value) => {
+                        setHeightValue(value)
+                        const parsed = parseFloat(value)
+                        if (!isNaN(parsed)) {
+                            props.onChange({ ...props.formData, height: parsed })
+                        }
+                    }}
+                    unit={heightUnit}
                     units={["cm", "m"]}
-                    onUnitChange={(unit) => console.log(unit)}
+                    onUnitChange={(newUnit) => {
+                        const unit = newUnit as "cm" | "m"
+                        if (props.formData.height !== null) {
+                            props.onChange({
+                                ...props.formData,
+                                height: convertHeight(props.formData.height, unit)
+                            })
+                        }
+                        setHeightValue(unit)
+                    }}
                 />
                 <label className="text-sm font-medium text-foreground">Idade</label>
                 <Input
-                    type="text"
-                    value={props.formData.age_days ?? ""}
-                    placeholder="Digite a idade em dias"
-                    onChange={(e) => props.onChange({...props.formData, age_days: parseInt(e.target.value)})}
+                    type="number"
+                    min={0}
+                    placeholder="Quantos anos?"
+                    value={years}
+                    onChange={(e) => {
+                        setYears(e.target.value)
+                        ageChange(e.target.value, months)
+                    }}
+                />
+                <Input
+                    placeholder="Quantos meses?"
+                    type="number"
+                    min={0}
+                    max={11}
+                    value={months}
+                    onChange={(e) => {
+                        setMonths(e.target.value)
+                        ageChange(years, e.target.value)
+                    }}
                 />
 
                 <Button type="submit">
