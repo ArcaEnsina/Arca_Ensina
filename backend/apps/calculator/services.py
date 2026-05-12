@@ -9,7 +9,7 @@ from math import sqrt
 
 #1.1- calcular dose total em miligramas
 def calculate_dosage_mg(prescription, weight, height=None):
-    if height:
+    if height is not None:
         """
         ex: prescrição: 100mg/m²; altura: 100cm; peso: 16kg
         -> sc(m²) = sqrt((100 x 16) / 3600) = 0.6667m²

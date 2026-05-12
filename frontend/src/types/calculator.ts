@@ -1,12 +1,15 @@
 //dados recebidos da lista de medicamentos
-export interface Medication{
+export interface Medication {
     id: number
     name: string
+    category: string
+    description: string
 }
 
 //dados recebidos do formulário de cálculo
 export interface CalculatorFormData {
     weight: number | null
+    height: number | null
     age_days: number | null
     medication_id: number | null
 }
