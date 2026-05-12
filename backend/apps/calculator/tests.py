@@ -91,7 +91,7 @@ class CalculatorViewTests(TestCase):
         )
     
     def test_calculator_valid_input(self):
-        response = self.client.post("/api/calculator/calculate/", {
+        response = self.client.post("/api/v1/calculator/calculate/", {
             "weight": 15,
             "age_days": 365,
             "medication_id": self.medication.id
@@ -105,7 +105,7 @@ class CalculatorViewTests(TestCase):
         self.assertIn("warnings", response.data)
         
     def test_calculator_missing_weight(self):
-        response = self.client.post("/api/calculator/calculate/", {
+        response = self.client.post("/api/v1/calculator/calculate/", {
             "age_days": 365,
             "medication_id": self.medication.id
         }, format='json')
@@ -115,7 +115,7 @@ class CalculatorViewTests(TestCase):
         self.assertIn("weight", response.data)
         
     def test_calculator_invalid_medication_id(self):
-        response = self.client.post("/api/calculator/calculate/", {
+        response = self.client.post("/api/v1/calculator/calculate/", {
             "weight": 15,
             "age_days": 365,
             "medication_id": 9999  # ID de medicamento inexistente
@@ -125,7 +125,7 @@ class CalculatorViewTests(TestCase):
         self.assertIn("medication_id", response.data)
         
     def test_calculator_no_medication_id(self):
-        response = self.client.post("/api/calculator/calculate/", {
+        response = self.client.post("/api/v1/calculator/calculate/", {
             "weight": 15,
             "age_days": 365
         }, format='json')
@@ -135,7 +135,7 @@ class CalculatorViewTests(TestCase):
         
     def test_calculator_requires_auth(self):
         self.client.credentials()  # remove o token
-        response = self.client.post("/api/calculator/calculate/", {"weight": 15, "medication_id": self.medication.id}, format='json')
+        response = self.client.post("/api/v1/calculator/calculate/", {"weight": 15, "medication_id": self.medication.id}, format='json')
         self.assertEqual(response.status_code, 401)
         
 class CalculatorValidationTests(TestCase):

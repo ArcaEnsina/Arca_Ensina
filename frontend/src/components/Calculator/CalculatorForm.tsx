@@ -36,7 +36,7 @@ function CalculatorForm(props: CalculatorFormProps) {
             <div className="flex flex-col gap-1">
                 <UnitInput
                     label="Peso"
-                    value={props.formData.weight ?? ""}
+                    value={weightValue ?? ""}
                     placeholder="Digite o peso"
                     onChange={(value) => {
                         setWeightValue(value)
@@ -55,13 +55,13 @@ function CalculatorForm(props: CalculatorFormProps) {
                                 weight: convertWeight(props.formData.weight, unit)
                             })
                         }
-                        setWeightValue(unit)
+                        setWeightUnit(unit)
                     }}
 
                 />
                 <UnitInput
                     label="Altura"
-                    value={props.formData.height ?? ""}
+                    value={heightValue ?? ""}
                     placeholder="Digite a altura"
                     onChange={(value) => {
                         setHeightValue(value)
@@ -80,10 +80,10 @@ function CalculatorForm(props: CalculatorFormProps) {
                                 height: convertHeight(props.formData.height, unit)
                             })
                         }
-                        setHeightValue(unit)
+                        setHeightUnit(unit)
                     }}
                 />
-                <label className="text-sm font-medium text-foreground">Idade</label>
+                <label htmlFor="idade" className="text-sm font-medium text-foreground">Idade</label>
                 <Input
                     type="number"
                     min={0}

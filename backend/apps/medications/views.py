@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 
 class MedicationListView(APIView):
     permission_classes = [AllowAny]
+    
 
     def get(self, request, version=None):
         try:
@@ -14,8 +15,7 @@ class MedicationListView(APIView):
             serializer = MedicationSerializer(medications, many=True)
             return Response(serializer.data, status=200)
         except Exception:
-            logger.exception("Erro ao listar medicamentos")
-            raise
+            return Response({"error": "Erro ao listar medicamentos"}, status=status.HTTP_404_NOT_FOUND)
 
 class MedicationDetailView(APIView):
     permission_classes = [AllowAny]
@@ -24,6 +24,8 @@ class MedicationDetailView(APIView):
         try:
             medication = Medication.objects.get(pk=pk)
         except Medication.DoesNotExist:
-            return Response({"error": "Medicamento não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Medicamento não encontrado."}, status=status.HTTP_404_NOT_FOUND
+                )
         serializer = MedicationSerializer(medication)
         return Response(serializer.data, status=200)

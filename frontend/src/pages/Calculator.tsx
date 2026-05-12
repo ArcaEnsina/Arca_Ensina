@@ -1,4 +1,3 @@
-import { useParams } from 'react-router-dom';
 import { useEffect } from 'react';
 import CalculatorForm from '@/components/Calculator/CalculatorForm';
 import CalculatorResult from '@/components/Calculator/CalculatorResult';
@@ -6,7 +5,6 @@ import { useCalculator } from '@/hooks/useCalculator';
 import { useMedicationById } from '@/hooks/useMedicationsById';
 
 function Calculator() {
-    const { id } = useParams<{ id: string }>();
     const { medication, loading: loadingMed, error: errorMed } = useMedicationById();
     const { formData, setFormData, result, loading, error, handleCalculate } = useCalculator();
 
@@ -14,6 +12,7 @@ function Calculator() {
         if (medication) {
             setFormData(prev => ({...prev, medication_id: medication.id }))
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [medication])
 
     if (loadingMed) return <p>Carregando medicamento...</p>

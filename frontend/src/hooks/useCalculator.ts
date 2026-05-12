@@ -30,7 +30,7 @@ export function useCalculator() {
             const calculationResult = await calculate(formData)
             setResult(calculationResult)
         }
-         catch (err) {
+         catch{
             setError("Erro ao calcular a medicação.")
         } finally {
             setLoading(false)
