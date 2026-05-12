@@ -4,6 +4,7 @@
         "pk": 1,
         "fields": {
             "name": "Amoxicilina",
+            "type": "sedativo",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -21,6 +22,7 @@
         "pk": 2,
         "fields": {
             "name": "Morfina",
+            "type": "analgésico opioide", 
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 4,
@@ -37,14 +39,15 @@
         "pk": 3,
         "fields": {
             "name": "Diazepam",
+            "type": "sedativo",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
+            "min_dose_mg_kg": 0.2,
+            "max_dose_mg_kg": 0.5,
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
-            "concentration_ml": 5,
+            "concentration_ml": 2,
             "limits_by_age": null
         }
 
@@ -54,13 +57,14 @@
         "pk": 4,
         "fields": {
             "name": "Dipirona",
+            "type": "Analgésico",
             "prescription": 50,
             "is_per_m2": false,
-            "frequency_hours": 8,
+            "frequency_hours": 6,
             "min_dose_mg_kg": 25,
             "max_dose_mg_kg": 90,
-            "max_absolute_dose_mg": 3000,
-            "concentration_mg": 250,
+            "max_absolute_dose_mg": 4000,
+            "concentration_mg": 500 ,
             "concentration_ml": 5,
             "limits_by_age": null
         }
@@ -70,6 +74,7 @@
         "pk": 5,
         "fields": {
             "name": "Midazolam",
+            "type": "sedativo",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -86,6 +91,7 @@
         "pk": 6,
         "fields": {
             "name": "Fetanil",
+            "type": "Anestesico e analgésico",
             "prescription": 50,
             "is_per_m2": false,
             "frequency_hours": 8,
@@ -102,18 +108,35 @@
         "pk": 7,
         "fields": {
             "name": "Clonidina",
+            "type": "sedativo ou analgésico",
             "prescription": 50,
             "is_per_m2": false,
-            "frequency_hours": 8,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
+            "frequency_hours": 6,
+            "min_dose_mg_kg": 0.5,
+            "max_dose_mg_kg": 2.5,
+            "max_absolute_dose_mg": 0.8,
+            "concentration_mg": 250,
+            "concentration_ml": 5,
+            "limits_by_age": null
+        }
+},
+  {"model": "medications.medication",
+        "pk": 7,
+        "fields": {
+            "name": "Paracetamol",
+            "type": " analgésico",
+            "prescription": 50,
+            "is_per_m2": false,
+            "frequency_hours": 6,
+            "min_dose_mg_kg": 15,
+            "max_dose_mg_kg": 60,
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
             "limits_by_age": null
         }
 }
-
+ 
 
         
     
