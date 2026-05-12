@@ -7,6 +7,7 @@ export function useCalculator() {
     //estado inicial do formulario
     const [formData, setFormData] = useState<CalculatorFormData>({
         weight: null,
+        height: null,
         age_days: null,
         medication_id: null,
     })
