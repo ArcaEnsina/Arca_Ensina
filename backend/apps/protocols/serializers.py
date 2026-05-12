@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from project.serializers import BaseSerializer
 
-from .models import Protocol, ProtocolVersion
+from .models import Protocol, ProtocolVersion, ProtocolStep, ProtocolExecution, ProtocolExecutionState
 
 
 class ProtocolVersionSerializer(BaseSerializer):
@@ -140,3 +140,68 @@ class ProtocolListSerializer(BaseSerializer):
     def get_current_version_type(self, obj):
         current = obj.versions.filter(is_current=True).first()
         return current.protocol_type if current else None
+
+class ProtocolStepSerializer(BaseSerializer):
+    """serializer para passo do protocolo"""
+
+    class Meta:
+        model = ProtocolStep
+        fields = [
+            "id",
+            "version",
+            "step_type",
+            "order",
+            "title",
+            "content",
+            "next_step",
+            "config",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+class ProtocolExecutionSerializer(BaseSerializer):
+    """serializer para execução de protocolo"""
+
+    current_step = ProtocolStepSerializer(read_only=True)
+
+    class Meta:
+        model = ProtocolExecution
+        fields = [
+            "id",
+            "version",
+            "physician",
+            "patient_name",
+            "status",
+            "current_step",
+            "started_at",
+            "finished_at",
+        ]
+        read_only_fields = ["id", "physician", "started_at", "version"]
+
+class ProtocolExecutionStartSerializer(BaseSerializer):
+    """serializer para iniciar uma execução."""
+
+    class Meta:
+        model = ProtocolExecution
+        fields = ["patient_name"]
+
+class ProtocolExecutionAnswerSerializer(serializers.Serializer):
+    """serializer para submeter resposta de um passo"""
+
+    values = serializers.JSONField()
+
+class ProtocolExecutionStateSerializer(BaseSerializer):
+    """serializer para estado de execução"""
+
+    class Meta:
+        model = ProtocolExecutionState
+        fields = [
+            "id",
+            "execution",
+            "step",
+            "values",
+            "loop_count",
+            "answered_at",
+        ]
+        read_only_fields = ["id", "answered_at"]

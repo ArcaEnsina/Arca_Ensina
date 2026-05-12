@@ -3,7 +3,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from .models import Protocol, ProtocolVersion
+from .models import Protocol, ProtocolVersion, ProtocolStep, ProtocolExecution, ProtocolExecutionState
 
 User = get_user_model()
 
@@ -318,3 +318,224 @@ class FixtureLoadTest(TestCase):
         self.assertIn("calculators", panel_data)
         self.assertGreater(len(panel_data["sections"]), 0)
         self.assertGreater(len(panel_data["calculators"]), 0)
+        
+class ProtocolStepModelTest(TestCase):
+    def setUp(self):
+        self.protocol = Protocol.objects.create(title="Protocolo Step Test")
+        self.version = self.protocol.versions.first()
+
+    def _make_step(self, order=1, step_type=None, **kwargs):
+        return ProtocolStep.objects.create(
+            version=self.version,
+            step_type=step_type or ProtocolStep.StepType.INFORMATIVO,
+            order=order,
+            title=f"Passo {order}",
+            **kwargs,
+        )
+
+    def test_create_step(self):
+        step = self._make_step()
+        self.assertEqual(step.version, self.version)
+        self.assertEqual(step.step_type, ProtocolStep.StepType.INFORMATIVO)
+        self.assertEqual(step.order, 1)
+
+    def test_all_nine_step_types(self):
+        for i, step_type in enumerate(ProtocolStep.StepType.values, start=1):
+            step = self._make_step(order=i, step_type=step_type)
+            self.assertEqual(step.step_type, step_type)
+
+    def test_unique_order_per_version(self):
+        from django.db import IntegrityError
+        self._make_step(order=1)
+        with self.assertRaises(IntegrityError):
+            self._make_step(order=1)
+
+    def test_same_order_different_versions(self):
+        other_version = ProtocolVersion.objects.create(
+            protocol=self.protocol,
+            version_number=2,
+            is_current=False,
+        )
+        step1 = self._make_step(order=1)
+        step2 = ProtocolStep.objects.create(
+            version=other_version,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=1,
+            title="Passo 1 v2",
+        )
+        self.assertNotEqual(step1.pk, step2.pk)
+
+    def test_next_step_self_reference(self):
+        step1 = self._make_step(order=1)
+        step2 = self._make_step(order=2)
+        step1.next_step = step2
+        step1.save()
+        step1.refresh_from_db()
+        self.assertEqual(step1.next_step, step2)
+
+    def test_next_step_optional(self):
+        step = self._make_step(order=1)
+        self.assertIsNone(step.next_step)
+
+    def test_config_default_empty(self):
+        step = self._make_step()
+        self.assertEqual(step.config, {})
+
+    def test_config_stores_json(self):
+        config = {"min": 0, "max": 100, "unit": "mg"}
+        step = self._make_step(config=config)
+        step.refresh_from_db()
+        self.assertEqual(step.config["min"], 0)
+        self.assertEqual(step.config["unit"], "mg")
+
+    def test_str(self):
+        step = self._make_step(order=1)
+        self.assertIn("Passo 1", str(step))
+        self.assertIn(str(self.version), str(step))
+
+    def test_ordering(self):
+        self._make_step(order=3)
+        self._make_step(order=1)
+        self._make_step(order=2)
+        orders = list(ProtocolStep.objects.filter(version=self.version).values_list("order", flat=True))
+        self.assertEqual(orders, [1, 2, 3])
+
+    def test_cascade_delete_with_version(self):
+        self._make_step(order=1)
+        self.assertEqual(ProtocolStep.objects.count(), 1)
+        self.version.delete()
+        self.assertEqual(ProtocolStep.objects.count(), 0)
+
+
+class ProtocolExecutionModelTest(TestCase):
+    def setUp(self):
+        self.protocol = Protocol.objects.create(title="Protocolo Execution Test")
+        self.version = self.protocol.versions.first()
+        self.physician = User.objects.create_user(
+            username="medico_exec",
+            email="medico_exec@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+
+    def _make_execution(self, patient_name="João Silva", **kwargs):
+        return ProtocolExecution.objects.create(
+        version=self.version,
+        physician=self.physician,
+        patient_name=patient_name,
+        **kwargs,
+    )
+
+    def test_create_execution(self):
+        execution = self._make_execution()
+        self.assertEqual(execution.status, ProtocolExecution.Status.EM_ANDAMENTO)
+        self.assertIsNone(execution.current_step)
+        self.assertIsNone(execution.finished_at)
+
+    def test_status_choices(self):
+        execution = self._make_execution()
+        execution.status = ProtocolExecution.Status.CONCLUIDO
+        execution.save()
+        execution.refresh_from_db()
+        self.assertEqual(execution.status, "concluido")
+
+    def test_current_step_updates(self):
+        step = ProtocolStep.objects.create(
+            version=self.version,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=1,
+            title="Passo 1",
+        )
+        execution = self._make_execution()
+        execution.current_step = step
+        execution.save()
+        execution.refresh_from_db()
+        self.assertEqual(execution.current_step, step)
+
+    def test_str(self):
+        execution = self._make_execution()
+        self.assertIn("João Silva", str(execution))
+        self.assertIn("Em andamento", str(execution))
+
+    def test_multiple_executions_same_version(self):
+        self._make_execution(patient_name="Paciente A")
+        self._make_execution(patient_name="Paciente B")
+        self.assertEqual(ProtocolExecution.objects.filter(version=self.version).count(), 2)
+
+
+class ProtocolExecutionStateModelTest(TestCase):
+    def setUp(self):
+        self.protocol = Protocol.objects.create(title="Protocolo State Test")
+        self.version = self.protocol.versions.first()
+        self.physician = User.objects.create_user(
+            username="medico_state",
+            email="medico_state@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.step = ProtocolStep.objects.create(
+            version=self.version,
+            step_type=ProtocolStep.StepType.INPUT_NUMERICO,
+            order=1,
+            title="Peso",
+        )
+        self.execution = ProtocolExecution.objects.create(
+            version=self.version,
+            physician=self.physician,
+            patient_name="Maria Silva",
+        )
+
+    def test_create_state(self):
+        state = ProtocolExecutionState.objects.create(
+            execution=self.execution,
+            step=self.step,
+            values={"value": 70.5},
+        )
+        self.assertEqual(state.loop_count, 0)
+        self.assertEqual(state.values["value"], 70.5)
+
+    def test_unique_state_per_step_execution(self):
+        from django.db import IntegrityError
+        ProtocolExecutionState.objects.create(
+            execution=self.execution,
+            step=self.step,
+            values={"value": 70.5},
+        )
+        with self.assertRaises(IntegrityError):
+            ProtocolExecutionState.objects.create(
+                execution=self.execution,
+                step=self.step,
+                values={"value": 80.0},
+            )
+
+    def test_loop_count_increments(self):
+        state = ProtocolExecutionState.objects.create(
+            execution=self.execution,
+            step=self.step,
+            loop_count=3,
+        )
+        self.assertEqual(state.loop_count, 3)
+
+    def test_values_default_empty(self):
+        state = ProtocolExecutionState.objects.create(
+            execution=self.execution,
+            step=self.step,
+        )
+        self.assertEqual(state.values, {})
+
+    def test_cascade_delete_with_execution(self):
+        ProtocolExecutionState.objects.create(
+            execution=self.execution,
+            step=self.step,
+        )
+        self.assertEqual(ProtocolExecutionState.objects.count(), 1)
+        self.execution.delete()
+        self.assertEqual(ProtocolExecutionState.objects.count(), 0)
+
+    def test_str(self):
+        state = ProtocolExecutionState.objects.create(
+            execution=self.execution,
+            step=self.step,
+        )
+        self.assertIn("step", str(state))
+        self.assertIn("1", str(state))
