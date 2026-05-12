@@ -25,7 +25,6 @@ class Command(BaseCommand):
                     'category':            fields.get('type', ''),
                     'description':         fields.get('description', ''),
                     'prescription':        fields['prescription'],
-                    'is_per_m2':           fields['is_per_m2'],
                     'frequency_hours':     fields['frequency_hours'],
                     'min_dose_mg_kg':      fields.get('min_dose_mg_kg'),
                     'max_dose_mg_kg':      fields.get('max_dose_mg_kg'),

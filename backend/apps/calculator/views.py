@@ -24,14 +24,10 @@ class CalculatorView(APIView):
         # Lógica para criar um novo cálculo de dose
         
         #1-calculo
-        if medication.is_per_m2 != True:
-            dosage = services.calculate_dosage_mg(medication.prescription, weight)
-            
+        if height:
+            dosage = services.calculate_dosage_mg(medication.prescription, weight, height)
         else:
-            if height == None:
-                return Response({"error": "Medicamento baseado em superfície corporal requer altura para cálculo."}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                dosage = services.calculate_dosage_mg(medication.prescription, weight, height)
+            dosage = services.calculate_dosage_mg(medication.prescription, weight)
 
         frequency_per_day = services.prescription_to_frequency(medication.frequency_hours)
         dosage_per_dose = services.calculate_dosage_per_dose(dosage, frequency_per_day)

@@ -80,8 +80,7 @@ class CalculatorViewTests(TestCase):
         # medicamento de teste
         self.medication = Medication.objects.create(
             name="Amoxicilina",
-            prescription=50,
-            is_per_m2=False,
+            prescription=50,    
             frequency_hours=8,
             min_dose_mg_kg=25,
             max_dose_mg_kg=90,
