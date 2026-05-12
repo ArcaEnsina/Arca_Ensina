@@ -13,16 +13,36 @@
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 25.0,
+                    "max": 100.0,
+                    "absolute_max": 500.0
+                },
+                "lactente": {
+                    "min": 25.0,
+                    "max": 90.0,
+                    "absolute_max": 1500.0
+                },
+                "crianca": {
+                    "min": 25.0,
+                    "max": 90.0,
+                    "absolute_max": 3000.0
+                },
+                "adolescente": {
+                    "min": 25.0,
+                    "max": 90.0,
+                    "absolute_max": 3000.0
+                }
+            }
         }
     },
-
     {
         "model": "medications.medication",
         "pk": 2,
         "fields": {
             "name": "Morfina",
-            "type": "Analgésico Opioide", 
+            "type": "Analgésico Opioide",
             "description": "Indicado para dor moderada a intensa em pediatria. Requer monitoramento rigoroso por risco de depressão respiratória.",
             "prescription": 50,
             "frequency_hours": 4,
@@ -31,7 +51,28 @@
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 0.05,
+                    "max": 0.1,
+                    "absolute_max": 0.6
+                },
+                "lactente": {
+                    "min": 0.1,
+                    "max": 0.2,
+                    "absolute_max": 1.2
+                },
+                "crianca": {
+                    "min": 0.1,
+                    "max": 0.2,
+                    "absolute_max": 1.2
+                },
+                "adolescente": {
+                    "min": 0.05,
+                    "max": 0.2,
+                    "absolute_max": 10.0
+                }
+            }
         }
     },
     {
@@ -48,9 +89,29 @@
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 0.1,
+                    "max": 0.3,
+                    "absolute_max": 2.0
+                },
+                "lactente": {
+                    "min": 0.1,
+                    "max": 0.5,
+                    "absolute_max": 5.0
+                },
+                "crianca": {
+                    "min": 0.1,
+                    "max": 0.5,
+                    "absolute_max": 10.0
+                },
+                "adolescente": {
+                    "min": 0.1,
+                    "max": 0.3,
+                    "absolute_max": 10.0
+                }
+            }
         }
-
     },
     {
         "model": "medications.medication",
@@ -66,11 +127,28 @@
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": null,
+                "lactente": {
+                    "min": 10.0,
+                    "max": 25.0,
+                    "absolute_max": 500.0
+                },
+                "crianca": {
+                    "min": 10.0,
+                    "max": 25.0,
+                    "absolute_max": 1000.0
+                },
+                "adolescente": {
+                    "min": 10.0,
+                    "max": 25.0,
+                    "absolute_max": 2000.0
+                }
+            }
         }
-
     },
-    {"model": "medications.medication",
+    {
+        "model": "medications.medication",
         "pk": 5,
         "fields": {
             "name": "Midazolam",
@@ -83,7 +161,28 @@
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 0.03,
+                    "max": 0.06,
+                    "absolute_max": 0.5
+                },
+                "lactente": {
+                    "min": 0.05,
+                    "max": 0.15,
+                    "absolute_max": 1.0
+                },
+                "crianca": {
+                    "min": 0.05,
+                    "max": 0.5,
+                    "absolute_max": 10.0
+                },
+                "adolescente": {
+                    "min": 0.05,
+                    "max": 0.5,
+                    "absolute_max": 10.0
+                }
+            }
         }
     },
     {
@@ -100,11 +199,32 @@
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 0.0005,
+                    "max": 0.004,
+                    "absolute_max": 0.025
+                },
+                "lactente": {
+                    "min": 0.001,
+                    "max": 0.004,
+                    "absolute_max": 0.05
+                },
+                "crianca": {
+                    "min": 0.001,
+                    "max": 0.004,
+                    "absolute_max": 0.1
+                },
+                "adolescente": {
+                    "min": 0.001,
+                    "max": 0.004,
+                    "absolute_max": 0.1
+                }
+            }
         }
-
     },
-    {"model": "medications.medication",
+    {
+        "model": "medications.medication",
         "pk": 7,
         "fields": {
             "name": "Clonidina",
@@ -117,10 +237,32 @@
             "max_absolute_dose_mg": 0.8,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 0.5,
+                    "max": 1.0,
+                    "absolute_max": 0.3
+                },
+                "lactente": {
+                    "min": 0.5,
+                    "max": 2.0,
+                    "absolute_max": 0.5
+                },
+                "crianca": {
+                    "min": 0.5,
+                    "max": 2.5,
+                    "absolute_max": 0.8
+                },
+                "adolescente": {
+                    "min": 0.5,
+                    "max": 2.5,
+                    "absolute_max": 0.8
+                }
+            }
         }
-},
-  {"model": "medications.medication",
+    },
+    {
+        "model": "medications.medication",
         "pk": 7,
         "fields": {
             "name": "Paracetamol",
@@ -133,7 +275,28 @@
             "max_absolute_dose_mg": 3000,
             "concentration_mg": 250,
             "concentration_ml": 5,
-            "limits_by_age": null
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 10.0,
+                    "max": 15.0,
+                    "absolute_max": 60.0
+                },
+                "lactente": {
+                    "min": 10.0,
+                    "max": 15.0,
+                    "absolute_max": 75.0
+                },
+                "crianca": {
+                    "min": 10.0,
+                    "max": 15.0,
+                    "absolute_max": 75.0
+                },
+                "adolescente": {
+                    "min": 10.0,
+                    "max": 15.0,
+                    "absolute_max": 60.0
+                }
+            }
         }
-}   
+    }
 ]
