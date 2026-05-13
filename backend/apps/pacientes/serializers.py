@@ -17,6 +17,7 @@ class SintomaSerializer(serializers.ModelSerializer):
 
 class PacienteSerializer(serializers.ModelSerializer):
     alergias = AlergiaSerializer(many=True, read_only=True)
+    sintomas = SintomaSerializer(many=True, read_only=True)
 
     class Meta:
         model = Paciente
@@ -30,6 +31,8 @@ class PacienteSerializer(serializers.ModelSerializer):
             "nome_responsavel",
             "cidade",
             "telefone",
-            "sintomas"
+            "peso",
+            "altura",
             "alergias",
+            "sintomas",
         ]

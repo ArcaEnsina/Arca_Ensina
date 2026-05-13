@@ -1,0 +1,12 @@
+[
+  {"model": "pacientes.sintoma", "pk": 1, "fields": {"descricao": "Febre"}},
+  {"model": "pacientes.sintoma", "pk": 2, "fields": {"descricao": "Tosse"}},
+  {"model": "pacientes.sintoma", "pk": 3, "fields": {"descricao": "Dor de cabeça"}},
+  {"model": "pacientes.sintoma", "pk": 4, "fields": {"descricao": "Náusea"}},
+  {"model": "pacientes.sintoma", "pk": 5, "fields": {"descricao": "Vômito"}},
+  {"model": "pacientes.sintoma", "pk": 6, "fields": {"descricao": "Diarreia"}},
+  {"model": "pacientes.sintoma", "pk": 7, "fields": {"descricao": "Falta de ar"}},
+  {"model": "pacientes.sintoma", "pk": 8, "fields": {"descricao": "Calafrios"}},
+  {"model": "pacientes.sintoma", "pk": 9, "fields": {"descricao": "Fadiga"}},
+  {"model": "pacientes.sintoma", "pk": 10, "fields": {"descricao": "Perda de apetite"}}
+]
