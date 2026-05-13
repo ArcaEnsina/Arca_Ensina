@@ -1,3 +1,6 @@
+import ast
+import operator
+
 from django.utils import timezone
 
 from .models import ProtocolExecutionState
@@ -14,13 +17,25 @@ class ProtocolExecutionEngine:
         return execution
 
     def resposta_step_atual(self, execution, valores):
+        step = execution.current_step
+
+        if step.step_type == step.StepType.CALCULO_DERIVADO:
+            formula = step.config.get("formula")
+            output_field = step.config.get("output_field", "result")
+            
+            if formula:
+                valores = {
+                    **valores,
+                    output_field: self.calcular_formula(formula,valores),
+                }
+
         state, created = ProtocolExecutionState.objects.update_or_create(
             execution=execution,
             step=execution.current_step,
             defaults={"values": valores},
         )
 
-        next_step = self.escolher_prox_step(execution.current_step, valores, state)
+        next_step = self.escolher_prox_step(step, valores, state)
 
         if next_step is None:
             execution.current_step = None
@@ -73,8 +88,50 @@ class ProtocolExecutionEngine:
             if next_id:
                 return step.version.steps.filter(id=next_id).first()
 
+
         return step.next_step
 
     def calcular_formula(self, formula, contexto):
-        # SCRUM-31: implementar engine segura de fórmulas inline.
-        pass
+        #agora VAI
+        operadores={
+            ast.Add: operator.add,
+            ast.Sub: operator.sub,
+            ast.Mult: operator.mul,
+            ast.Div: operator.truediv,
+            ast.Pow: operator.pow,
+            ast.USub: operator.neg,
+        }
+    
+        def avaliar(node):
+            if isinstance(node, ast.Constant):
+                if isinstance(node.value, (int, float)):
+                    return node.value
+                raise ValueError("A fórmulaa só aceita números!")
+
+            if isinstance(node, ast.Name):
+                if node.id not in contexto:
+                    raise ValueError(f"Variável Desconhecida: {node.id}")
+                return contexto[node.id]
+            
+            if isinstance(node, ast.BinOp):
+                operador = operadores.get(type(node.op))
+                if operador is None:
+                    raise ValueError("Operador inválido")
+                
+                esquerda = avaliar(node.left)
+                direita = avaliar(node.right)
+                return operador(esquerda, direita)
+            
+            if isinstance(node, ast.UnaryOp):
+                operador = operadores.get(type(node.op))
+                if operador is None:
+                    raise ValueError("Operador Inválido")
+
+                valor = avaliar(node.operand)
+                return operador(valor)    
+            
+            raise ValueError("Expressão Inválida: Use apenas números, variáveis e operações.")
+            
+    
+        tree = ast.parse(formula, mode="eval")
+        return avaliar(tree.body)

@@ -913,3 +913,18 @@ class EngineTest(TestCase):
 
         self.assertEqual(state.loop_count, 1)
         self.assertEqual(self.exec.current_step, max_reached)
+
+    def test_calculadora_finalmente_mais_e_mult(self):
+        result = self.engine.calcular_formula(
+            "peso_kg * 10",
+            {"peso_kg": 12}
+        )
+
+        self.assertEqual(result, 120)
+        
+    def test_variavel_desconhecida(self):
+        with self.assertRaises(ValueError):
+            self.engine.calcular_formula(
+                "peso_kg * 10",
+                {}
+            )
