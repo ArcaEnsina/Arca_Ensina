@@ -17,6 +17,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
 # config local para desenvolvimento fora do docker
 def load_local_env_file() -> None:
     env_file = BASE_DIR.parent / ".env"
