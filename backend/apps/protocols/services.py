@@ -19,7 +19,7 @@ class ProtocolExecutionEngine:
         )
 
         next_step= self.escolher_prox_step(exec.current_step, valores)
-        
+
         if next_step is None:
             exec.current_step = None
             exec.status= exec.Status.CONCLUIDO
@@ -43,7 +43,19 @@ class ProtocolExecutionEngine:
                 next_id = step.config.get("false_next_step_id")
             
             if next_id:
-                return step.version.steps.filter(id=next_id).first() 
+                return step.version.steps.filter(id=next_id).first()
+        
+        if step.step_type == step.StepType.CHECKLIST:
+            checked_items = valores.get("checked_items", [])
+            min_checked = step.config.get("min_checked", 1)
+
+            if len(checked_items) >= min_checked:
+                next_id = step.config.get("true_next_step_id")
+            else:
+                next_id = step.config.get("false_next_step_id")
+
+            if next_id:
+                return step.version.steps.filter(id=next_id).first()
 
         return step.next_step
 

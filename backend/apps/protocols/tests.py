@@ -755,3 +755,79 @@ class EngineTest(TestCase):
 
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_false)
+    
+    def test_checklist_com_minimo_vai_p_true(self):
+        step_true = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type= ProtocolStep.StepType.INFORMATIVO,
+            order=6,
+            title="checklist com minimo",
+        )
+
+        step_false = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type= ProtocolStep.StepType.INFORMATIVO,
+            order=7,
+            title="checklist sem minimo",
+        )
+
+        step_hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type= ProtocolStep.StepType.CHECKLIST,
+            order=8,
+            title="checklist",
+            config={
+                "min_checked": 2,
+                "true_next_step_id": step_true.id,
+                "false_next_step_id": step_false.id,
+            },
+        )
+
+        self.exec.current_step = step_hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        self.engine.resposta_step_atual(
+            self.exec,
+            {"checked_items": ["s1", "s2"]}
+        )
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, step_true)
+
+    def test_checklist_com_minimo_vai_p_true_eu_nao_aguento_mais_codar_teste(self):
+        step_true = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type= ProtocolStep.StepType.INFORMATIVO,
+            order=6,
+            title="checklist com minimo",
+        )
+
+        step_false = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type= ProtocolStep.StepType.INFORMATIVO,
+            order=7,
+            title="checklist sem minimo",
+        )
+
+        step_hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type= ProtocolStep.StepType.CHECKLIST,
+            order=8,
+            title="checklist",
+            config={
+                "min_checked": 2,
+                "true_next_step_id": step_true.id,
+                "false_next_step_id": step_false.id,
+            },
+        )
+
+        self.exec.current_step = step_hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        self.engine.resposta_step_atual(
+            self.exec,
+            {"checked_items": ["s1"]}
+        )
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, step_false)
