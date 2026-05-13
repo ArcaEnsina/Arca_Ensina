@@ -3,9 +3,11 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import DesignSystem from "./pages/DesignSystem";
-import Patients from "./pages/Patients";
+import { PatientCreatePage } from "./features/patient";
 import MedicationsList from "./components/Medications/MedicationsList"; //for now (fazer a pagina ainda)
 import Calculator from "./pages/Calculator";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import { Toaster } from "@/components/ui/sonner";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -47,7 +49,7 @@ export default function App() {
           path="/patients"
           element={
             <ProtectedRoute>
-              <Patients />
+              <PatientCreatePage />
             </ProtectedRoute>
           }
         />
@@ -67,6 +69,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
