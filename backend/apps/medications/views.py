@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Medication
 from .serializers import MedicationSerializer
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 
 class MedicationListView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     
 
     def get(self, request, version=None):
@@ -18,7 +18,7 @@ class MedicationListView(APIView):
             return Response({"error": "Erro ao listar medicamentos"}, status=status.HTTP_404_NOT_FOUND)
 
 class MedicationDetailView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, version=None, pk=None):
         try:
