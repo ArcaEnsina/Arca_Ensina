@@ -12,6 +12,7 @@ Como rodar o projeto localmente e contribuir.
 | **Docker** (opcional) | 24+ | Para rodar tudo com `docker compose up` |
 
 > **Banco de dados:** SQLite em desenvolvimento — não precisa instalar PostgreSQL. O Docker Compose usa PostgreSQL automaticamente.
+> **WSL sem Docker Desktop:** se você instalar o Docker Engine direto na distro, confirme também o pacote `iptables`, porque o daemon pode falhar ao iniciar sem ele.
 
 ---
 

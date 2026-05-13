@@ -6,13 +6,13 @@ from .models import Alergia, Paciente, Sintoma
 class AlergiaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Alergia
-        fields = ["id", "nome"]
+        fields = ["id", "descricao"]
 
 
 class SintomaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sintoma
-        fields = ["id", "nome"]
+        fields = ["id", "descricao"]
 
 
 class PacienteSerializer(serializers.ModelSerializer):

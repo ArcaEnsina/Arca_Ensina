@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import DesignSystem from "./pages/DesignSystem";
 import Patients from "./pages/Patients";
+import MedicationsList from "./components/Medications/MedicationsList"; //for now (fazer a pagina ainda)
+import Calculator from "./pages/Calculator";
 import { Toaster } from "@/components/ui/sonner";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -42,22 +44,6 @@ export default function App() {
       <Toaster />
       <Routes>
         <Route
-          path="/login"
-          element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <GuestRoute>
-              <Register />
-            </GuestRoute>
-          }
-        />
-        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
@@ -78,6 +64,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Patients />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calculator/calculate/:medicationId"
+          element={
+            <ProtectedRoute>
+              <Calculator />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/medications"
+          element={
+            <ProtectedRoute>
+              <MedicationsList />
             </ProtectedRoute>
           }
         />

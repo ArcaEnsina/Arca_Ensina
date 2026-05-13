@@ -68,6 +68,8 @@ urlpatterns = [
     path(f"{V}/auth/user/", UserMeView.as_view(), name="user_me"),
     path(f"{V}/auth/logout/", LogoutView.as_view(), name="logout"),
     path(f"{V}/", include("apps.audit.urls")),
+    path(f"{V}/calculator/", include("apps.calculator.urls")),
     path(f"{V}/", include("apps.pacientes.urls")),
     path(f"{V}/", include("apps.protocols.urls")),
+    path(f"{V}/medications/", include("apps.medications.urls")),
 ]
