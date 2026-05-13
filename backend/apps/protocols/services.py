@@ -1,50 +1,50 @@
 from django.utils import timezone
+
 from .models import ProtocolExecutionState
+
 
 class ProtocolExecutionEngine:
     def primeiro_step(self, version):
         return version.steps.order_by("order").first()
 
-    def comecar(self,exec):
-        primeiro_step = self.primeiro_step(exec.version)
-        exec.current_step = primeiro_step
-        exec.save(update_fields=["current_step"])
-        return exec
+    def comecar(self, execution):
+        primeiro_step = self.primeiro_step(execution.version)
+        execution.current_step = primeiro_step
+        execution.save(update_fields=["current_step"])
+        return execution
 
-    def resposta_step_atual(self, exec, valores):
+    def resposta_step_atual(self, execution, valores):
         state, created = ProtocolExecutionState.objects.update_or_create(
-            execution=exec,
-            step=exec.current_step,
+            execution=execution,
+            step=execution.current_step,
             defaults={"values": valores},
         )
 
-        next_step= self.escolher_prox_step(exec.current_step, valores)
+        next_step = self.escolher_prox_step(execution.current_step, valores, state)
 
         if next_step is None:
-            exec.current_step = None
-            exec.status= exec.Status.CONCLUIDO
-            exec.finished_at = timezone.now()
-            exec.save(update_fields=["current_step", "status", "finished_at"])
+            execution.current_step = None
+            execution.status = execution.Status.CONCLUIDO
+            execution.finished_at = timezone.now()
+            execution.save(update_fields=["current_step", "status", "finished_at"])
         else:
-            exec.current_step=next_step
-            exec.save(update_fields=["current_step"])
-        
+            execution.current_step = next_step
+            execution.save(update_fields=["current_step"])
 
         return state
-    
-    def escolher_prox_step(self, step, valores):
+
+    def escolher_prox_step(self, step, valores, state=None):
         if step.step_type == step.StepType.SIM_NAO:
-            resposta=valores.get("answer")
+            resposta = valores.get("answer")
 
             if resposta is True:
                 next_id = step.config.get("true_next_step_id")
-
             else:
                 next_id = step.config.get("false_next_step_id")
-            
+
             if next_id:
                 return step.version.steps.filter(id=next_id).first()
-        
+
         if step.step_type == step.StepType.CHECKLIST:
             checked_items = valores.get("checked_items", [])
             min_checked = step.config.get("min_checked", 1)
@@ -57,8 +57,24 @@ class ProtocolExecutionEngine:
             if next_id:
                 return step.version.steps.filter(id=next_id).first()
 
+        if step.step_type == step.StepType.LOOP_TITULACAO:
+            iteracoes = step.config.get("max_iterations", 1)
+            loops = (state.loop_count if state else 0) + 1
+
+            if state:
+                state.loop_count = loops
+                state.save(update_fields=["loop_count"])
+
+            if loops >= iteracoes:
+                next_id = step.config.get("max_reached_next_step_id")
+            else:
+                next_id = step.config.get("loop_next_step_id")
+
+            if next_id:
+                return step.version.steps.filter(id=next_id).first()
+
         return step.next_step
 
     def calcular_formula(self, formula, contexto):
-    #ta mofando tem tempo a calculadora malskk
+        # SCRUM-31: implementar engine segura de fórmulas inline.
         pass

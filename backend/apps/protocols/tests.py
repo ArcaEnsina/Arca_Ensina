@@ -794,7 +794,7 @@ class EngineTest(TestCase):
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_true)
 
-    def test_checklist_com_minimo_vai_p_true_eu_nao_aguento_mais_codar_teste(self):
+    def test_checklist_abaixo_do_minimo_vai_p_false(self):
         step_true = ProtocolStep.objects.create(
             version=self.versao,
             step_type= ProtocolStep.StepType.INFORMATIVO,
@@ -831,3 +831,85 @@ class EngineTest(TestCase):
 
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_false)
+
+    def test_titulacao_loop_abaixo_do_maximo_avanca_para_loop_next_step(self):
+        loop_next = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=12,
+            title="loop",
+        )
+
+        max_reached = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=13,
+            title="maximo",
+        )
+
+        step_hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.LOOP_TITULACAO,
+            order=14,
+            title="titulacao",
+            config={
+                "max_iterations": 3,
+                "loop_next_step_id": loop_next.id,
+                "max_reached_next_step_id": max_reached.id,
+            },
+        )
+
+        self.exec.current_step = step_hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        state = self.engine.resposta_step_atual(
+            self.exec,
+            {"dose_adjusted": True},
+        )
+
+        self.exec.refresh_from_db()
+        state.refresh_from_db()
+
+        self.assertEqual(state.loop_count, 1)
+        self.assertEqual(self.exec.current_step, loop_next)
+
+    def test_titulacao_loop_no_maximo_avanca_para_max_reached_next_step(self):
+        loop_next = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=15,
+            title="loop",
+        )
+
+        max_reached = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=16,
+            title="maximo",
+        )
+
+        hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.LOOP_TITULACAO,
+            order=17,
+            title="Loop titulação",
+            config={
+                "max_iterations": 1,
+                "loop_next_step_id": loop_next.id,
+                "max_reached_next_step_id": max_reached.id,
+            },
+        )
+
+        self.exec.current_step = hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        state = self.engine.resposta_step_atual(
+            self.exec,
+            {"dose_adjusted": True},
+        )
+
+        self.exec.refresh_from_db()
+        state.refresh_from_db()
+
+        self.assertEqual(state.loop_count, 1)
+        self.assertEqual(self.exec.current_step, max_reached)

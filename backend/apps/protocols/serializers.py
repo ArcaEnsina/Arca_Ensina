@@ -189,7 +189,7 @@ class ProtocolExecutionAnswerSerializer(serializers.Serializer):
 
     values = serializers.JSONField()
 
-class ProtocolExecutionStateSerializer(BaseSerializer):
+class ProtocolExecutionStateSerializer(serializers.ModelSerializer):
     """serializer para estado de execução"""
 
     class Meta:
