@@ -229,12 +229,22 @@ class ProtocolVersionViewSetTest(TestCase):
         )
         self.protocol = Protocol.objects.create(title="Protocolo Version ViewSet")
         self.version = self.protocol.versions.first()
+
+        self.passo2 = ProtocolStep.objects.create(
+            version=self.version,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=2,
+            title="segundo passo"
+        )
         self.passo1 = ProtocolStep.objects.create(
             version=self.version,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=1,
             title="primeiro passo"
         )
+
+        self.passo1.next_step=self.passo2
+        self.passo1.save()
 
     def test_doctor_can_list_versions(self):
         self.client.force_authenticate(user=self.doctor)
@@ -289,6 +299,26 @@ class ProtocolVersionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["patient_name"], "Paciente API")
         self.assertEqual(response.data["current_step"] ["id"], self.passo1.id)
+
+    def test_medico_responde_step_atual(self):
+        self.client.force_authenticate(user=self.doctor)
+
+        start_response=self.client.post(
+            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            {"patient_name": "paciente"},
+            format="json",
+        )
+
+        execution_id = start_response.data["id"]
+
+        response = self.client.post(
+            f"/api/v1/protocol-executions/{execution_id}/answer/",
+            {"values": {"confirmado": True}},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["current_step"]["id"], self.passo2.id)
 
 class FixtureLoadTest(TestCase):
     def test_dengue_fixture_structure(self):
@@ -651,3 +681,77 @@ class EngineTest(TestCase):
         self.assertIsNone(self.exec.current_step)
         self.assertEqual(self.exec.status, ProtocolExecution.Status.CONCLUIDO)
         self.assertIsNotNone(self.exec.finished_at)
+
+    def test_answer_true_vai_p_true_next(self):
+        step_true = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=3,
+            title="caaminho true"
+        )
+
+        step_false = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=4,
+            title="caminho false"
+        )
+
+        step_hipotetico= ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.SIM_NAO,
+            order = 5,
+            title=("step com pergunta"),
+            config={
+                "true_next_step_id": step_true.id,
+                "false_next_step_id": step_false.id,
+            }
+        )
+
+        self.exec.current_step = step_hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        self.engine.resposta_step_atual(
+            self.exec,
+            {"answer": True},
+        )
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, step_true)
+
+    def test_answer_false_vai_p_false_next(self):
+        step_true = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=3,
+            title="caaminho true"
+        )
+
+        step_false = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=4,
+            title="caminho false"
+        )
+
+        step_hipotetico= ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.SIM_NAO,
+            order = 5,
+            title=("step com pergunta"),
+            config={
+                "true_next_step_id": step_true.id,
+                "false_next_step_id": step_false.id,
+            }
+        )
+
+        self.exec.current_step = step_hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        self.engine.resposta_step_atual(
+            self.exec,
+            {"answer": False},
+        )
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, step_false)
