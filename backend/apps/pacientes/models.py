@@ -44,6 +44,9 @@ class Paciente(models.Model):
     cidade = models.CharField(max_length=100)
     alergias = models.ManyToManyField(Alergia, blank=True)
 
+    class Meta:
+        ordering = ['id'] 
+
     def __str__(self):
         return self.nome
 

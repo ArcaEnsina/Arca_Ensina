@@ -25,8 +25,11 @@ class PacienteSerializer(serializers.ModelSerializer):
             "nome",
             "data_nascimento",
             "genero",
+            "peso",
+            "altura",
             "nome_responsavel",
             "cidade",
             "telefone",
+            "sintomas"
             "alergias",
         ]
