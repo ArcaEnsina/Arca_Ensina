@@ -31,7 +31,7 @@ class ProtocolExecutionEngine:
 
         state, created = ProtocolExecutionState.objects.update_or_create(
             execution=execution,
-            step=execution.current_step,
+            step=step,
             defaults={"values": valores},
         )
 

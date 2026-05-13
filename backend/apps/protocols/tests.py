@@ -928,3 +928,26 @@ class EngineTest(TestCase):
                 "peso_kg * 10",
                 {}
             )
+    
+    def test_derivado_calcula_e_salva_state(self):
+        hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type= ProtocolStep.StepType.CALCULO_DERIVADO,
+            order=18,
+            title="calculo",
+            config={
+                "formula":"peso_kg * 10",
+                "output_field": "volume_ml",
+            }
+        )
+
+        self.exec.current_step = hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        state = self.engine.resposta_step_atual(
+            self.exec,
+            {"peso_kg": 12}
+        )
+
+        self.assertEqual(state.values["peso_kg"], 12)
+        self.assertEqual(state.values["volume_ml"], 120)
