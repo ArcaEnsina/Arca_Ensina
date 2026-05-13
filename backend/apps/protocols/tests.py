@@ -831,6 +831,44 @@ class EngineTest(TestCase):
 
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_false)
+    
+    def test_multipla_escolha(self):
+        step_grave = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=20,
+            title="caso grave"
+        )
+        step_leve = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=21,
+            title="caso leve"
+        )
+        hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.MULTIPLA_ESCOLHA,
+            order=22,
+            title="deu p entender nesse ponto ne",
+            config={
+                "choices_next_step_ids":{
+                    "grave": step_grave.id,
+                    "leve": step_leve.id
+                }
+            }
+        )
+
+        self.exec.current_step=hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        self.engine.resposta_step_atual(
+            self.exec,
+            {"choice": "grave"},
+        )
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, step_grave)
+        
 
     def test_titulacao_loop_abaixo_do_maximo_avanca_para_loop_next_step(self):
         loop_next = ProtocolStep.objects.create(
@@ -914,6 +952,112 @@ class EngineTest(TestCase):
         self.assertEqual(state.loop_count, 1)
         self.assertEqual(self.exec.current_step, max_reached)
 
+    def test_prescricao_salva_e_vai_p_next(self):
+        next_step = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=23,
+            title="proximo",
+        )
+
+        hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.PRESCRICAO,
+            order=24,
+            title="prescricao",
+            next_step=next_step,
+            config={
+                "medications": [
+                    {
+                        "name": "SF 0,9%",
+                        "dose": "20 ml/kg",
+                        "route": "IV",
+                    }
+                ]
+            },
+        )
+        self.exec.current_step = hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        state = self.engine.resposta_step_atual(
+            self.exec,
+            {"accepted": True},
+        )
+
+        self.exec.refresh_from_db()
+
+        self.assertEqual(state.values, {"accepted": True})
+        self.assertEqual(self.exec.current_step, next_step)
+
+    def test_reav_salva_state_e_vai_p_next(self):
+        next_step = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=25, title="reavaliacao"
+        )
+        hipotetico= ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.AGUARDAR_REAVALIAR,
+            order=26,
+            title="linguica p reavaliar",
+            next_step=next_step,
+            config={
+                "duration_hours": 6,
+                "reassess_fields": ["diurese", "pressao"]
+            }
+        )
+        
+
+        self.exec.current_step=hipotetico
+        self.exec.save(update_fields=["current_step"])
+
+        state= self.engine.resposta_step_atual(
+            self.exec,
+            {
+                "diurese":"adequada",
+                "pressao_arterial":"estavel"
+            }
+        )
+
+        self.exec.refresh_from_db()
+
+        self.assertEqual(state.values["diurese"], "adequada")
+        self.assertEqual(self.exec.current_step, next_step)
+
+    def test_input_numerico_salva_e_next(self):
+        next_step= ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=27,
+            title="pos peso",
+        )
+
+        numeric_step= ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INPUT_NUMERICO,
+            order=28,
+            title="peso",
+            next_step=next_step,
+            config={
+                "field_name": "peso_kg",
+                "unit": "kg",
+                "min_value": 2,
+                "max_value": 200
+            }
+        )
+        self.exec.current_step = numeric_step
+        self.exec.save(update_fields=["current_step"])
+
+        state = self.engine.resposta_step_atual(
+            self.exec,
+            {"peso_kg": 12},
+        )
+
+        self.exec.refresh_from_db()
+
+        self.assertEqual(state.values["peso_kg"], 12)
+        self.assertEqual(self.exec.current_step, next_step)
+
     def test_calculadora_finalmente_mais_e_mult(self):
         result = self.engine.calcular_formula(
             "peso_kg * 10",
@@ -951,3 +1095,44 @@ class EngineTest(TestCase):
 
         self.assertEqual(state.values["peso_kg"], 12)
         self.assertEqual(state.values["volume_ml"], 120)
+
+    def test_derived_calc_usa_valor_de_step_anterior(self):
+        peso_step = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.INPUT_NUMERICO,
+            order=18,
+            title="Peso",
+        )
+
+        hipotetico = ProtocolStep.objects.create(
+            version=self.versao,
+            step_type=ProtocolStep.StepType.CALCULO_DERIVADO,
+            order=19,
+            title="calcular ml",
+            config={
+                "formula": "peso_kg * 20",
+                "output_field": "volume_ml",
+            },
+        )
+
+        peso_step.next_step = hipotetico
+        peso_step.save()
+
+        self.exec.current_step = peso_step
+        self.exec.save(update_fields=["current_step"])
+
+        self.engine.resposta_step_atual(
+            self.exec,
+            {"peso_kg": 12},
+        )
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, hipotetico)
+
+        state = self.engine.resposta_step_atual(
+            self.exec,
+            {},
+        )
+
+        self.assertEqual(state.values["volume_ml"], 240)
+        

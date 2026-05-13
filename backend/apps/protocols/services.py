@@ -26,7 +26,10 @@ class ProtocolExecutionEngine:
             if formula:
                 valores = {
                     **valores,
-                    output_field: self.calcular_formula(formula,valores),
+                    output_field: self.calcular_formula(
+                        formula,
+                        self.montar_contexto(execution, valores),
+                        ),
                 }
 
         state, created = ProtocolExecutionState.objects.update_or_create(
@@ -87,6 +90,14 @@ class ProtocolExecutionEngine:
 
             if next_id:
                 return step.version.steps.filter(id=next_id).first()
+            
+        if step.step_type== step.StepType.MULTIPLA_ESCOLHA:
+            escolha = valores.get("choice")
+            choices_next_step_ids = step.config.get("choices_next_step_ids", {})
+            next_id = choices_next_step_ids.get(escolha)
+
+            if next_id:
+                return step.version.steps.filter(id=next_id).first()
 
 
         return step.next_step
@@ -135,3 +146,14 @@ class ProtocolExecutionEngine:
     
         tree = ast.parse(formula, mode="eval")
         return avaliar(tree.body)
+    
+    def montar_contexto(self, execution, valores_atuais=None):
+        contexto={}
+
+        for state in execution.states.select_related("step").order_by("answered_at"):
+            contexto.update(state.values)
+
+        if valores_atuais:
+            contexto.update(valores_atuais)
+        
+        return contexto
