@@ -1,40 +1,41 @@
-import { type ReactNode } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { useAuth } from './context/AuthContext'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
-import DesignSystem from './pages/DesignSystem'
-import MedicationsList from './components/Medications/MedicationsList' //for now (fazer a pagina ainda)
-import Calculator from './pages/Calculator'
-import { Toaster } from '@/components/ui/sonner'
+import { type ReactNode } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import DesignSystem from "./pages/DesignSystem";
+import Patients from "./pages/Patients";
+import MedicationsList from "./components/Medications/MedicationsList"; //for now (fazer a pagina ainda)
+import Calculator from "./pages/Calculator";
+import { Toaster } from "@/components/ui/sonner";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>
+    return <p className="text-center mt-20">Carregando...</p>;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 function GuestRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>
+    return <p className="text-center mt-20">Carregando...</p>;
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 export default function App() {
@@ -42,22 +43,6 @@ export default function App() {
     <BrowserRouter>
       <Toaster />
       <Routes>
-        <Route
-          path="/login"
-          element={
-            <GuestRoute>
-              <Login />
-            </GuestRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <GuestRoute>
-              <Register />
-            </GuestRoute>
-          }
-        />
         <Route
           path="/dashboard"
           element={
@@ -71,6 +56,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <DesignSystem />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/patients"
+          element={
+            <ProtectedRoute>
+              <Patients />
             </ProtectedRoute>
           }
         />
@@ -93,5 +86,5 @@ export default function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
