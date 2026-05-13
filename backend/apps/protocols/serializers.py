@@ -141,7 +141,7 @@ class ProtocolListSerializer(BaseSerializer):
         current = obj.versions.filter(is_current=True).first()
         return current.protocol_type if current else None
 
-class ProtocolStepSerializer(BaseSerializer):
+class ProtocolStepSerializer(serializers.ModelSerializer):
     """serializer para passo do protocolo"""
 
     class Meta:
@@ -160,7 +160,7 @@ class ProtocolStepSerializer(BaseSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
-class ProtocolExecutionSerializer(BaseSerializer):
+class ProtocolExecutionSerializer(serializers.ModelSerializer):
     """serializer para execução de protocolo"""
 
     current_step = ProtocolStepSerializer(read_only=True)
@@ -179,12 +179,10 @@ class ProtocolExecutionSerializer(BaseSerializer):
         ]
         read_only_fields = ["id", "physician", "started_at", "version"]
 
-class ProtocolExecutionStartSerializer(BaseSerializer):
+class ProtocolExecutionStartSerializer(serializers.Serializer):
     """serializer para iniciar uma execução."""
 
-    class Meta:
-        model = ProtocolExecution
-        fields = ["patient_name"]
+    patient_name = serializers.CharField(max_length=255)
 
 class ProtocolExecutionAnswerSerializer(serializers.Serializer):
     """serializer para submeter resposta de um passo"""

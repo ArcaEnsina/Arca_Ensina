@@ -229,6 +229,12 @@ class ProtocolVersionViewSetTest(TestCase):
         )
         self.protocol = Protocol.objects.create(title="Protocolo Version ViewSet")
         self.version = self.protocol.versions.first()
+        self.passo1 = ProtocolStep.objects.create(
+            version=self.version,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
+            order=1,
+            title="primeiro passo"
+        )
 
     def test_doctor_can_list_versions(self):
         self.client.force_authenticate(user=self.doctor)
@@ -270,6 +276,19 @@ class ProtocolVersionViewSetTest(TestCase):
         response = self.client.get("/api/v1/protocol-versions/?protocol_type=guiado")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_exec_por_versao(self):
+        self.client.raise_request_exception = True
+        self.client.force_authenticate(user=self.doctor)
+
+        response = self.client.post(
+            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            {"patient_name": "Paciente API"},
+            format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["patient_name"], "Paciente API")
+        self.assertEqual(response.data["current_step"] ["id"], self.passo1.id)
 
 class FixtureLoadTest(TestCase):
     def test_dengue_fixture_structure(self):
@@ -541,10 +560,10 @@ class ProtocolExecutionStateModelTest(TestCase):
         self.assertIn("step", str(state))
         self.assertIn("1", str(state))
 class EngineTest(TestCase):
-    #criando o usuario, o protocolo e seus passos p teste xd
     User=get_user_model()
     
     def setUp(self):
+        #criando o usuario, o protocolo e seus passos p teste xd
         self.protocolo=Protocol.objects.create(
             title="Teste Protocol Engine",
             author="venicio!"
@@ -577,6 +596,10 @@ class EngineTest(TestCase):
             order=1,
             title="Primeiro Passo"
             )
+        
+        self.passo1.next_step = self.passo2
+        self.passo1.save()
+
 
         self.engine = ProtocolExecutionEngine()
     
@@ -589,3 +612,42 @@ class EngineTest(TestCase):
         exec = self.engine.comecar(self.exec)
 
         self.assertEqual(exec.current_step, self.passo1)
+    
+    def test_step_atual_salvando_estado(self):
+        self.engine.comecar(self.exec)
+
+        state=self.engine.resposta_step_atual(
+            self.exec,
+            {"confirmado": True}
+        )
+
+        self.assertEqual(state.execution, self.exec)
+        self.assertEqual(state.step, self.passo1)
+        self.assertEqual(state.values, {"confirmado": True})
+
+    def test_step_atual_vai_p_proximo_step(self):
+        self.engine.comecar(self.exec)
+
+        self.engine.resposta_step_atual(
+            self.exec,
+            {"confirmado": True},
+        )
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, self.passo2)
+
+    def test_conc_sem_next_step(self):
+        self.engine.comecar(self.exec)
+        # ir do passo 1 pro 2
+        self.engine.resposta_step_atual(self.exec, {"confirmado": True})
+
+        self.exec.refresh_from_db()
+        self.assertEqual(self.exec.current_step, self.passo2)
+
+        # sem next step
+        self.engine.resposta_step_atual(self.exec, {"finalizado": True})
+
+        self.exec.refresh_from_db()
+        self.assertIsNone(self.exec.current_step)
+        self.assertEqual(self.exec.status, ProtocolExecution.Status.CONCLUIDO)
+        self.assertIsNotNone(self.exec.finished_at)

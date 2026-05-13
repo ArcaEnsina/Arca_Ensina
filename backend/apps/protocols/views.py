@@ -9,12 +9,16 @@ from rest_framework.viewsets import ModelViewSet
 from apps.accounts.permissions import IsAdmin
 from apps.audit.mixins import AuditableMixin
 
-from .models import Protocol, ProtocolVersion
+from .services import ProtocolExecutionEngine
+from .models import Protocol, ProtocolVersion, ProtocolExecution
 from .serializers import (
     ProtocolListSerializer,
     ProtocolSerializer,
     ProtocolVersionCreateSerializer,
     ProtocolVersionSerializer,
+    ProtocolExecutionSerializer,
+    ProtocolExecutionStartSerializer,
+    ProtocolExecutionAnswerSerializer
 )
 
 
@@ -125,3 +129,53 @@ class ProtocolVersionViewSet(AuditableMixin, ModelViewSet):
         version.is_current = True
         version.save()
         return Response(ProtocolVersionSerializer(version).data)
+    
+    @action(detail=True, methods=["post"], url_path="start")
+    def executar(self, request, pk=None, **kwargs):
+        version = self.get_object()
+        serializer = ProtocolExecutionStartSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        execution = ProtocolExecution.objects.create(
+            version=version,
+            physician=request.user,
+            patient_name=serializer.validated_data["patient_name"],
+        )
+        
+        execution = ProtocolExecutionEngine().comecar(execution)
+        
+        return Response(
+            ProtocolExecutionSerializer(execution).data,
+            status=201,
+        )
+
+class ProtocolExecutionViewSet(AuditableMixin, ModelViewSet):
+    audit_resource_type = "protocol_execution"
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProtocolExecutionSerializer
+
+    def get_queryset(self):
+        return ProtocolExecution.objects.select_related(
+            "version",
+            "version__protocol",
+            "physician",
+            "current_step",
+        ).filter(physician=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="answer")
+    def answer(self, request, pk=None, **kwargs):
+        execution= self.get_object()
+
+        serializer = ProtocolExecutionAnswerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        ProtocolExecutionEngine().resposta_step_atual(
+            execution,
+            serializer.validated_data["values"],
+        )
+
+        execution.refresh_from_db()
+
+        return Response(ProtocolExecutionSerializer(execution).data)
+
+    
