@@ -1460,4 +1460,72 @@ class JsonProtocolExecutionServiceTest(TestCase):
         self.execution.refresh_from_db()
 
         self.assertEqual(self.execution.current_step_key, "fim_sim")
+
+
+class JsonProtocolExecutionApiTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.protocol = Protocol.objects.create(title="JSON API Protocol")
+        self.version = self.protocol.versions.first()
+        self.version.steps_data = {
+            "steps": [
+                {
+                    "id": "intro",
+                    "type": "info",
+                    "title": "Intro",
+                    "next_step": "pergunta",
+                },
+                {
+                    "id": "pergunta",
+                    "type": "yes_no",
+                    "title": "Pergunta",
+                    "true_next": "fim_sim",
+                    "false_next": "fim_nao",
+                },
+                {"id": "fim_sim", "type": "info", "title": "Fim sim"},
+                {"id": "fim_nao", "type": "info", "title": "Fim nao"},
+            ]
+        }
+        self.version.save()
+        self.doctor = User.objects.create_user(
+            username="json_api_doctor",
+            email="json_api_doctor@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+
+    def test_start_returns_current_step_data_from_json(self):
+        self.client.force_authenticate(user=self.doctor)
+
+        response = self.client.post(
+            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            {"patient_name": "Paciente API JSON"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["current_step_key"], "intro")
+        self.assertEqual(response.data["current_step_data"]["id"], "intro")
+        self.assertEqual(response.data["current_step_data"]["type"], "info")
+
+    def test_answer_returns_next_current_step_data_from_json(self):
+        self.client.force_authenticate(user=self.doctor)
+
+        start_response = self.client.post(
+            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            {"patient_name": "Paciente API JSON"},
+            format="json",
+        )
+        execution_id = start_response.data["id"]
+
+        response = self.client.post(
+            f"/api/v1/protocol-executions/{execution_id}/answer/",
+            {"values": {"ack": True}},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["current_step_key"], "pergunta")
+        self.assertEqual(response.data["current_step_data"]["id"], "pergunta")
+        self.assertEqual(response.data["current_step_data"]["type"], "yes_no")
         

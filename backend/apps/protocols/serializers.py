@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from project.serializers import BaseSerializer
 
+from .engine.interpreter import GuidedProtocolInterpreter
 from .models import Protocol, ProtocolVersion, ProtocolStep, ProtocolExecution, ProtocolExecutionState
 
 
@@ -164,6 +165,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
     """serializer para execução de protocolo"""
 
     current_step = ProtocolStepSerializer(read_only=True)
+    current_step_data = serializers.SerializerMethodField()
 
     class Meta:
         model = ProtocolExecution
@@ -174,10 +176,19 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
             "patient_name",
             "status",
             "current_step",
+            "current_step_key",
+            "current_step_data",
             "started_at",
             "finished_at",
         ]
         read_only_fields = ["id", "physician", "started_at", "version"]
+
+    def get_current_step_data(self, obj):
+        if not obj.current_step_key:
+            return None
+
+        interpreter = GuidedProtocolInterpreter(obj.version.steps_data)
+        return interpreter.get_step(obj.current_step_key)
 
 class ProtocolExecutionStartSerializer(serializers.Serializer):
     """serializer para iniciar uma execução."""
