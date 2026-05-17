@@ -1528,4 +1528,64 @@ class JsonProtocolExecutionApiTest(TestCase):
         self.assertEqual(response.data["current_step_key"], "pergunta")
         self.assertEqual(response.data["current_step_data"]["id"], "pergunta")
         self.assertEqual(response.data["current_step_data"]["type"], "yes_no")
+
+
+class DengueFixtureJsonExecutionTest(TestCase):
+    def setUp(self):
+        import json
+        from pathlib import Path
+
+        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        self.steps_data = data[1]["fields"]["steps_data"]
+        self.protocol = Protocol.objects.create(title="Dengue JSON Runtime")
+        self.version = self.protocol.versions.first()
+        self.version.steps_data = self.steps_data
+        self.version.save()
+        self.doctor = User.objects.create_user(
+            username="dengue_json_doctor",
+            email="dengue_json_doctor@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.execution = ProtocolExecution.objects.create(
+            version=self.version,
+            physician=self.doctor,
+            patient_name="Paciente Dengue",
+        )
+        self.engine = ProtocolExecutionEngine()
+
+    def test_dengue_runtime_starts_from_fixture_first_step(self):
+        self.engine.comecar(self.execution)
+
+        self.execution.refresh_from_db()
+
+        self.assertEqual(self.execution.current_step_key, "step_0")
+        self.assertIsNone(self.execution.current_step)
+
+    def test_dengue_runtime_advances_checklist_to_gravity_branch(self):
+        self.engine.comecar(self.execution)
+        self.engine.resposta_step_atual(self.execution, {"ack": True})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "step_1")
+
+        state = self.engine.resposta_step_atual(
+            self.execution,
+            {"checked_items": ["s1"]},
+        )
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.step_key, "step_1")
+        self.assertEqual(self.execution.current_step_key, "step_d_gravidade")
+
+    def test_dengue_runtime_advances_yes_no_to_weight_step(self):
+        self.execution.current_step_key = "step_4_choque"
+        self.execution.save(update_fields=["current_step_key"])
+
+        self.engine.resposta_step_atual(self.execution, {"answer": True})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(self.execution.current_step_key, "step_5_peso")
         
