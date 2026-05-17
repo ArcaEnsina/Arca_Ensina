@@ -1,6 +1,11 @@
+import json
+from pathlib import Path
+
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
+from jsonschema import ValidationError as JsonSchemaValidationError
+from jsonschema import validate
 
 class Protocol(models.Model):
     """Protocolo clínico base."""
@@ -108,7 +113,30 @@ class ProtocolVersion(models.Model):
     def __str__(self):
         return f"{self.protocol.title} v{self.version_number}"
 
+    def clean(self):
+        schema_dir = Path(__file__).resolve().parent / "schemas"
+
+        if self.protocol_type == self.ProtocolType.GUIADO and self.steps_data:
+            schema_path = schema_dir / "guided.schema.json"
+            data = self.steps_data
+        elif self.protocol_type == self.ProtocolType.PAINEL and self.panel_data:
+            schema_path = schema_dir / "panel.schema.json"
+            data = self.panel_data
+        else:
+            return
+
+        with open(schema_path) as f:
+            schema = json.load(f)
+
+        try:
+            validate(instance=data, schema=schema)
+        except JsonSchemaValidationError as exc:
+            raise DjangoValidationError(
+                f"Dados do protocolo não seguem o schema: {exc.message}"
+            ) from exc
+
     def save(self, *args, **kwargs):
+        self.clean()
         if self.is_current:
             ProtocolVersion.objects.filter(
                 protocol=self.protocol, is_current=True

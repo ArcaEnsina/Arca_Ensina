@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Arca Ensina Guided Protocol",
+  "type": "object",
+  "required": ["steps"],
+  "properties": {
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "title"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "type": {
+            "type": "string",
+            "enum": [
+              "info",
+              "yes_no",
+              "multiple_choice",
+              "checklist",
+              "numeric_input",
+              "derived_calc",
+              "medication_prescription",
+              "wait_reassess",
+              "titration_loop"
+            ]
+          },
+          "title": { "type": "string", "minLength": 1 },
+          "next_step": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

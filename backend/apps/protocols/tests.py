@@ -389,6 +389,46 @@ class FixtureLoadTest(TestCase):
         self.assertIn("calculators", panel_data)
         self.assertGreater(len(panel_data["sections"]), 0)
         self.assertGreater(len(panel_data["calculators"]), 0)
+
+
+class ProtocolVersionSchemaValidationTest(TestCase):
+    def setUp(self):
+        self.protocol = Protocol.objects.create(title="Schema Test")
+
+    def test_dengue_fixture_steps_data_validates_against_schema(self):
+        import json
+        from pathlib import Path
+
+        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        version = ProtocolVersion(
+            protocol=self.protocol,
+            version_number=2,
+            protocol_type=ProtocolVersion.ProtocolType.GUIADO,
+            steps_data=data[1]["fields"]["steps_data"],
+        )
+
+        version.clean()
+
+    def test_guided_steps_data_requires_step_id(self):
+        version = ProtocolVersion(
+            protocol=self.protocol,
+            version_number=2,
+            protocol_type=ProtocolVersion.ProtocolType.GUIADO,
+            steps_data={
+                "steps": [
+                    {
+                        "type": "info",
+                        "title": "Sem ID",
+                    }
+                ]
+            },
+        )
+
+        with self.assertRaises(Exception):
+            version.clean()
         
 class ProtocolStepModelTest(TestCase):
     def setUp(self):
