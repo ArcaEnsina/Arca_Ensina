@@ -3,6 +3,7 @@ import operator
 
 from django.utils import timezone
 
+from .engine.interpreter import GuidedProtocolInterpreter
 from .models import ProtocolExecutionState
 
 
@@ -11,12 +12,22 @@ class ProtocolExecutionEngine:
         return version.steps.order_by("order").first()
 
     def comecar(self, execution):
+        if execution.version.steps_data.get("steps"):
+            interpreter = GuidedProtocolInterpreter(execution.version.steps_data)
+            execution.current_step_key = interpreter.get_first_step_id()
+            execution.current_step = None
+            execution.save(update_fields=["current_step_key", "current_step"])
+            return execution
+
         primeiro_step = self.primeiro_step(execution.version)
         execution.current_step = primeiro_step
         execution.save(update_fields=["current_step"])
         return execution
 
     def resposta_step_atual(self, execution, valores):
+        if execution.current_step_key:
+            return self._resposta_step_json(execution, valores)
+
         step = execution.current_step
 
         if step.step_type == step.StepType.CALCULO_DERIVADO:
@@ -157,3 +168,60 @@ class ProtocolExecutionEngine:
             contexto.update(valores_atuais)
         
         return contexto
+
+    def _resposta_step_json(self, execution, valores):
+        interpreter = GuidedProtocolInterpreter(execution.version.steps_data)
+        step_key = execution.current_step_key
+        step = interpreter.get_step(step_key)
+
+        if step and step.get("type") == "derived_calc":
+            history = self._historico_json(execution)
+            context = interpreter.build_context(history, valores)
+            valores = interpreter.apply_derived_calculation(step_key, valores, context)
+
+        state, created = ProtocolExecutionState.objects.update_or_create(
+            execution=execution,
+            step_key=step_key,
+            defaults={"values": valores},
+        )
+
+        next_step_key = interpreter.resolve_next_step_id(
+            step_key,
+            valores,
+            {"loop_count": state.loop_count},
+        )
+
+        if step and step.get("type") == "titration_loop":
+            state.loop_count += 1
+            state.save(update_fields=["loop_count"])
+
+        if next_step_key is None:
+            execution.current_step_key = None
+            execution.current_step = None
+            execution.status = execution.Status.CONCLUIDO
+            execution.finished_at = timezone.now()
+            execution.save(
+                update_fields=[
+                    "current_step_key",
+                    "current_step",
+                    "status",
+                    "finished_at",
+                ]
+            )
+        else:
+            execution.current_step_key = next_step_key
+            execution.current_step = None
+            execution.save(update_fields=["current_step_key", "current_step"])
+
+        return state
+
+    def _historico_json(self, execution):
+        return [
+            {
+                "step_key": state.step_key,
+                "values": state.values,
+            }
+            for state in execution.states.filter(step_key__isnull=False).order_by(
+                "answered_at"
+            )
+        ]

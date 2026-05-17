@@ -1318,4 +1318,146 @@ class GuidedProtocolInterpreterTest(TestCase):
 
         with self.assertRaises(ValueError):
             interpreter.evaluate_formula("peso_kg * 10", {})
+
+    def test_apply_derived_calculation_from_json(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "calc_volume",
+                    "type": "derived_calc",
+                    "title": "Volume",
+                    "formula": "peso_kg * 10",
+                    "output_field": "volume_ml",
+                }
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        values = interpreter.apply_derived_calculation(
+            "calc_volume",
+            {"peso_kg": "12"},
+        )
+
+        self.assertEqual(values["peso_kg"], "12")
+        self.assertEqual(values["volume_ml"], "120")
+
+    def test_apply_derived_calculation_uses_previous_context(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "calc_volume",
+                    "type": "derived_calc",
+                    "title": "Volume",
+                    "formula": "peso_kg * 20",
+                    "output_field": "volume_ml",
+                }
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        values = interpreter.apply_derived_calculation(
+            "calc_volume",
+            {},
+            {"peso_kg": "12"},
+        )
+
+        self.assertEqual(values["volume_ml"], "240")
+
+    def test_build_context_from_json_history(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        interpreter = GuidedProtocolInterpreter({"steps": []})
+        history = [
+            {
+                "step_key": "step_peso",
+                "values": {"peso_kg": "12"},
+            },
+            {
+                "step_key": "step_ht",
+                "values": {"hematocrito": "40"},
+            },
+        ]
+
+        context = interpreter.build_context(
+            history,
+            {"peso_kg": "13"},
+        )
+
+        self.assertEqual(context["peso_kg"], "13")
+        self.assertEqual(context["hematocrito"], "40")
+
+
+class JsonProtocolExecutionServiceTest(TestCase):
+    def setUp(self):
+        self.protocol = Protocol.objects.create(title="JSON Protocol")
+        self.version = self.protocol.versions.first()
+        self.version.steps_data = {
+            "steps": [
+                {
+                    "id": "intro",
+                    "type": "info",
+                    "title": "Intro",
+                    "next_step": "pergunta",
+                },
+                {
+                    "id": "pergunta",
+                    "type": "yes_no",
+                    "title": "Pergunta",
+                    "true_next": "fim_sim",
+                    "false_next": "fim_nao",
+                },
+                {"id": "fim_sim", "type": "info", "title": "Fim sim"},
+                {"id": "fim_nao", "type": "info", "title": "Fim nao"},
+            ]
+        }
+        self.version.save()
+        self.physician = User.objects.create_user(
+            username="json_doctor",
+            email="json_doctor@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.execution = ProtocolExecution.objects.create(
+            version=self.version,
+            physician=self.physician,
+            patient_name="Paciente JSON",
+        )
+        self.engine = ProtocolExecutionEngine()
+
+    def test_start_execution_uses_first_json_step_key(self):
+        execution = self.engine.comecar(self.execution)
+
+        self.assertEqual(execution.current_step_key, "intro")
+        self.assertIsNone(execution.current_step)
+
+    def test_answer_json_step_persists_state_and_advances_by_step_key(self):
+        self.engine.comecar(self.execution)
+
+        state = self.engine.resposta_step_atual(
+            self.execution,
+            {"ack": True},
+        )
+
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.step_key, "intro")
+        self.assertIsNone(state.step)
+        self.assertEqual(state.values, {"ack": True})
+        self.assertEqual(self.execution.current_step_key, "pergunta")
+
+    def test_answer_json_yes_no_advances_to_true_next(self):
+        self.engine.comecar(self.execution)
+        self.engine.resposta_step_atual(self.execution, {"ack": True})
+        self.execution.refresh_from_db()
+
+        self.engine.resposta_step_atual(self.execution, {"answer": True})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(self.execution.current_step_key, "fim_sim")
         

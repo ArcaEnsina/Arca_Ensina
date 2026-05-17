@@ -102,3 +102,35 @@ class GuidedProtocolInterpreter:
 
         tree = ast.parse(formula, mode="eval")
         return evaluate(tree.body)
+
+    def apply_derived_calculation(self, step_id, values, context=None):
+        step = self.get_step(step_id)
+        if not step or step.get("type") != "derived_calc":
+            return values
+
+        formula = step.get("formula")
+        if not formula:
+            return values
+
+        calculation_context = {
+            **(context or {}),
+            **values,
+        }
+        output_field = step.get("output_field") or step.get("output_label") or "result"
+        result = self.evaluate_formula(formula, calculation_context)
+
+        return {
+            **values,
+            output_field: str(result),
+        }
+
+    def build_context(self, history=None, current_values=None):
+        context = {}
+
+        for state in history or []:
+            context.update(state.get("values", {}))
+
+        if current_values:
+            context.update(current_values)
+
+        return context
