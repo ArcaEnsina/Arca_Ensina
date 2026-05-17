@@ -1,3 +1,8 @@
+import ast
+import operator
+from decimal import Decimal
+
+
 class GuidedProtocolInterpreter:
     """Interpreta protocolos guiados diretamente do steps_data JSON."""
 
@@ -53,4 +58,47 @@ class GuidedProtocolInterpreter:
 
             return congestion_check.get("false_next") or step.get("loop_next")
 
+        if step_type == "multiple_choice":
+            choice = values.get("choice")
+            choices_next = step.get("choices_next", {})
+            return choices_next.get(choice) or step.get("next_step")
+
         return step.get("next_step")
+
+    def evaluate_formula(self, formula, context):
+        operators = {
+            ast.Add: operator.add,
+            ast.Sub: operator.sub,
+            ast.Mult: operator.mul,
+            ast.Div: operator.truediv,
+            ast.Pow: operator.pow,
+            ast.USub: operator.neg,
+        }
+
+        def evaluate(node):
+            if isinstance(node, ast.Constant):
+                if isinstance(node.value, (int, float)):
+                    return Decimal(str(node.value))
+                raise ValueError("A formula so aceita numeros.")
+
+            if isinstance(node, ast.Name):
+                if node.id not in context:
+                    raise ValueError(f"Variavel desconhecida na formula: {node.id}")
+                return Decimal(str(context[node.id]))
+
+            if isinstance(node, ast.BinOp):
+                op = operators.get(type(node.op))
+                if op is None:
+                    raise ValueError("Operador nao permitido na formula.")
+                return op(evaluate(node.left), evaluate(node.right))
+
+            if isinstance(node, ast.UnaryOp):
+                op = operators.get(type(node.op))
+                if op is None:
+                    raise ValueError("Operador nao permitido na formula.")
+                return op(evaluate(node.operand))
+
+            raise ValueError("Expressao nao permitida na formula.")
+
+        tree = ast.parse(formula, mode="eval")
+        return evaluate(tree.body)

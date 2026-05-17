@@ -1273,4 +1273,49 @@ class GuidedProtocolInterpreterTest(TestCase):
             ),
             "step_9_coloides",
         )
+
+    def test_resolve_multiple_choice_from_json(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "classificacao",
+                    "type": "multiple_choice",
+                    "title": "Classificacao",
+                    "choices_next": {
+                        "grave": "conduta_grave",
+                        "leve": "conduta_leve",
+                    },
+                },
+                {"id": "conduta_grave", "type": "info", "title": "Grave"},
+                {"id": "conduta_leve", "type": "info", "title": "Leve"},
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id("classificacao", {"choice": "grave"}),
+            "conduta_grave",
+        )
+
+    def test_evaluate_formula_returns_decimal(self):
+        from decimal import Decimal
+
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        interpreter = GuidedProtocolInterpreter({"steps": []})
+
+        result = interpreter.evaluate_formula("peso_kg * 10", {"peso_kg": "12.5"})
+
+        self.assertEqual(result, Decimal("125.0"))
+
+    def test_evaluate_formula_rejects_unknown_variable(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        interpreter = GuidedProtocolInterpreter({"steps": []})
+
+        with self.assertRaises(ValueError):
+            interpreter.evaluate_formula("peso_kg * 10", {})
         
