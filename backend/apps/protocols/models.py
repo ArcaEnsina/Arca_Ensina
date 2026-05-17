@@ -205,6 +205,13 @@ class ProtocolExecution(models.Model):
         related_name="active_executions",
         verbose_name="Passo atual",
     )
+    current_step_key = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="ID declarativo do passo atual",
+    )
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True, verbose_name="Finalizado em")
 
@@ -236,8 +243,17 @@ class ProtocolExecutionState(models.Model):
     step = models.ForeignKey(
         ProtocolStep,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name="execution_states",
         verbose_name="Passo",
+    )
+    step_key = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name="ID declarativo do passo",
     )
     values = models.JSONField(
         default=dict,
@@ -259,4 +275,6 @@ class ProtocolExecutionState(models.Model):
         verbose_name_plural = "Estados de Execução"
 
     def __str__(self):
-        return f"{self.execution} — step {self.step.order}"
+        if self.step:
+            return f"{self.execution} — step {self.step.order}"
+        return f"{self.execution} — step {self.step_key}"

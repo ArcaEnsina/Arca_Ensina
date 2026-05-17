@@ -1135,4 +1135,142 @@ class EngineTest(TestCase):
         )
 
         self.assertEqual(state.values["volume_ml"], 240)
+
+
+class GuidedProtocolInterpreterTest(TestCase):
+    def test_get_first_step_id_from_steps_data(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {"id": "step_0", "type": "info", "title": "Intro"},
+                {"id": "step_1", "type": "yes_no", "title": "Pergunta"},
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(interpreter.get_first_step_id(), "step_0")
+
+    def test_get_step_from_dengue_fixture_json(self):
+        import json
+        from pathlib import Path
+
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        steps_data = data[1]["fields"]["steps_data"]
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        step = interpreter.get_step("step_4_choque")
+
+        self.assertEqual(step["type"], "yes_no")
+        self.assertEqual(step["true_next"], "step_5_peso")
+
+    def test_resolve_next_step_linear_from_json(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "step_0",
+                    "type": "info",
+                    "title": "Intro",
+                    "next_step": "step_1",
+                },
+                {"id": "step_1", "type": "info", "title": "Fim"},
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id("step_0", {}),
+            "step_1",
+        )
+
+    def test_resolve_yes_no_from_dengue_fixture_json(self):
+        import json
+        from pathlib import Path
+
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        steps_data = data[1]["fields"]["steps_data"]
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id("step_4_choque", {"answer": True}),
+            "step_5_peso",
+        )
+        self.assertEqual(
+            interpreter.resolve_next_step_id("step_4_choque", {"answer": False}),
+            "step_13_plaquetas",
+        )
+
+    def test_resolve_checklist_from_dengue_fixture_json(self):
+        import json
+        from pathlib import Path
+
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        steps_data = data[1]["fields"]["steps_data"]
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id("step_1", {"checked_items": ["s1"]}),
+            "step_d_gravidade",
+        )
+        self.assertEqual(
+            interpreter.resolve_next_step_id("step_1", {"checked_items": []}),
+            "step_c_leve",
+        )
+
+    def test_resolve_titration_loop_from_dengue_fixture_json(self):
+        import json
+        from pathlib import Path
+
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        with open(fixture_path) as f:
+            data = json.load(f)
+
+        steps_data = data[1]["fields"]["steps_data"]
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id(
+                "step_8_titulacao",
+                {"congestion": False},
+                {"loop_count": 1},
+            ),
+            "step_7_melhora",
+        )
+        self.assertEqual(
+            interpreter.resolve_next_step_id(
+                "step_8_titulacao",
+                {"congestion": False},
+                {"loop_count": 2},
+            ),
+            "step_9_coloides",
+        )
+        self.assertEqual(
+            interpreter.resolve_next_step_id(
+                "step_8_titulacao",
+                {"congestion": True},
+                {"loop_count": 0},
+            ),
+            "step_9_coloides",
+        )
         
