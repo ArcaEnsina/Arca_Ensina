@@ -2,7 +2,14 @@ from rest_framework import serializers
 
 from project.serializers import BaseSerializer
 
-from .models import Protocol, ProtocolVersion
+from .engine.interpreter import GuidedProtocolInterpreter
+from .models import (
+    Protocol,
+    ProtocolExecution,
+    ProtocolExecutionState,
+    ProtocolStep,
+    ProtocolVersion,
+)
 
 
 class ProtocolVersionSerializer(BaseSerializer):
@@ -140,3 +147,99 @@ class ProtocolListSerializer(BaseSerializer):
     def get_current_version_type(self, obj):
         current = obj.versions.filter(is_current=True).first()
         return current.protocol_type if current else None
+
+
+class ProtocolStepSerializer(serializers.ModelSerializer):
+    """serializer para passo do protocolo"""
+
+    class Meta:
+        model = ProtocolStep
+        fields = [
+            "id",
+            "version",
+            "step_type",
+            "order",
+            "title",
+            "content",
+            "next_step",
+            "config",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class ProtocolExecutionSerializer(serializers.ModelSerializer):
+    """serializer para execução de protocolo"""
+
+    current_step = ProtocolStepSerializer(read_only=True)
+    current_step_data = serializers.SerializerMethodField()
+    gate_warnings = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProtocolExecution
+        fields = [
+            "id",
+            "version",
+            "physician",
+            "patient_name",
+            "client_uuid",
+            "status",
+            "current_step",
+            "current_step_key",
+            "current_step_data",
+            "gate_warnings",
+            "started_at",
+            "finished_at",
+        ]
+        read_only_fields = ["id", "physician", "started_at", "version"]
+
+    def get_current_step_data(self, obj):
+        if not obj.current_step_key:
+            return None
+        interpreter = GuidedProtocolInterpreter(obj.version.steps_data)
+        return interpreter.get_step(obj.current_step_key)
+
+    def get_gate_warnings(self, obj):
+        """Avalia gate warnings fresh para o step atual."""
+        if not obj.current_step_key or not obj.version.steps_data:
+            return []
+        interpreter = GuidedProtocolInterpreter(obj.version.steps_data)
+        history = [
+            {"step_key": s.step_key, "values": s.values}
+            for s in obj.states.filter(step_key__isnull=False).order_by("answered_at")
+        ]
+        context = interpreter.build_context(history)
+        return interpreter.evaluate_step_gates(obj.current_step_key, context)
+
+
+class ProtocolExecutionStartSerializer(serializers.Serializer):
+    """serializer para iniciar uma execução."""
+
+    patient_name = serializers.CharField(max_length=255)
+    client_uuid = serializers.UUIDField(required=False)
+    context = serializers.JSONField(required=False, default=dict)
+
+
+class ProtocolExecutionAnswerSerializer(serializers.Serializer):
+    """serializer para submeter resposta de um passo"""
+
+    values = serializers.JSONField()
+
+
+class ProtocolExecutionStateSerializer(serializers.ModelSerializer):
+    """serializer para estado de execução"""
+
+    class Meta:
+        model = ProtocolExecutionState
+        fields = [
+            "id",
+            "execution",
+            "step",
+            "step_key",
+            "values",
+            "loop_count",
+            "gate_warnings",
+            "answered_at",
+        ]
+        read_only_fields = ["id", "answered_at"]
