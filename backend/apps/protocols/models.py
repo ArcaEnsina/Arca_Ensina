@@ -302,6 +302,11 @@ class ProtocolExecutionState(models.Model):
         verbose_name="Valores informados / cálculos derivados",
     )
     loop_count = models.PositiveIntegerField(default=0, verbose_name="Contador de loop")
+    gate_warnings = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Avisos de gate avaliados",
+    )
     answered_at = models.DateTimeField(auto_now_add=True, verbose_name="Respondido em")
 
     class Meta:

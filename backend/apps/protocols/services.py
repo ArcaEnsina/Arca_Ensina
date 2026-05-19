@@ -1,5 +1,6 @@
 import ast
 import operator
+from decimal import Decimal
 
 from django.utils import timezone
 
@@ -127,13 +128,13 @@ class ProtocolExecutionEngine:
         def avaliar(node):
             if isinstance(node, ast.Constant):
                 if isinstance(node.value, (int, float)):
-                    return node.value
+                    return Decimal(str(node.value))
                 raise ValueError("A fórmulaa só aceita números!")
 
             if isinstance(node, ast.Name):
                 if node.id not in contexto:
                     raise ValueError(f"Variável Desconhecida: {node.id}")
-                return contexto[node.id]
+                return Decimal(str(contexto[node.id]))
             
             if isinstance(node, ast.BinOp):
                 operador = operadores.get(type(node.op))
