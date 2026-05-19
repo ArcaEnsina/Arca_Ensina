@@ -142,7 +142,7 @@ class GuidedProtocolInterpreter:
         """
         expression = gate.get("expression", "")
         level = gate.get("level", "warning")
-        message = gate.get("message", "")
+        message = gate.get("message") or gate.get("failure_message", "")
 
         if not expression:
             return None
@@ -208,9 +208,10 @@ class GuidedProtocolInterpreter:
         """
         allowed_nodes = (
             ast.Expression, ast.BoolOp, ast.Compare, ast.Name, ast.Constant,
+            ast.UnaryOp,
             ast.And, ast.Or, ast.Not, ast.In, ast.NotIn,
             ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
-            ast.Is, ast.IsNot,
+            ast.Is, ast.IsNot, ast.Load,
         )
 
         tree = ast.parse(expression, mode='eval')
@@ -263,6 +264,10 @@ class GuidedProtocolInterpreter:
                         return False
                     left = right
                 return True
+            if isinstance(node, ast.UnaryOp):
+                if isinstance(node.op, ast.Not):
+                    return not eval_node(node.operand)
+                raise ValueError("Operador unario nao suportado")
             raise ValueError(f"No nao suportado: {type(node).__name__}")
 
         return eval_node(tree.body)

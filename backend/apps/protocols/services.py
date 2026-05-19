@@ -174,7 +174,10 @@ class ProtocolExecutionEngine:
             
     
         tree = ast.parse(formula, mode="eval")
-        return avaliar(tree.body)
+        result = avaliar(tree.body)
+        if isinstance(result, Decimal):
+            return float(result)
+        return result
     
     def montar_contexto(self, execution, valores_atuais=None):
         contexto={}
