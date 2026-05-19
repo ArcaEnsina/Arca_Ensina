@@ -37,5 +37,3 @@ class ProtocolVersionAdmin(admin.ModelAdmin):
     list_filter = ["protocol_type", "is_current"]
     search_fields = ["protocol__title"]
     raw_id_fields = ["protocol", "created_by"]
-
-

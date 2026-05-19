@@ -92,11 +92,15 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
         )
 
     def _get_active_execution(self, protocol, user):
-        return ProtocolExecution.objects.filter(
-            version__protocol=protocol,
-            physician=user,
-            status=ProtocolExecution.Status.EM_ANDAMENTO,
-        ).order_by("-started_at").first()
+        return (
+            ProtocolExecution.objects.filter(
+                version__protocol=protocol,
+                physician=user,
+                status=ProtocolExecution.Status.EM_ANDAMENTO,
+            )
+            .order_by("-started_at")
+            .first()
+        )
 
     @action(detail=True, methods=["post"], url_path="execute")
     def execute_start(self, request, pk=None, **kwargs):
@@ -153,23 +157,23 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
         # Evaluate gates fresh
         history = [
             {"step_key": s.step_key, "values": s.values}
-            for s in execution.states.filter(
-                step_key__isnull=False
-            ).order_by("answered_at")
+            for s in execution.states.filter(step_key__isnull=False).order_by(
+                "answered_at"
+            )
         ]
         context = interpreter.build_context(history)
         warnings = (
-            interpreter.evaluate_step_gates(
-                execution.current_step_key, context
-            )
+            interpreter.evaluate_step_gates(execution.current_step_key, context)
             if execution.current_step_key
             else []
         )
 
-        return Response({
-            "step": step,
-            "gate_warnings": warnings,
-        })
+        return Response(
+            {
+                "step": step,
+                "gate_warnings": warnings,
+            }
+        )
 
     @action(detail=True, methods=["post"], url_path="execute/answer")
     def execute_answer(self, request, pk=None, **kwargs):
@@ -209,30 +213,32 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
         )
         history = [
             {"step_key": s.step_key, "values": s.values}
-            for s in execution.states.filter(
-                step_key__isnull=False
-            ).order_by("answered_at")
+            for s in execution.states.filter(step_key__isnull=False).order_by(
+                "answered_at"
+            )
         ]
         context = interpreter.build_context(history)
         warnings = (
-            interpreter.evaluate_step_gates(
-                execution.current_step_key, context
-            )
+            interpreter.evaluate_step_gates(execution.current_step_key, context)
             if execution.current_step_key
             else []
         )
 
         if execution.status == execution.Status.CONCLUIDO:
-            return Response({
-                "step": None,
-                "gate_warnings": [],
-                "status": "concluido",
-            })
+            return Response(
+                {
+                    "step": None,
+                    "gate_warnings": [],
+                    "status": "concluido",
+                }
+            )
 
-        return Response({
-            "step": step,
-            "gate_warnings": warnings,
-        })
+        return Response(
+            {
+                "step": step,
+                "gate_warnings": warnings,
+            }
+        )
 
     @action(detail=True, methods=["get"], url_path="execute/reminders")
     def execute_reminders(self, request, pk=None, **kwargs):
@@ -300,4 +306,3 @@ class ProtocolExecutionViewSet(AuditableMixin, ModelViewSet):
             "physician",
             "current_step",
         ).filter(physician=self.request.user)
-

@@ -10,9 +10,7 @@ class GuidedProtocolInterpreter:
         self.steps_data = steps_data or {}
         self.ordered_steps = self.steps_data.get("steps", [])
         self.steps_by_id = {
-            step["id"]: step
-            for step in self.ordered_steps
-            if step.get("id")
+            step["id"]: step for step in self.ordered_steps if step.get("id")
         }
 
     def get_step(self, step_id):
@@ -207,14 +205,27 @@ class GuidedProtocolInterpreter:
         Supports: ==, !=, <, >, <=, >=, and, or, not, in, context.var
         """
         allowed_nodes = (
-            ast.Expression, ast.BoolOp, ast.Compare, ast.Name, ast.Constant,
+            ast.Expression,
+            ast.BoolOp,
+            ast.Compare,
+            ast.Name,
+            ast.Constant,
             ast.UnaryOp,
-            ast.And, ast.Or, ast.Not, ast.In, ast.NotIn,
-            ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
-            ast.Is, ast.IsNot, ast.Load,
+            ast.And,
+            ast.Or,
+            ast.Not,
+            ast.In,
+            ast.NotIn,
+            ast.Eq,
+            ast.NotEq,
+            ast.Lt,
+            ast.LtE,
+            ast.Gt,
+            ast.GtE,
+            ast.Load,
         )
 
-        tree = ast.parse(expression, mode='eval')
+        tree = ast.parse(expression, mode="eval")
 
         for node in ast.walk(tree):
             if not isinstance(node, allowed_nodes):

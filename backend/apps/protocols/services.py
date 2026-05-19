@@ -53,14 +53,14 @@ class ProtocolExecutionEngine:
         if step.step_type == step.StepType.CALCULO_DERIVADO:
             formula = step.config.get("formula")
             output_field = step.config.get("output_field", "result")
-            
+
             if formula:
                 valores = {
                     **valores,
                     output_field: self.calcular_formula(
                         formula,
                         self.montar_contexto(execution, valores),
-                        ),
+                    ),
                 }
 
         state, created = ProtocolExecutionState.objects.update_or_create(
@@ -121,8 +121,8 @@ class ProtocolExecutionEngine:
 
             if next_id:
                 return step.version.steps.filter(id=next_id).first()
-            
-        if step.step_type== step.StepType.MULTIPLA_ESCOLHA:
+
+        if step.step_type == step.StepType.MULTIPLA_ESCOLHA:
             escolha = valores.get("choice")
             choices_next_step_ids = step.config.get("choices_next_step_ids", {})
             next_id = choices_next_step_ids.get(escolha)
@@ -130,12 +130,11 @@ class ProtocolExecutionEngine:
             if next_id:
                 return step.version.steps.filter(id=next_id).first()
 
-
         return step.next_step
 
     def calcular_formula(self, formula, contexto):
-        #agora VAI
-        operadores={
+        # agora VAI
+        operadores = {
             ast.Add: operator.add,
             ast.Sub: operator.sub,
             ast.Mult: operator.mul,
@@ -143,7 +142,7 @@ class ProtocolExecutionEngine:
             ast.Pow: operator.pow,
             ast.USub: operator.neg,
         }
-    
+
         def avaliar(node):
             if isinstance(node, ast.Constant):
                 if isinstance(node.value, (int, float)):
@@ -154,45 +153,43 @@ class ProtocolExecutionEngine:
                 if node.id not in contexto:
                     raise ValueError(f"Variável Desconhecida: {node.id}")
                 return Decimal(str(contexto[node.id]))
-            
+
             if isinstance(node, ast.BinOp):
                 operador = operadores.get(type(node.op))
                 if operador is None:
                     raise ValueError("Operador inválido")
-                
+
                 esquerda = avaliar(node.left)
                 direita = avaliar(node.right)
                 return operador(esquerda, direita)
-            
+
             if isinstance(node, ast.UnaryOp):
                 operador = operadores.get(type(node.op))
                 if operador is None:
                     raise ValueError("Operador Inválido")
 
                 valor = avaliar(node.operand)
-                return operador(valor)    
-            
+                return operador(valor)
+
             raise ValueError(
-                "Expressão Inválida: Use apenas números,"
-                " variáveis e operações."
+                "Expressão Inválida: Use apenas números, variáveis e operações."
             )
-            
-    
+
         tree = ast.parse(formula, mode="eval")
         result = avaliar(tree.body)
         if isinstance(result, Decimal):
             return float(result)
         return result
-    
+
     def montar_contexto(self, execution, valores_atuais=None):
-        contexto={}
+        contexto = {}
 
         for state in execution.states.select_related("step").order_by("answered_at"):
             contexto.update(state.values)
 
         if valores_atuais:
             contexto.update(valores_atuais)
-        
+
         return contexto
 
     def _resposta_step_json(self, execution, valores):
@@ -328,15 +325,17 @@ class ProtocolExecutionEngine:
                     else:
                         status = "pending"
 
-                reminders.append({
-                    "step_id": state.step_key,
-                    "step_title": step.get("title", ""),
-                    "answered_at": state.answered_at.isoformat(),
-                    "due_at": due_at.isoformat() if due_at else None,
-                    "status": status,
-                    "duration_hours": duration,
-                    "reassess_fields": step.get("reassess_fields", []),
-                    "phases": step.get("phases", []),
-                })
+                reminders.append(
+                    {
+                        "step_id": state.step_key,
+                        "step_title": step.get("title", ""),
+                        "answered_at": state.answered_at.isoformat(),
+                        "due_at": due_at.isoformat() if due_at else None,
+                        "status": status,
+                        "duration_hours": duration,
+                        "reassess_fields": step.get("reassess_fields", []),
+                        "phases": step.get("phases", []),
+                    }
+                )
 
         return reminders

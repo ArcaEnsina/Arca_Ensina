@@ -144,8 +144,8 @@ class ProtocolVersion(models.Model):
             ).exclude(pk=self.pk).update(is_current=False)
         super().save(*args, **kwargs)
 
-class ProtocolStep(models.Model):
 
+class ProtocolStep(models.Model):
     class StepType(models.TextChoices):
         INFORMATIVO = "info", "Informativo"
         SIM_NAO = "yes_no", "Sim/Não"
@@ -163,13 +163,13 @@ class ProtocolStep(models.Model):
         related_name="steps",
         verbose_name="Versão do protocolo",
     )
-    
+
     step_type = models.CharField(
         max_length=25,
         choices=StepType.choices,
         verbose_name="Tipo do passo",
     )
-    
+
     order = models.PositiveIntegerField(verbose_name="Ordem")
     title = models.CharField(max_length=255, verbose_name="Título")
     content = models.TextField(blank=True, verbose_name="Conteúdo / instrução")
@@ -199,8 +199,8 @@ class ProtocolStep(models.Model):
     def __str__(self):
         return f"{self.version} — {self.order}. {self.title}"
 
-class ProtocolExecution(models.Model):
 
+class ProtocolExecution(models.Model):
     class Status(models.TextChoices):
         EM_ANDAMENTO = "em_andamento", "Em andamento"
         CONCLUIDO = "concluido", "Concluído"
@@ -266,12 +266,11 @@ class ProtocolExecution(models.Model):
 
     def __str__(self):
         return f"{self.version} — {self.patient_name} ({self.get_status_display()})"
-    
+
     def clean(self):
         if (
             self.version
-            and self.version.protocol_type
-            != ProtocolVersion.ProtocolType.GUIADO
+            and self.version.protocol_type != ProtocolVersion.ProtocolType.GUIADO
         ):
             raise DjangoValidationError(
                 "Só é possível executar protocolos do tipo guiado."
@@ -283,7 +282,6 @@ class ProtocolExecution(models.Model):
 
 
 class ProtocolExecutionState(models.Model):
-
     execution = models.ForeignKey(
         ProtocolExecution,
         on_delete=models.CASCADE,

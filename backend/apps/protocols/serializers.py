@@ -148,6 +148,7 @@ class ProtocolListSerializer(BaseSerializer):
         current = obj.versions.filter(is_current=True).first()
         return current.protocol_type if current else None
 
+
 class ProtocolStepSerializer(serializers.ModelSerializer):
     """serializer para passo do protocolo"""
 
@@ -166,6 +167,7 @@ class ProtocolStepSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
 
 class ProtocolExecutionSerializer(serializers.ModelSerializer):
     """serializer para execução de protocolo"""
@@ -210,6 +212,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
         context = interpreter.build_context(history)
         return interpreter.evaluate_step_gates(obj.current_step_key, context)
 
+
 class ProtocolExecutionStartSerializer(serializers.Serializer):
     """serializer para iniciar uma execução."""
 
@@ -217,10 +220,12 @@ class ProtocolExecutionStartSerializer(serializers.Serializer):
     client_uuid = serializers.UUIDField(required=False)
     context = serializers.JSONField(required=False, default=dict)
 
+
 class ProtocolExecutionAnswerSerializer(serializers.Serializer):
     """serializer para submeter resposta de um passo"""
 
     values = serializers.JSONField()
+
 
 class ProtocolExecutionStateSerializer(serializers.ModelSerializer):
     """serializer para estado de execução"""

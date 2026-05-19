@@ -247,16 +247,16 @@ class ProtocolVersionViewSetTest(TestCase):
             version=self.version,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=2,
-            title="segundo passo"
+            title="segundo passo",
         )
         self.passo1 = ProtocolStep.objects.create(
             version=self.version,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=1,
-            title="primeiro passo"
+            title="primeiro passo",
         )
 
-        self.passo1.next_step=self.passo2
+        self.passo1.next_step = self.passo2
         self.passo1.save()
 
     def test_doctor_can_list_versions(self):
@@ -350,6 +350,7 @@ class ProtocolVersionViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["current_step"]["id"], self.passo2.id)
 
+
 class FixtureLoadTest(TestCase):
     def test_dengue_fixture_structure(self):
         import json
@@ -438,7 +439,8 @@ class ProtocolVersionSchemaValidationTest(TestCase):
 
         with self.assertRaises(Exception):
             version.clean()
-        
+
+
 class ProtocolStepModelTest(TestCase):
     def setUp(self):
         self.protocol = Protocol.objects.create(title="Protocolo Step Test")
@@ -466,6 +468,7 @@ class ProtocolStepModelTest(TestCase):
 
     def test_unique_order_per_version(self):
         from django.db import IntegrityError
+
         self._make_step(order=1)
         with self.assertRaises(IntegrityError):
             self._make_step(order=1)
@@ -518,9 +521,9 @@ class ProtocolStepModelTest(TestCase):
         self._make_step(order=1)
         self._make_step(order=2)
         orders = list(
-            ProtocolStep.objects.filter(
-                version=self.version
-            ).values_list("order", flat=True)
+            ProtocolStep.objects.filter(version=self.version).values_list(
+                "order", flat=True
+            )
         )
         self.assertEqual(orders, [1, 2, 3])
 
@@ -544,11 +547,11 @@ class ProtocolExecutionModelTest(TestCase):
 
     def _make_execution(self, patient_name="João Silva", **kwargs):
         return ProtocolExecution.objects.create(
-        version=self.version,
-        physician=self.physician,
-        patient_name=patient_name,
-        **kwargs,
-    )
+            version=self.version,
+            physician=self.physician,
+            patient_name=patient_name,
+            **kwargs,
+        )
 
     def test_create_execution(self):
         execution = self._make_execution()
@@ -585,9 +588,7 @@ class ProtocolExecutionModelTest(TestCase):
         self._make_execution(patient_name="Paciente A")
         self._make_execution(patient_name="Paciente B")
         self.assertEqual(
-            ProtocolExecution.objects.filter(
-                version=self.version
-            ).count(),
+            ProtocolExecution.objects.filter(version=self.version).count(),
             2,
         )
 
@@ -625,6 +626,7 @@ class ProtocolExecutionStateModelTest(TestCase):
 
     def test_unique_state_per_step_execution(self):
         from django.db import IntegrityError
+
         ProtocolExecutionState.objects.create(
             execution=self.execution,
             step=self.step,
@@ -668,67 +670,61 @@ class ProtocolExecutionStateModelTest(TestCase):
         )
         self.assertIn("step", str(state))
         self.assertIn("1", str(state))
+
+
 class EngineTest(TestCase):
-    User=get_user_model()
-    
+    User = get_user_model()
+
     def setUp(self):
-        #criando o usuario, o protocolo e seus passos p teste xd
-        self.protocolo=Protocol.objects.create(
-            title="Teste Protocol Engine",
-            author="venicio!"
-            )
+        # criando o usuario, o protocolo e seus passos p teste xd
+        self.protocolo = Protocol.objects.create(
+            title="Teste Protocol Engine", author="venicio!"
+        )
         self.versao = self.protocolo.versions.first()
-        
 
         self.medico = User.objects.create_user(
             username="medic_o",
             email="medico@gmail.com",
             password="testpass123",
-            profile="medico"
+            profile="medico",
         )
         self.exec = ProtocolExecution.objects.create(
-            version=self.versao,
-            physician=self.medico,
-            patient_name="paciente"
+            version=self.versao, physician=self.medico, patient_name="paciente"
         )
 
-        self.passo2=ProtocolStep.objects.create(
+        self.passo2 = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=2,
-            title="Segundo Passo"
-            )
-        
-        self.passo1=ProtocolStep.objects.create(
+            title="Segundo Passo",
+        )
+
+        self.passo1 = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=1,
-            title="Primeiro Passo"
-            )
-        
+            title="Primeiro Passo",
+        )
+
         self.passo1.next_step = self.passo2
         self.passo1.save()
 
-
         self.engine = ProtocolExecutionEngine()
-    
+
     def test_retorna_ou_nao_o_primeiro_step(self):
         first_step = self.engine.primeiro_step(self.versao)
 
         self.assertEqual(first_step, self.passo1)
-    
+
     def test_primeiro_como_atual(self):
         exec = self.engine.comecar(self.exec)
 
         self.assertEqual(exec.current_step, self.passo1)
-    
+
     def test_step_atual_salvando_estado(self):
         self.engine.comecar(self.exec)
 
-        state=self.engine.resposta_step_atual(
-            self.exec,
-            {"confirmado": True}
-        )
+        state = self.engine.resposta_step_atual(self.exec, {"confirmado": True})
 
         self.assertEqual(state.execution, self.exec)
         self.assertEqual(state.step, self.passo1)
@@ -766,25 +762,25 @@ class EngineTest(TestCase):
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=3,
-            title="caaminho true"
+            title="caaminho true",
         )
 
         step_false = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=4,
-            title="caminho false"
+            title="caminho false",
         )
 
-        step_hipotetico= ProtocolStep.objects.create(
+        step_hipotetico = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.SIM_NAO,
-            order = 5,
+            order=5,
             title=("step com pergunta"),
             config={
                 "true_next_step_id": step_true.id,
                 "false_next_step_id": step_false.id,
-            }
+            },
         )
 
         self.exec.current_step = step_hipotetico
@@ -803,25 +799,25 @@ class EngineTest(TestCase):
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=3,
-            title="caaminho true"
+            title="caaminho true",
         )
 
         step_false = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=4,
-            title="caminho false"
+            title="caminho false",
         )
 
-        step_hipotetico= ProtocolStep.objects.create(
+        step_hipotetico = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.SIM_NAO,
-            order = 5,
+            order=5,
             title=("step com pergunta"),
             config={
                 "true_next_step_id": step_true.id,
                 "false_next_step_id": step_false.id,
-            }
+            },
         )
 
         self.exec.current_step = step_hipotetico
@@ -834,25 +830,25 @@ class EngineTest(TestCase):
 
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_false)
-    
+
     def test_checklist_com_minimo_vai_p_true(self):
         step_true = ProtocolStep.objects.create(
             version=self.versao,
-            step_type= ProtocolStep.StepType.INFORMATIVO,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
             order=6,
             title="checklist com minimo",
         )
 
         step_false = ProtocolStep.objects.create(
             version=self.versao,
-            step_type= ProtocolStep.StepType.INFORMATIVO,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
             order=7,
             title="checklist sem minimo",
         )
 
         step_hipotetico = ProtocolStep.objects.create(
             version=self.versao,
-            step_type= ProtocolStep.StepType.CHECKLIST,
+            step_type=ProtocolStep.StepType.CHECKLIST,
             order=8,
             title="checklist",
             config={
@@ -865,10 +861,7 @@ class EngineTest(TestCase):
         self.exec.current_step = step_hipotetico
         self.exec.save(update_fields=["current_step"])
 
-        self.engine.resposta_step_atual(
-            self.exec,
-            {"checked_items": ["s1", "s2"]}
-        )
+        self.engine.resposta_step_atual(self.exec, {"checked_items": ["s1", "s2"]})
 
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_true)
@@ -876,21 +869,21 @@ class EngineTest(TestCase):
     def test_checklist_abaixo_do_minimo_vai_p_false(self):
         step_true = ProtocolStep.objects.create(
             version=self.versao,
-            step_type= ProtocolStep.StepType.INFORMATIVO,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
             order=6,
             title="checklist com minimo",
         )
 
         step_false = ProtocolStep.objects.create(
             version=self.versao,
-            step_type= ProtocolStep.StepType.INFORMATIVO,
+            step_type=ProtocolStep.StepType.INFORMATIVO,
             order=7,
             title="checklist sem minimo",
         )
 
         step_hipotetico = ProtocolStep.objects.create(
             version=self.versao,
-            step_type= ProtocolStep.StepType.CHECKLIST,
+            step_type=ProtocolStep.StepType.CHECKLIST,
             order=8,
             title="checklist",
             config={
@@ -903,26 +896,23 @@ class EngineTest(TestCase):
         self.exec.current_step = step_hipotetico
         self.exec.save(update_fields=["current_step"])
 
-        self.engine.resposta_step_atual(
-            self.exec,
-            {"checked_items": ["s1"]}
-        )
+        self.engine.resposta_step_atual(self.exec, {"checked_items": ["s1"]})
 
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_false)
-    
+
     def test_multipla_escolha(self):
         step_grave = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=20,
-            title="caso grave"
+            title="caso grave",
         )
         step_leve = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=21,
-            title="caso leve"
+            title="caso leve",
         )
         hipotetico = ProtocolStep.objects.create(
             version=self.versao,
@@ -930,14 +920,11 @@ class EngineTest(TestCase):
             order=22,
             title="deu p entender nesse ponto ne",
             config={
-                "choices_next_step_ids":{
-                    "grave": step_grave.id,
-                    "leve": step_leve.id
-                }
-            }
+                "choices_next_step_ids": {"grave": step_grave.id, "leve": step_leve.id}
+            },
         )
 
-        self.exec.current_step=hipotetico
+        self.exec.current_step = hipotetico
         self.exec.save(update_fields=["current_step"])
 
         self.engine.resposta_step_atual(
@@ -947,7 +934,6 @@ class EngineTest(TestCase):
 
         self.exec.refresh_from_db()
         self.assertEqual(self.exec.current_step, step_grave)
-        
 
     def test_titulacao_loop_abaixo_do_maximo_avanca_para_loop_next_step(self):
         loop_next = ProtocolStep.objects.create(
@@ -1072,30 +1058,23 @@ class EngineTest(TestCase):
         next_step = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
-            order=25, title="reavaliacao"
+            order=25,
+            title="reavaliacao",
         )
-        hipotetico= ProtocolStep.objects.create(
+        hipotetico = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.AGUARDAR_REAVALIAR,
             order=26,
             title="linguica p reavaliar",
             next_step=next_step,
-            config={
-                "duration_hours": 6,
-                "reassess_fields": ["diurese", "pressao"]
-            }
+            config={"duration_hours": 6, "reassess_fields": ["diurese", "pressao"]},
         )
-        
 
-        self.exec.current_step=hipotetico
+        self.exec.current_step = hipotetico
         self.exec.save(update_fields=["current_step"])
 
-        state= self.engine.resposta_step_atual(
-            self.exec,
-            {
-                "diurese":"adequada",
-                "pressao_arterial":"estavel"
-            }
+        state = self.engine.resposta_step_atual(
+            self.exec, {"diurese": "adequada", "pressao_arterial": "estavel"}
         )
 
         self.exec.refresh_from_db()
@@ -1104,14 +1083,14 @@ class EngineTest(TestCase):
         self.assertEqual(self.exec.current_step, next_step)
 
     def test_input_numerico_salva_e_next(self):
-        next_step= ProtocolStep.objects.create(
+        next_step = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INFORMATIVO,
             order=27,
             title="pos peso",
         )
 
-        numeric_step= ProtocolStep.objects.create(
+        numeric_step = ProtocolStep.objects.create(
             version=self.versao,
             step_type=ProtocolStep.StepType.INPUT_NUMERICO,
             order=28,
@@ -1121,8 +1100,8 @@ class EngineTest(TestCase):
                 "field_name": "peso_kg",
                 "unit": "kg",
                 "min_value": 2,
-                "max_value": 200
-            }
+                "max_value": 200,
+            },
         )
         self.exec.current_step = numeric_step
         self.exec.save(update_fields=["current_step"])
@@ -1138,39 +1117,30 @@ class EngineTest(TestCase):
         self.assertEqual(self.exec.current_step, next_step)
 
     def test_calculadora_finalmente_mais_e_mult(self):
-        result = self.engine.calcular_formula(
-            "peso_kg * 10",
-            {"peso_kg": 12}
-        )
+        result = self.engine.calcular_formula("peso_kg * 10", {"peso_kg": 12})
 
         self.assertEqual(result, 120)
-        
+
     def test_variavel_desconhecida(self):
         with self.assertRaises(ValueError):
-            self.engine.calcular_formula(
-                "peso_kg * 10",
-                {}
-            )
-    
+            self.engine.calcular_formula("peso_kg * 10", {})
+
     def test_derivado_calcula_e_salva_state(self):
         hipotetico = ProtocolStep.objects.create(
             version=self.versao,
-            step_type= ProtocolStep.StepType.CALCULO_DERIVADO,
+            step_type=ProtocolStep.StepType.CALCULO_DERIVADO,
             order=18,
             title="calculo",
             config={
-                "formula":"peso_kg * 10",
+                "formula": "peso_kg * 10",
                 "output_field": "volume_ml",
-            }
+            },
         )
 
         self.exec.current_step = hipotetico
         self.exec.save(update_fields=["current_step"])
 
-        state = self.engine.resposta_step_atual(
-            self.exec,
-            {"peso_kg": 12}
-        )
+        state = self.engine.resposta_step_atual(self.exec, {"peso_kg": 12})
 
         self.assertEqual(state.values["peso_kg"], 12)
         self.assertEqual(state.values["volume_ml"], 120)
@@ -1670,9 +1640,7 @@ class GuidedProtocolInterpreterTest(TestCase):
 
         # Present → passes
         self.assertIsNone(
-            interpreter.evaluate_gate(
-                gate, {"sintomas": ["febre", "vomito"]}
-            )
+            interpreter.evaluate_gate(gate, {"sintomas": ["febre", "vomito"]})
         )
         # Absent → fails
         self.assertIsNotNone(interpreter.evaluate_gate(gate, {"sintomas": ["vomito"]}))
@@ -2296,4 +2264,3 @@ class ProtocolExecuteApiTest(TestCase):
         state = execution.states.first()
         self.assertEqual(state.values, {"sintomas": ["febre"]})
         self.assertEqual(state.gate_warnings, [])
-        
