@@ -52,7 +52,10 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() == "true"
 
-ALLOWED_HOSTS = ["arca-ensina.vercel.app", "localhost", "127.0.0.1", "backend", ".vercel.app"]
+ALLOWED_HOSTS = ["arca-ensina.vercel.app", 
+                 "localhost", "127.0.0.1", 
+                 "backend", 
+                 ".vercel.app"]
 
 
 # Application definition
