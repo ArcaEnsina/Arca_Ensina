@@ -28,3 +28,4 @@ types-PyYAML==6.0.12.20260408
 typing_extensions==4.15.0
 tzdata==2026.2
 uritemplate==4.2.0
+python-dotenv==1.1.0

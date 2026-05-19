@@ -15,7 +15,7 @@ export function useMedications() {
                 const meds = await getMedications()
                 setMedications(meds)
             }
-                catch (err) {
+                catch {
                 setError("Erro ao carregar as medicações.")
             }
                 finally {
