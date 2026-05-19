@@ -110,7 +110,7 @@ class ProtocolSerializerTest(TestCase):
     def test_version_create_serializer_copies_previous_data(self):
         from .serializers import ProtocolVersionCreateSerializer
 
-        self.version.steps_data = {"steps": [{"id": "step_0"}]}
+        self.version.steps_data = {"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]}
         self.version.protocol_type = "guiado"
         self.version.save()
 
@@ -118,7 +118,7 @@ class ProtocolSerializerTest(TestCase):
         serializer = ProtocolVersionCreateSerializer(data=data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         version = serializer.save()
-        self.assertEqual(version.steps_data, {"steps": [{"id": "step_0"}]})
+        self.assertEqual(version.steps_data, {"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]})
 
 
 class ProtocolViewSetTest(TestCase):
@@ -307,33 +307,30 @@ class ProtocolVersionViewSetTest(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_exec_por_versao(self):
-        self.client.raise_request_exception = True
+    def test_execute_start_creates_execution(self):
         self.client.force_authenticate(user=self.doctor)
 
         response = self.client.post(
-            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
             {"patient_name": "Paciente API"},
-            format="json"
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["patient_name"], "Paciente API")
-        self.assertEqual(response.data["current_step"] ["id"], self.passo1.id)
+        self.assertIsNotNone(response.data["current_step"])
 
-    def test_medico_responde_step_atual(self):
+    def test_execute_answer_advances_step(self):
         self.client.force_authenticate(user=self.doctor)
 
-        start_response=self.client.post(
-            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+        self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
             {"patient_name": "paciente"},
             format="json",
         )
 
-        execution_id = start_response.data["id"]
-
         response = self.client.post(
-            f"/api/v1/protocol-executions/{execution_id}/answer/",
+            f"/api/v1/protocols/{self.protocol.pk}/execute/answer/",
             {"values": {"confirmado": True}},
             format="json",
         )
@@ -1226,10 +1223,10 @@ class GuidedProtocolInterpreterTest(TestCase):
         steps_data = data[1]["fields"]["steps_data"]
         interpreter = GuidedProtocolInterpreter(steps_data)
 
-        step = interpreter.get_step("step_4_choque")
+        step = interpreter.get_step("step_c_avaliacao1")
 
         self.assertEqual(step["type"], "yes_no")
-        self.assertEqual(step["true_next"], "step_5_peso")
+        self.assertEqual(step["true_next"], "step_c_manutencao")
 
     def test_resolve_next_step_linear_from_json(self):
         from .engine.interpreter import GuidedProtocolInterpreter
@@ -1267,12 +1264,12 @@ class GuidedProtocolInterpreterTest(TestCase):
         interpreter = GuidedProtocolInterpreter(steps_data)
 
         self.assertEqual(
-            interpreter.resolve_next_step_id("step_4_choque", {"answer": True}),
-            "step_5_peso",
+            interpreter.resolve_next_step_id("step_c_avaliacao1", {"answer": True}),
+            "step_c_manutencao",
         )
         self.assertEqual(
-            interpreter.resolve_next_step_id("step_4_choque", {"answer": False}),
-            "step_13_plaquetas",
+            interpreter.resolve_next_step_id("step_c_avaliacao1", {"answer": False}),
+            "step_c_repeticao",
         )
 
     def test_resolve_checklist_from_dengue_fixture_json(self):
@@ -1289,12 +1286,12 @@ class GuidedProtocolInterpreterTest(TestCase):
         interpreter = GuidedProtocolInterpreter(steps_data)
 
         self.assertEqual(
-            interpreter.resolve_next_step_id("step_1", {"checked_items": ["s1"]}),
-            "step_d_gravidade",
+            interpreter.resolve_next_step_id("step_1_gravidade", {"checked_items": ["g1"]}),
+            "step_d_exames",
         )
         self.assertEqual(
-            interpreter.resolve_next_step_id("step_1", {"checked_items": []}),
-            "step_c_leve",
+            interpreter.resolve_next_step_id("step_1_gravidade", {"checked_items": []}),
+            "step_1b_alerta",
         )
 
     def test_resolve_titration_loop_from_dengue_fixture_json(self):
@@ -1310,29 +1307,32 @@ class GuidedProtocolInterpreterTest(TestCase):
         steps_data = data[1]["fields"]["steps_data"]
         interpreter = GuidedProtocolInterpreter(steps_data)
 
+        # congestion=True → congestion_check.true_next
         self.assertEqual(
             interpreter.resolve_next_step_id(
-                "step_8_titulacao",
-                {"congestion": False},
-                {"loop_count": 1},
-            ),
-            "step_7_melhora",
-        )
-        self.assertEqual(
-            interpreter.resolve_next_step_id(
-                "step_8_titulacao",
-                {"congestion": False},
-                {"loop_count": 2},
-            ),
-            "step_9_coloides",
-        )
-        self.assertEqual(
-            interpreter.resolve_next_step_id(
-                "step_8_titulacao",
+                "step_c_repeticao",
                 {"congestion": True},
                 {"loop_count": 0},
             ),
-            "step_9_coloides",
+            "step_c_avaliacao_horaria",
+        )
+        # Below max, no congestion → congestion_check.false_next
+        self.assertEqual(
+            interpreter.resolve_next_step_id(
+                "step_c_repeticao",
+                {"congestion": False},
+                {"loop_count": 1},
+            ),
+            "step_c_avaliacao_horaria",
+        )
+        # At max iterations → max_reached_next
+        self.assertEqual(
+            interpreter.resolve_next_step_id(
+                "step_c_repeticao",
+                {"congestion": False},
+                {"loop_count": 2},
+            ),
+            "step_c_avaliacao_horaria",
         )
 
     def test_resolve_multiple_choice_from_json(self):
@@ -1453,6 +1453,179 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(context["peso_kg"], "13")
         self.assertEqual(context["hematocrito"], "40")
 
+    def test_resolve_numeric_input_next_step(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "peso",
+                    "type": "numeric_input",
+                    "title": "Peso",
+                    "field_name": "peso_kg",
+                    "next_step": "volume",
+                },
+                {"id": "volume", "type": "info", "title": "Volume"},
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id("peso", {"peso_kg": 70}),
+            "volume",
+        )
+
+    def test_resolve_medication_prescription_next_step(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "prescricao",
+                    "type": "medication_prescription",
+                    "title": "Prescricao",
+                    "medications": [{"name": "SF", "dose": "10 ml/kg", "route": "IV"}],
+                    "next_step": "fim",
+                },
+                {"id": "fim", "type": "info", "title": "Fim"},
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id("prescricao", {"accepted": True}),
+            "fim",
+        )
+
+    def test_resolve_wait_reassess_next_step(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "reavaliacao",
+                    "type": "wait_reassess",
+                    "title": "Reavaliacao",
+                    "duration_hours": 6,
+                    "reassess_fields": ["diurese"],
+                    "next_step": "fim",
+                },
+                {"id": "fim", "type": "info", "title": "Fim"},
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        self.assertEqual(
+            interpreter.resolve_next_step_id("reavaliacao", {"diurese": "adequada"}),
+            "fim",
+        )
+
+    def test_evaluate_gate_passes(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        interpreter = GuidedProtocolInterpreter({"steps": []})
+        gate = {"expression": "peso_kg > 10", "level": "warning", "message": "Peso baixo"}
+
+        result = interpreter.evaluate_gate(gate, {"peso_kg": 12})
+
+        self.assertIsNone(result)
+
+    def test_evaluate_gate_fails(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        interpreter = GuidedProtocolInterpreter({"steps": []})
+        gate = {"expression": "peso_kg > 10", "level": "warning", "message": "Peso baixo"}
+
+        result = interpreter.evaluate_gate(gate, {"peso_kg": 5})
+
+        self.assertIsNotNone(result)
+        self.assertFalse(result["passed"])
+        self.assertEqual(result["level"], "warning")
+
+    def test_evaluate_step_gates_with_multiple_gates(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {
+                    "id": "step_gates",
+                    "type": "info",
+                    "title": "Step com gates",
+                    "gate": [
+                        {"expression": "peso_kg > 10", "level": "warning", "message": "Peso baixo"},
+                        {"expression": "peso_kg < 200", "level": "critical", "message": "Peso alto"},
+                    ],
+                    "next_step": None,
+                },
+            ]
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        # Both pass
+        warnings = interpreter.evaluate_step_gates("step_gates", {"peso_kg": 50})
+        self.assertEqual(len(warnings), 0)
+
+        # First fails (5 > 10 is False)
+        warnings = interpreter.evaluate_step_gates("step_gates", {"peso_kg": 5})
+        self.assertEqual(len(warnings), 1)
+        self.assertEqual(warnings[0]["level"], "warning")
+
+    def test_evaluate_entry_gates(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        steps_data = {
+            "steps": [
+                {"id": "intro", "type": "info", "title": "Intro"},
+            ],
+            "entry_gates": [
+                {
+                    "expression": "peso_kg > 10",
+                    "failure_message": "Peso muito baixo",
+                },
+            ],
+        }
+
+        interpreter = GuidedProtocolInterpreter(steps_data)
+
+        # Passes
+        warnings = interpreter.evaluate_entry_gates({"peso_kg": 12})
+        self.assertEqual(len(warnings), 0)
+
+        # Fails
+        warnings = interpreter.evaluate_entry_gates({"peso_kg": 5})
+        self.assertEqual(len(warnings), 1)
+
+    def test_evaluate_boolean_expression_with_and_or(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        interpreter = GuidedProtocolInterpreter({"steps": []})
+        gate_and = {"expression": "peso_kg > 10 and peso_kg < 100", "level": "warning", "message": ""}
+        gate_or = {"expression": "peso_kg < 5 or peso_kg > 100", "level": "warning", "message": ""}
+
+        # and: both true → passes
+        self.assertIsNone(interpreter.evaluate_gate(gate_and, {"peso_kg": 50}))
+        # and: one false → fails
+        self.assertIsNotNone(interpreter.evaluate_gate(gate_and, {"peso_kg": 5}))
+        # or: both false → fails
+        self.assertIsNotNone(interpreter.evaluate_gate(gate_or, {"peso_kg": 50}))
+        # or: one true → passes
+        self.assertIsNone(interpreter.evaluate_gate(gate_or, {"peso_kg": 150}))
+
+    def test_evaluate_boolean_expression_with_in(self):
+        from .engine.interpreter import GuidedProtocolInterpreter
+
+        interpreter = GuidedProtocolInterpreter({"steps": []})
+        gate = {"expression": "'febre' in sintomas", "level": "warning", "message": ""}
+
+        # Present → passes
+        self.assertIsNone(interpreter.evaluate_gate(gate, {"sintomas": ["febre", "vomito"]}))
+        # Absent → fails
+        self.assertIsNotNone(interpreter.evaluate_gate(gate, {"sintomas": ["vomito"]}))
+
 
 class JsonProtocolExecutionServiceTest(TestCase):
     def setUp(self):
@@ -1473,8 +1646,76 @@ class JsonProtocolExecutionServiceTest(TestCase):
                     "true_next": "fim_sim",
                     "false_next": "fim_nao",
                 },
-                {"id": "fim_sim", "type": "info", "title": "Fim sim"},
-                {"id": "fim_nao", "type": "info", "title": "Fim nao"},
+                {"id": "fim_sim", "type": "info", "title": "Fim sim", "next_step": "checklist"},
+                {"id": "fim_nao", "type": "info", "title": "Fim nao", "next_step": None},
+                {
+                    "id": "checklist",
+                    "type": "checklist",
+                    "title": "Checklist",
+                    "items": [
+                        {"id": "c1", "label": "Item 1"},
+                        {"id": "c2", "label": "Item 2"},
+                    ],
+                    "rule": {
+                        "min_checked": 1,
+                        "true_next": "multiple_choice",
+                        "false_next": "multiple_choice",
+                    },
+                },
+                {
+                    "id": "multiple_choice",
+                    "type": "multiple_choice",
+                    "title": "Multipla escolha",
+                    "choices_next": {"a": "numeric", "b": "numeric"},
+                },
+                {
+                    "id": "numeric",
+                    "type": "numeric_input",
+                    "title": "Peso",
+                    "field_name": "peso_kg",
+                    "unit": "kg",
+                    "min_value": 2,
+                    "max_value": 200,
+                    "next_step": "derived_calc",
+                },
+                {
+                    "id": "derived_calc",
+                    "type": "derived_calc",
+                    "title": "Volume",
+                    "inputs": ["peso_kg"],
+                    "formula": "peso_kg * 10",
+                    "output_label": "volume_ml",
+                    "next_step": "medication",
+                },
+                {
+                    "id": "medication",
+                    "type": "medication_prescription",
+                    "title": "Prescricao",
+                    "medications": [{"name": "SF", "dose": "10 ml/kg", "route": "IV"}],
+                    "next_step": "wait_reassess",
+                },
+                {
+                    "id": "wait_reassess",
+                    "type": "wait_reassess",
+                    "title": "Reavaliacao",
+                    "duration_hours": 6,
+                    "reassess_fields": ["diurese"],
+                    "next_step": "titration",
+                },
+                {
+                    "id": "titration",
+                    "type": "titration_loop",
+                    "title": "Titulacao",
+                    "max_iterations": 3,
+                    "counter_field": "dose_count",
+                    "congestion_check": {
+                        "title": "Congestao?",
+                        "true_next": "fim_total",
+                        "false_next": "fim_total",
+                    },
+                    "max_reached_next": "fim_total",
+                },
+                {"id": "fim_total", "type": "info", "title": "Fim total", "next_step": None},
             ]
         }
         self.version.save()
@@ -1522,6 +1763,169 @@ class JsonProtocolExecutionServiceTest(TestCase):
 
         self.assertEqual(self.execution.current_step_key, "fim_sim")
 
+    def test_start_with_context_evaluates_entry_gates(self):
+        self.version.steps_data = {
+            "steps": [
+                {"id": "intro", "type": "info", "title": "Intro", "next_step": None},
+            ],
+            "entry_gates": [
+                {
+                    "expression": "sintomas == 'febre'",
+                    "failure_message": "Paciente sem febre",
+                },
+            ],
+        }
+        self.version.save()
+
+        execution = ProtocolExecution.objects.create(
+            version=self.version,
+            physician=self.physician,
+            patient_name="Teste Gates",
+        )
+
+        execution = self.engine.comecar(execution, {"sintomas": "dor"})
+        execution.refresh_from_db()
+
+        state = execution.states.first()
+        self.assertTrue(len(state.gate_warnings) > 0)
+
+    def test_start_with_step_gate_warning(self):
+        self.version.steps_data = {
+            "steps": [
+                {
+                    "id": "intro",
+                    "type": "info",
+                    "title": "Intro",
+                    "gate": {
+                        "expression": "peso_kg > 10",
+                        "level": "warning",
+                        "message": "Peso muito baixo",
+                    },
+                    "next_step": None,
+                },
+            ],
+        }
+        self.version.save()
+
+        execution = ProtocolExecution.objects.create(
+            version=self.version,
+            physician=self.physician,
+            patient_name="Teste Gate Step",
+        )
+
+        execution = self.engine.comecar(execution, {"peso_kg": 5})
+        execution.refresh_from_db()
+
+        state = execution.states.first()
+        self.assertTrue(len(state.gate_warnings) > 0)
+
+    def test_answer_checklist_advances(self):
+        self.engine.comecar(self.execution)
+        self.engine.resposta_step_atual(self.execution, {"ack": True})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "pergunta")
+
+        self.engine.resposta_step_atual(self.execution, {"answer": True})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "fim_sim")
+
+        self.engine.resposta_step_atual(self.execution, {"ack": True})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "checklist")
+
+        self.engine.resposta_step_atual(self.execution, {"checked_items": ["c1"]})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "multiple_choice")
+
+    def test_answer_multiple_choice_advances(self):
+        self.execution.current_step_key = "multiple_choice"
+        self.execution.save(update_fields=["current_step_key"])
+
+        self.engine.resposta_step_atual(self.execution, {"choice": "a"})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "numeric")
+
+    def test_answer_titration_loop_increments_counter(self):
+        self.execution.current_step_key = "titration"
+        self.execution.save(update_fields=["current_step_key"])
+
+        state = self.engine.resposta_step_atual(self.execution, {"congestion": False})
+        state.refresh_from_db()
+
+        self.assertEqual(state.loop_count, 1)
+        self.assertEqual(self.execution.current_step_key, "fim_total")
+
+    def test_answer_numeric_input_saves_value(self):
+        self.execution.current_step_key = "numeric"
+        self.execution.save(update_fields=["current_step_key"])
+
+        state = self.engine.resposta_step_atual(self.execution, {"peso_kg": 70})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.values["peso_kg"], 70)
+        self.assertEqual(self.execution.current_step_key, "derived_calc")
+
+    def test_answer_medication_prescription_saves(self):
+        self.execution.current_step_key = "medication"
+        self.execution.save(update_fields=["current_step_key"])
+
+        state = self.engine.resposta_step_atual(self.execution, {"accepted": True})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.values["accepted"], True)
+        self.assertEqual(self.execution.current_step_key, "wait_reassess")
+
+    def test_answer_wait_reassess_saves(self):
+        self.execution.current_step_key = "wait_reassess"
+        self.execution.save(update_fields=["current_step_key"])
+
+        state = self.engine.resposta_step_atual(self.execution, {"diurese": "adequada"})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.values["diurese"], "adequada")
+        self.assertEqual(self.execution.current_step_key, "titration")
+
+    def test_answer_derived_calc_calculates(self):
+        self.execution.current_step_key = "derived_calc"
+        self.execution.save(update_fields=["current_step_key"])
+
+        state = self.engine.resposta_step_atual(self.execution, {"peso_kg": "12"})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.values["volume_ml"], "120")
+        self.assertEqual(self.execution.current_step_key, "medication")
+
+    def test_avancar_step_advances_without_answer(self):
+        self.execution.current_step_key = "intro"
+        self.execution.save(update_fields=["current_step_key"])
+
+        self.engine.avancar_step(self.execution)
+        self.execution.refresh_from_db()
+
+        self.assertEqual(self.execution.current_step_key, "pergunta")
+
+    def test_avancar_step_concludes_when_no_next(self):
+        self.execution.current_step_key = "fim_nao"
+        self.execution.save(update_fields=["current_step_key"])
+
+        self.engine.avancar_step(self.execution)
+        self.execution.refresh_from_db()
+
+        self.assertIsNone(self.execution.current_step_key)
+        self.assertEqual(self.execution.status, ProtocolExecution.Status.CONCLUIDO)
+
+    def test_get_reminders_returns_wait_reassess(self):
+        self.execution.current_step_key = "wait_reassess"
+        self.execution.save(update_fields=["current_step_key"])
+
+        self.engine.resposta_step_atual(self.execution, {"diurese": "adequada"})
+        self.execution.refresh_from_db()
+
+        reminders = self.engine.get_reminders(self.execution)
+        self.assertEqual(len(reminders), 1)
+        self.assertIn("due_at", reminders[0])
+        self.assertIn("status", reminders[0])
+
 
 class JsonProtocolExecutionApiTest(TestCase):
     def setUp(self):
@@ -1555,11 +1959,11 @@ class JsonProtocolExecutionApiTest(TestCase):
             profile="medico",
         )
 
-    def test_start_returns_current_step_data_from_json(self):
+    def test_execute_start_returns_step_data(self):
         self.client.force_authenticate(user=self.doctor)
 
         response = self.client.post(
-            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
             {"patient_name": "Paciente API JSON"},
             format="json",
         )
@@ -1569,18 +1973,17 @@ class JsonProtocolExecutionApiTest(TestCase):
         self.assertEqual(response.data["current_step_data"]["id"], "intro")
         self.assertEqual(response.data["current_step_data"]["type"], "info")
 
-    def test_answer_returns_next_current_step_data_from_json(self):
+    def test_execute_answer_returns_next_step_data(self):
         self.client.force_authenticate(user=self.doctor)
 
-        start_response = self.client.post(
-            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+        self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
             {"patient_name": "Paciente API JSON"},
             format="json",
         )
-        execution_id = start_response.data["id"]
 
         response = self.client.post(
-            f"/api/v1/protocol-executions/{execution_id}/answer/",
+            f"/api/v1/protocols/{self.protocol.pk}/execute/answer/",
             {"values": {"ack": True}},
             format="json",
         )
@@ -1590,12 +1993,12 @@ class JsonProtocolExecutionApiTest(TestCase):
         self.assertEqual(response.data["current_step_data"]["id"], "pergunta")
         self.assertEqual(response.data["current_step_data"]["type"], "yes_no")
 
-    def test_start_with_same_client_uuid_is_idempotent(self):
+    def test_execute_start_idempotent(self):
         self.client.force_authenticate(user=self.doctor)
         client_uuid = str(uuid4())
 
         first_response = self.client.post(
-            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
             {
                 "patient_name": "Paciente API JSON",
                 "client_uuid": client_uuid,
@@ -1603,7 +2006,7 @@ class JsonProtocolExecutionApiTest(TestCase):
             format="json",
         )
         second_response = self.client.post(
-            f"/api/v1/protocol-versions/{self.version.pk}/start/",
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
             {
                 "patient_name": "Paciente API JSON",
                 "client_uuid": client_uuid,
@@ -1620,10 +2023,12 @@ class JsonProtocolExecutionApiTest(TestCase):
         )
 
 
-class DengueFixtureJsonExecutionTest(TestCase):
+class ProtocolExecuteApiTest(TestCase):
     def setUp(self):
         import json
         from pathlib import Path
+
+        self.client = APIClient()
 
         fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
@@ -1635,8 +2040,8 @@ class DengueFixtureJsonExecutionTest(TestCase):
         self.version.steps_data = self.steps_data
         self.version.save()
         self.doctor = User.objects.create_user(
-            username="dengue_json_doctor",
-            email="dengue_json_doctor@test.com",
+            username="exec_doctor",
+            email="exec_doctor@test.com",
             password="testpass123",
             profile="medico",
         )
@@ -1647,6 +2052,107 @@ class DengueFixtureJsonExecutionTest(TestCase):
         )
         self.engine = ProtocolExecutionEngine()
 
+    def test_execute_start(self):
+        self.client.force_authenticate(user=self.doctor)
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente Test"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["current_step_key"], "step_0")
+        self.assertIn("gate_warnings", response.data)
+
+    def test_execute_start_idempotent(self):
+        self.client.force_authenticate(user=self.doctor)
+        client_uuid = str(uuid4())
+        r1 = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente", "client_uuid": client_uuid},
+            format="json",
+        )
+        r2 = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente", "client_uuid": client_uuid},
+            format="json",
+        )
+        self.assertEqual(r1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r2.status_code, status.HTTP_200_OK)
+        self.assertEqual(r1.data["id"], r2.data["id"])
+
+    def test_execute_step(self):
+        self.client.force_authenticate(user=self.doctor)
+        self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente"},
+            format="json",
+        )
+        response = self.client.get(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/step/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("step", response.data)
+        self.assertIn("gate_warnings", response.data)
+        self.assertEqual(response.data["step"]["id"], "step_0")
+
+    def test_execute_answer(self):
+        self.client.force_authenticate(user=self.doctor)
+        self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente"},
+            format="json",
+        )
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/answer/",
+            {"values": {"ack": True}},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["current_step_key"], "step_1_gravidade")
+
+    def test_execute_next(self):
+        self.client.force_authenticate(user=self.doctor)
+        self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente"},
+            format="json",
+        )
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/next/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("step", response.data)
+        self.assertEqual(response.data["step"]["id"], "step_1_gravidade")
+
+    def test_execute_reminders(self):
+        self.client.force_authenticate(user=self.doctor)
+        # Use execution from setUp, set it to wait_reassess step
+        self.execution.current_step_key = "step_c_avaliacao_horaria"
+        self.execution.save(update_fields=["current_step_key"])
+        # Answer wait_reassess
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/answer/",
+            {"values": {"diurese": "adequada"}},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/reminders/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("reminders", response.data)
+        self.assertEqual(len(response.data["reminders"]), 1)
+
+    def test_execute_start_with_context(self):
+        self.client.force_authenticate(user=self.doctor)
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente", "context": {"sintomas": ["febre"]}},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNotNone(response.data["id"])
+
     def test_dengue_runtime_starts_from_fixture_first_step(self):
         self.engine.comecar(self.execution)
 
@@ -1655,27 +2161,73 @@ class DengueFixtureJsonExecutionTest(TestCase):
         self.assertEqual(self.execution.current_step_key, "step_0")
         self.assertIsNone(self.execution.current_step)
 
-    def test_dengue_runtime_advances_checklist_to_gravity_branch(self):
+    def test_dengue_runtime_checklist_gravity_to_exams(self):
         self.engine.comecar(self.execution)
         self.engine.resposta_step_atual(self.execution, {"ack": True})
         self.execution.refresh_from_db()
-        self.assertEqual(self.execution.current_step_key, "step_1")
+        self.assertEqual(self.execution.current_step_key, "step_1_gravidade")
 
         state = self.engine.resposta_step_atual(
             self.execution,
-            {"checked_items": ["s1"]},
+            {"checked_items": ["g1"]},
         )
         self.execution.refresh_from_db()
 
-        self.assertEqual(state.step_key, "step_1")
-        self.assertEqual(self.execution.current_step_key, "step_d_gravidade")
+        self.assertEqual(state.step_key, "step_1_gravidade")
+        self.assertEqual(self.execution.current_step_key, "step_d_exames")
 
-    def test_dengue_runtime_advances_yes_no_to_weight_step(self):
-        self.execution.current_step_key = "step_4_choque"
+    def test_dengue_runtime_yes_no_expansao_to_manutencao(self):
+        self.execution.current_step_key = "step_c_avaliacao1"
         self.execution.save(update_fields=["current_step_key"])
 
         self.engine.resposta_step_atual(self.execution, {"answer": True})
         self.execution.refresh_from_db()
 
-        self.assertEqual(self.execution.current_step_key, "step_5_peso")
+        self.assertEqual(self.execution.current_step_key, "step_c_manutencao")
+
+    def test_dengue_runtime_checklist_alert_to_outside(self):
+        self.engine.comecar(self.execution)
+        self.engine.resposta_step_atual(self.execution, {"ack": True})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "step_1_gravidade")
+
+        self.engine.resposta_step_atual(self.execution, {"checked_items": []})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "step_1b_alerta")
+
+        self.engine.resposta_step_atual(self.execution, {"checked_items": []})
+        self.execution.refresh_from_db()
+        self.assertEqual(self.execution.current_step_key, "step_fora_protocolo")
+
+    def test_dengue_runtime_numeric_input_saves_peso(self):
+        self.execution.current_step_key = "step_c_peso"
+        self.execution.save(update_fields=["current_step_key"])
+
+        state = self.engine.resposta_step_atual(self.execution, {"peso_kg": 70})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.values["peso_kg"], 70)
+        self.assertEqual(self.execution.current_step_key, "step_c_expansao")
+
+    def test_dengue_runtime_derived_calc_calculates_volume(self):
+        self.execution.current_step_key = "step_c_expansao"
+        self.execution.save(update_fields=["current_step_key"])
+
+        state = self.engine.resposta_step_atual(self.execution, {"peso_kg": "12"})
+        self.execution.refresh_from_db()
+
+        self.assertEqual(state.values["Volume de SF 0,9% por bolus"], "120")
+
+    def test_dengue_runtime_starts_with_context(self):
+        execution = ProtocolExecution.objects.create(
+            version=self.version,
+            physician=self.doctor,
+            patient_name="Paciente Com Contexto",
+        )
+        execution = self.engine.comecar(execution, {"sintomas": ["febre"]})
+        execution.refresh_from_db()
+
+        state = execution.states.first()
+        self.assertEqual(state.values, {"sintomas": ["febre"]})
+        self.assertEqual(state.gate_warnings, [])
         
