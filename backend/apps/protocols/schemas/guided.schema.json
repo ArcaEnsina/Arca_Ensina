@@ -9,6 +9,7 @@
       "items": {
         "type": "object",
         "required": ["id", "type", "title"],
+        "additionalProperties": false,
         "properties": {
           "id": { "type": "string", "minLength": 1 },
           "type": {
@@ -26,11 +27,178 @@
             ]
           },
           "title": { "type": "string", "minLength": 1 },
-          "next_step": { "type": ["string", "null"] }
-        },
-        "additionalProperties": true
+          "description": { "type": "string" },
+          "next_step": { "type": ["string", "null"] },
+          "gate": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expression": { "type": "string" },
+                  "level": {
+                    "type": "string",
+                    "enum": ["info", "warning", "critical"]
+                  },
+                  "message": { "type": "string" }
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "expression": { "type": "string" },
+                    "level": {
+                      "type": "string",
+                      "enum": ["info", "warning", "critical"]
+                    },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            ]
+          },
+
+          "content": { "type": "string" },
+
+          "true_next": { "type": "string" },
+          "false_next": { "type": "string" },
+
+          "choices_next": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "label"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          },
+
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "label"],
+              "additionalProperties": false,
+              "properties": {
+                "id": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          },
+          "rule": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "min_checked": { "type": "integer", "minimum": 0 },
+              "true_next": { "type": "string" },
+              "false_next": { "type": "string" }
+            }
+          },
+
+          "field_name": { "type": "string" },
+          "unit": { "type": "string" },
+          "min_value": { "type": "number" },
+          "max_value": { "type": "number" },
+          "validation_message": { "type": "string" },
+
+          "formula": { "type": "string" },
+          "formula_max": { "type": "string" },
+          "inputs": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "output_label": { "type": "string" },
+          "output_unit": { "type": "string" },
+          "notes": { "type": "string" },
+
+          "medications": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "name": { "type": "string" },
+                "dose": { "type": "string" },
+                "route": { "type": "string" },
+                "preparation": { "type": "string" },
+                "volume": { "type": "string" },
+                "notes": { "type": "string" },
+                "dose_inicial": { "type": "string" },
+                "dose_max": { "type": "string" },
+                "frequency": { "type": "string" },
+                "indication": { "type": "string" }
+              }
+            }
+          },
+
+          "duration_hours": { "type": "integer", "minimum": 0 },
+          "reassess_fields": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "phases": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "phase": { "type": "string" },
+                "monitoring": { "type": "string" }
+              }
+            }
+          },
+
+          "max_iterations": { "type": "integer", "minimum": 1 },
+          "counter_field": { "type": "string" },
+          "congestion_check": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "true_next": { "type": "string" },
+              "false_next": { "type": "string" }
+            }
+          },
+          "max_reached_next": { "type": "string" },
+          "loop_next": { "type": "string" }
+        }
+      }
+    },
+    "entry_gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["expression", "failure_message"],
+        "additionalProperties": false,
+        "properties": {
+          "expression": { "type": "string" },
+          "failure_message": { "type": "string" }
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "step_id": { "type": "string" },
+          "condition": { "type": "string" },
+          "description": { "type": "string" }
+        }
       }
     }
   },
-  "additionalProperties": true
+  "additionalProperties": false
 }
