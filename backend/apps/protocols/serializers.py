@@ -3,7 +3,13 @@ from rest_framework import serializers
 from project.serializers import BaseSerializer
 
 from .engine.interpreter import GuidedProtocolInterpreter
-from .models import Protocol, ProtocolVersion, ProtocolStep, ProtocolExecution, ProtocolExecutionState
+from .models import (
+    Protocol,
+    ProtocolExecution,
+    ProtocolExecutionState,
+    ProtocolStep,
+    ProtocolVersion,
+)
 
 
 class ProtocolVersionSerializer(BaseSerializer):
@@ -166,6 +172,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
 
     current_step = ProtocolStepSerializer(read_only=True)
     current_step_data = serializers.SerializerMethodField()
+    gate_warnings = serializers.SerializerMethodField()
 
     class Meta:
         model = ProtocolExecution
@@ -179,6 +186,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
             "current_step",
             "current_step_key",
             "current_step_data",
+            "gate_warnings",
             "started_at",
             "finished_at",
         ]
@@ -187,15 +195,27 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
     def get_current_step_data(self, obj):
         if not obj.current_step_key:
             return None
-
         interpreter = GuidedProtocolInterpreter(obj.version.steps_data)
         return interpreter.get_step(obj.current_step_key)
+
+    def get_gate_warnings(self, obj):
+        """Avalia gate warnings fresh para o step atual."""
+        if not obj.current_step_key or not obj.version.steps_data:
+            return []
+        interpreter = GuidedProtocolInterpreter(obj.version.steps_data)
+        history = [
+            {"step_key": s.step_key, "values": s.values}
+            for s in obj.states.filter(step_key__isnull=False).order_by("answered_at")
+        ]
+        context = interpreter.build_context(history)
+        return interpreter.evaluate_step_gates(obj.current_step_key, context)
 
 class ProtocolExecutionStartSerializer(serializers.Serializer):
     """serializer para iniciar uma execução."""
 
     patient_name = serializers.CharField(max_length=255)
     client_uuid = serializers.UUIDField(required=False)
+    context = serializers.JSONField(required=False, default=dict)
 
 class ProtocolExecutionAnswerSerializer(serializers.Serializer):
     """serializer para submeter resposta de um passo"""
@@ -211,8 +231,10 @@ class ProtocolExecutionStateSerializer(serializers.ModelSerializer):
             "id",
             "execution",
             "step",
+            "step_key",
             "values",
             "loop_count",
+            "gate_warnings",
             "answered_at",
         ]
         read_only_fields = ["id", "answered_at"]

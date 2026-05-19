@@ -12,17 +12,34 @@ class ProtocolExecutionEngine:
     def primeiro_step(self, version):
         return version.steps.order_by("order").first()
 
-    def comecar(self, execution):
+    def comecar(self, execution, context=None):
         if execution.version.steps_data.get("steps"):
             interpreter = GuidedProtocolInterpreter(execution.version.steps_data)
             execution.current_step_key = interpreter.get_first_step_id()
             execution.current_step = None
             execution.save(update_fields=["current_step_key", "current_step"])
+
+            entry_warnings = interpreter.evaluate_entry_gates(context or {})
+            step_warnings = interpreter.evaluate_step_gates(execution.current_step_key, context or {})
+            all_warnings = entry_warnings + step_warnings
+
+            ProtocolExecutionState.objects.create(
+                execution=execution,
+                step_key=execution.current_step_key,
+                values=context or {},
+                gate_warnings=all_warnings,
+            )
             return execution
 
         primeiro_step = self.primeiro_step(execution.version)
         execution.current_step = primeiro_step
         execution.save(update_fields=["current_step"])
+
+        ProtocolExecutionState.objects.create(
+            execution=execution,
+            step=primeiro_step,
+            values=context or {},
+        )
         return execution
 
     def resposta_step_atual(self, execution, valores):
@@ -175,15 +192,29 @@ class ProtocolExecutionEngine:
         step_key = execution.current_step_key
         step = interpreter.get_step(step_key)
 
+        # Conecta com valores existentes para manter contexto
+        existing_values = {}
+        try:
+            existing = ProtocolExecutionState.objects.get(execution=execution, step_key=step_key)
+            existing_values = existing.values
+        except ProtocolExecutionState.DoesNotExist:
+            pass
+        merged_values = {**existing_values, **valores}
+
         if step and step.get("type") == "derived_calc":
             history = self._historico_json(execution)
-            context = interpreter.build_context(history, valores)
-            valores = interpreter.apply_derived_calculation(step_key, valores, context)
+            context = interpreter.build_context(history, merged_values)
+            merged_values = interpreter.apply_derived_calculation(step_key, merged_values, context)
+
+        # Avalia os gates do step antes de responder
+        history = self._historico_json(execution)
+        context = interpreter.build_context(history, merged_values)
+        current_warnings = interpreter.evaluate_step_gates(step_key, context)
 
         state, created = ProtocolExecutionState.objects.update_or_create(
             execution=execution,
             step_key=step_key,
-            defaults={"values": valores},
+            defaults={"values": merged_values, "gate_warnings": current_warnings},
         )
 
         next_step_key = interpreter.resolve_next_step_id(
@@ -226,3 +257,63 @@ class ProtocolExecutionEngine:
                 "answered_at"
             )
         ]
+
+    def avancar_step(self, execution):
+        if not execution.current_step_key:
+            raise ValueError("Avanço sem resposta só suportado em modo JSON.")
+
+        interpreter = GuidedProtocolInterpreter(execution.version.steps_data)
+        current_step = interpreter.get_step(execution.current_step_key)
+
+        if not current_step:
+            raise ValueError("Step atual não encontrado.")
+
+        next_step_key = current_step.get("next_step")
+
+        if next_step_key is None:
+            execution.current_step_key = None
+            execution.current_step = None
+            execution.status = execution.Status.CONCLUIDO
+            execution.finished_at = timezone.now()
+            execution.save(update_fields=["current_step_key", "current_step", "status", "finished_at"])
+        else:
+            execution.current_step_key = next_step_key
+            execution.current_step = None
+            execution.save(update_fields=["current_step_key", "current_step"])
+
+        return execution
+
+    def get_reminders(self, execution):
+        """Retorna lembretes de steps wait_reassess com due_at e status."""
+        reminders = []
+        if not execution.version.steps_data:
+            return reminders
+
+        interpreter = GuidedProtocolInterpreter(execution.version.steps_data)
+        now = timezone.now()
+
+        for state in execution.states.filter(step_key__isnull=False):
+            step = interpreter.get_step(state.step_key)
+            if step and step.get("type") == "wait_reassess":
+                duration = step.get("duration_hours", 0)
+                due_at = state.answered_at + timezone.timedelta(hours=duration) if duration else None
+
+                status = "info"
+                if due_at:
+                    if now > due_at:
+                        status = "overdue"
+                    else:
+                        status = "pending"
+
+                reminders.append({
+                    "step_id": state.step_key,
+                    "step_title": step.get("title", ""),
+                    "answered_at": state.answered_at.isoformat(),
+                    "due_at": due_at.isoformat() if due_at else None,
+                    "status": status,
+                    "duration_hours": duration,
+                    "reassess_fields": step.get("reassess_fields", []),
+                    "phases": step.get("phases", []),
+                })
+
+        return reminders
