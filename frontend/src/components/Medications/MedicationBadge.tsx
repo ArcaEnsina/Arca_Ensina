@@ -7,25 +7,25 @@ import { HeartPulse } from "lucide-react";
 import { Bandage } from "lucide-react";
 import { BriefcaseMedical } from "lucide-react";
 
-function MedicationBadge({ name }: { name: string }) {
+function MedicationBadge({ name, size = 16 }: { name: string; size?: number }) {
     return (
-        <div className="bg-blue-500 text-white text-sm font-medium mr-2 p-2 rounded-full flex items-center">
+        <div className="bg-blue-500 text-white text-sm font-medium mr-2  rounded-full flex items-center" style={{ padding: `${size / 4}px`}}>
             {name === "pill" ? (
-                <Pill size={16} />
+                <Pill size={size} />
             ) : name === "tablets" ? (
-                <Tablets size={16} />
+                <Tablets size={size} />
             ) : name === "pills-bottle" ? (
-                <PillBottle size={16} />
+                <PillBottle size={size} />
             ) : name === "syringe" ? (
-                <Syringe size={16} />
+                <Syringe size={size} />
             ) : name === "shield-plus" ? (
-                <ShieldPlus size={16} />
+                <ShieldPlus size={size} />
             ) : name === "heart-pulse" ? (
-                <HeartPulse size={16} />
+                <HeartPulse size={size} />
             ) : name === "bandage" ? (
-                <Bandage size={16} />
+                <Bandage size={size} />
             ) : name === "briefcase-medical" ? (
-                <BriefcaseMedical size={16} />
+                <BriefcaseMedical size={size} />
             ) : null}
         </div>
     );
