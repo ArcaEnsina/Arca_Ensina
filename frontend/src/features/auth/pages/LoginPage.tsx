@@ -32,7 +32,7 @@ export default function LoginPage() {
     } catch (err) {
       let detail = 'Credenciais inválidas. Tente novamente.'
       if (err instanceof AxiosError) {
-        const body = err.response?.data as ApiErrorResponse | undefined">
+        const body = err.response?.data as ApiErrorResponse | undefined
         detail = body?.error?.message ?? detail
       }
       setServerError(detail)
