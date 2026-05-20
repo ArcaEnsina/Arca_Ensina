@@ -1,57 +1,12 @@
-import { type ReactNode } from "react";
-import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
-import { useAuth, LoginPage, RegisterPage } from "./features/auth";
-import { AppShell } from "./components/shell/AppShell";
-import Dashboard from "./pages/Dashboard";
-import DesignSystem from "./pages/DesignSystem";
-import Repositorio from "./pages/Repositorio";
-import { PatientCreatePage } from "./features/patient";
-import { CalculatorPage, MedicationSelectPage } from "./features/calculator";
+import { RouterProvider } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
-
-function RequireAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return <>{children}</>;
-}
-
-/** Layout das rotas autenticadas: exige sessão e envolve tudo no AppShell. */
-function ShellLayout() {
-  return (
-    <RequireAuth>
-      <AppShell>
-        <Outlet />
-      </AppShell>
-    </RequireAuth>
-  );
-}
+import router from "@/routes";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <>
       <Toaster />
-      <Routes>
-        <Route element={<ShellLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/_/design-system" element={<DesignSystem />} />
-          <Route path="/patients" element={<PatientCreatePage />} />
-          <Route path="/medications" element={<MedicationSelectPage />} />
-          <Route path="/repositorio" element={<Repositorio />} />
-          <Route
-            path="/calculator/calculate/:medicationId"
-            element={<CalculatorPage />}
-          />
-        </Route>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
+      <RouterProvider router={router} />
+    </>
   );
 }

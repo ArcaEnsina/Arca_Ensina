@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import arcaLogo from "@/assets/arca-logo.png";
 import { NAV_ITEMS } from "./nav-items";
