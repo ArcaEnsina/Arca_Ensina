@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import api from '@/services/api'
+import api from '@/lib/api/client'
 import type { Medication, CalculatorFormData, CalculationResult } from './types'
 
 export const useMedications = () =>

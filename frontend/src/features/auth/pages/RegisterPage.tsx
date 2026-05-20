@@ -1,8 +1,11 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
-import { useAuth } from '../context/AuthContext'
-import type { ApiErrorResponse, Profile } from '../types/auth'
+import { useAuth } from '../AuthContext'
+import { registerSchema, type RegisterInput } from '../schemas'
+import type { ApiErrorResponse, Profile } from '../types'
 
 const PROFILES: ReadonlyArray<{ value: Profile; label: string }> = [
   { value: 'medico', label: 'Médico' },
@@ -10,29 +13,30 @@ const PROFILES: ReadonlyArray<{ value: Profile; label: string }> = [
   { value: 'pesquisador', label: 'Pesquisador' },
 ]
 
-export default function Register() {
-  const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [profile, setProfile] = useState<Profile>('medico')
-  const [error, setError] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const { register } = useAuth()
+export default function RegisterPage() {
+  const [serverError, setServerError] = useState('')
+  const { register: registerUser } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError('')
-    setSubmitting(true)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { profile: 'medico' },
+  })
 
+  const onSubmit = async (data: RegisterInput) => {
+    setServerError('')
     try {
-      await register(username, email, password, profile)
+      await registerUser(data.username, data.email, data.password, data.profile)
       navigate('/dashboard')
     } catch (err) {
       const fallback = 'Erro ao registrar. Tente novamente.'
       if (err instanceof AxiosError && err.response?.data && typeof err.response.data === 'object') {
-        const data = err.response.data as ApiErrorResponse
-        const details = data.error?.details
+        const body = err.response.data as ApiErrorResponse
+        const details = body.error?.details
         if (details && typeof details === 'object') {
           const messages = Object.entries(details)
             .map(([field, msgs]) => {
@@ -40,74 +44,72 @@ export default function Register() {
               return `${field}: ${list.join(', ')}`
             })
             .join('; ')
-          setError(messages || fallback)
+          setServerError(messages || fallback)
         } else {
-          setError(data.error?.message ?? fallback)
+          setServerError(body.error?.message ?? fallback)
         }
       } else {
-        setError(fallback)
+        setServerError(fallback)
       }
-    } finally {
-      setSubmitting(false)
     }
   }
 
   return (
     <div className="auth-container">
       <h1>Cadastro</h1>
-      {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleSubmit}>
+      {serverError && <div className="error-message">{serverError}</div>}
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="form-group">
           <label htmlFor="username">Usuário</label>
           <input
             id="username"
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
+            {...register('username')}
             autoComplete="username"
           />
+          {errors.username && (
+            <span className="field-error">{errors.username.message}</span>
+          )}
         </div>
         <div className="form-group">
           <label htmlFor="email">E-mail</label>
           <input
             id="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            {...register('email')}
             autoComplete="email"
           />
+          {errors.email && (
+            <span className="field-error">{errors.email.message}</span>
+          )}
         </div>
         <div className="form-group">
           <label htmlFor="password">Senha</label>
           <input
             id="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+            {...register('password')}
             autoComplete="new-password"
-            minLength={8}
           />
+          {errors.password && (
+            <span className="field-error">{errors.password.message}</span>
+          )}
         </div>
         <div className="form-group">
           <label htmlFor="profile">Perfil profissional</label>
-          <select
-            id="profile"
-            value={profile}
-            onChange={(e) => setProfile(e.target.value as Profile)}
-            required
-          >
+          <select id="profile" {...register('profile')}>
             {PROFILES.map((p) => (
               <option key={p.value} value={p.value}>
                 {p.label}
               </option>
             ))}
           </select>
+          {errors.profile && (
+            <span className="field-error">{errors.profile.message}</span>
+          )}
         </div>
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Cadastrando...' : 'Cadastrar'}
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
         </button>
       </form>
       <p className="link-text">

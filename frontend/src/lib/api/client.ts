@@ -1,5 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import type { AuthTokens } from '../types/auth'
+import type { AuthTokens } from '@/features/auth/types'
 
 const api = axios.create({
   baseURL: '/api/v1/',

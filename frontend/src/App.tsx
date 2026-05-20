@@ -1,14 +1,12 @@
 import { type ReactNode } from "react";
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
-import { useAuth } from "./context/AuthContext";
+import { useAuth, LoginPage, RegisterPage } from "./features/auth";
 import { AppShell } from "./components/shell/AppShell";
 import Dashboard from "./pages/Dashboard";
 import DesignSystem from "./pages/DesignSystem";
 import Repositorio from "./pages/Repositorio";
 import { PatientCreatePage } from "./features/patient";
 import { CalculatorPage, MedicationSelectPage } from "./features/calculator";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import { Toaster } from "@/components/ui/sonner";
 
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -50,8 +48,8 @@ export default function App() {
             element={<CalculatorPage />}
           />
         </Route>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

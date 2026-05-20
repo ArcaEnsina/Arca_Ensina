@@ -6,8 +6,8 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import api from '../services/api'
-import type { AuthTokens, Profile, RegisterResponse, User } from '../types/auth'
+import api from '@/lib/api/client'
+import type { AuthTokens, Profile, RegisterResponse, User } from './types'
 
 interface AuthContextValue {
   user: User | null

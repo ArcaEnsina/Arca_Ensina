@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '@/features/auth'
 
 export default function Dashboard() {
   const { user, logout } = useAuth()

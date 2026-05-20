@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '@/services/api';
+import api from '@/lib/api/client';
 import { toSnakeCase, toCamelCase } from '@/lib/api/case';
 import type { PatientCreateInput } from './schemas';
 import type { Patient, Symptom } from './types';
