@@ -13,7 +13,7 @@
       "gender_applicable": null,
       "is_active": true,
       "created_at": "2026-01-01T00:00:00Z",
-      "updated_at": "2026-01-01T00:00:00Z"
+      "updated_at": "2026-05-19T00:00:00Z"
     }
   },
   {
@@ -21,7 +21,7 @@
     "pk": 1,
     "fields": {
       "protocol": 1,
-      "version_number": 1,
+      "version_number": 2,
       "protocol_type": "guiado",
       "steps_data": {
         "steps": [
@@ -29,233 +29,379 @@
             "id": "step_0",
             "type": "info",
             "title": "Protocolo de Manejo da Dengue",
-            "content": "Este protocolo segue as diretrizes da ARCA para manejo clínico da dengue em crianças. Classifica o paciente em Grupo C (sem sinais de alarme) e Grupo D (com sinais de alarme/choque).",
-            "next_step": "step_1"
+            "content": "Este protocolo cobre o manejo clínico da dengue nos Grupos C (com sinais de alerta, sem sinais de gravidade) e D (com sinais de gravidade). Siga o fluxo para classificar e conduzir o paciente.",
+            "next_step": "step_1_gravidade"
           },
+
           {
-            "id": "step_1",
+            "id": "step_1_gravidade",
             "type": "checklist",
-            "title": "Avaliação de Sinais de Gravidade",
-            "description": "Avalie a presença dos seguintes sinais de alarme. A presença de 1 ou mais sinais indica Grupo D.",
+            "title": "Avaliação de Sinais de Gravidade (Grupo D)",
+            "description": "Avalie a presença de sinais de gravidade. A presença de 1 ou mais classifica o paciente como Grupo D.",
             "items": [
-              {"id": "s1", "label": "Dor abdominal intensa e contínua"},
-              {"id": "s2", "label": "Vômitos persistentes"},
-              {"id": "s3", "label": "Acúmulo de líquidos (ascite, derrame pleural, edema)"},
-              {"id": "s4", "label": "Hipotensão postural ou pressão diferencial ≤ 20 mmHg"},
-              {"id": "s5", "label": "Hepatomegalia dolorosa > 2 cm do rebordo costal"},
-              {"id": "s6", "label": "Sangramento de mucosas ou petéquias espontâneas"},
-              {"id": "s7", "label": "Letargia ou irritabilidade"},
-              {"id": "s8", "label": "Aumento progressivo do hematócrito"}
+              {"id": "g1", "label": "Extravasamento grave de plasma com sinais de choque"},
+              {"id": "g2", "label": "Acúmulo de líquido com insuficiência respiratória aguda (IRAp)"},
+              {"id": "g3", "label": "Sangramento grave"},
+              {"id": "g4", "label": "Comprometimento grave de órgãos (fígado, SNC, coração, rins)"}
             ],
             "rule": {
               "min_checked": 1,
-              "true_next": "step_d_gravidade",
-              "false_next": "step_c_leve"
+              "true_next": "step_d_exames",
+              "false_next": "step_1b_alerta"
             }
           },
+
           {
-            "id": "step_c_leve",
-            "type": "info",
-            "title": "Grupo C — Dengue sem Sinais de Alarme",
-            "content": "Paciente classificado como Grupo C. Conduta: hidratação oral (50-100 ml/kg/dia), monitorar sinais de alarme a cada 12-24h. Retornar se surgirem sinais de alarme. Evitar AINEs e ácido acetilsalicílico.",
-            "next_step": "step_2_exames"
+            "id": "step_1b_alerta",
+            "type": "checklist",
+            "title": "Avaliação de Sinais de Alerta (Grupo C)",
+            "description": "Sem sinais de gravidade. Avalie agora os sinais de alerta. A presença de 1 ou mais classifica o paciente como Grupo C.",
+            "items": [
+              {"id": "a1", "label": "Dor abdominal intensa e contínua"},
+              {"id": "a2", "label": "Vômitos persistentes"},
+              {"id": "a3", "label": "Acúmulo de líquidos cavitários (ascite, derrame pleural, edema)"},
+              {"id": "a4", "label": "Hipotensão postural"},
+              {"id": "a5", "label": "Hepatomegalia dolorosa > 2 cm do rebordo costal"},
+              {"id": "a6", "label": "Sangramento de mucosas"},
+              {"id": "a7", "label": "Letargia ou irritabilidade"},
+              {"id": "a8", "label": "Aumento progressivo do hematócrito"}
+            ],
+            "rule": {
+              "min_checked": 1,
+              "true_next": "step_c_exames",
+              "false_next": "step_fora_protocolo"
+            }
           },
+
           {
-            "id": "step_d_gravidade",
+            "id": "step_fora_protocolo",
             "type": "info",
-            "title": "Grupo D — Dengue com Sinais de Alarme",
-            "content": "Paciente classificado como Grupo D. Necessita observação hospitalar, hidratação venosa e monitoramento contínuo. Iniciar protocolo de reposição volêmica.",
-            "next_step": "step_2_exames"
+            "title": "Fora do Escopo deste Protocolo",
+            "content": "Paciente sem sinais de alerta e sem sinais de gravidade (Grupos A/B). Conduzir conforme protocolo ambulatorial: hidratação oral domiciliar, orientações e acompanhamento. Este protocolo cobre apenas Grupos C e D.",
+            "next_step": null
           },
+
           {
-            "id": "step_2_exames",
+            "id": "step_c_exames",
             "type": "info",
-            "title": "Exames Recomendados",
-            "content": "Solicitar: Hemograma completo (com contagem de plaquetas), Hematócrito (Ht), Prova de função hepática (TGO, TGP), Creatinina, Eletrólitos. Para Grupo D: gasometria arterial, lactato, coagulograma (TP, TTPa, fibrinogênio). Repetir hemograma e Ht a cada 12-24h.",
-            "next_step": "step_3_hematocrito"
+            "title": "Grupo C — Exames Iniciais",
+            "content": "Paciente classificado como GRUPO C (com sinais de alerta, sem sinais de gravidade).\n\nSolicitar obrigatoriamente: Hemograma completo, Albumina, Ionograma, AST, ALT, Coagulograma.\nRecomendado conforme clínica: Radiografia de tórax, Ultrassonografia abdominal.",
+            "next_step": "step_c_peso"
           },
+
           {
-            "id": "step_3_hematocrito",
+            "id": "step_c_peso",
             "type": "numeric_input",
-            "title": "Registro do Hematócrito (Ht)",
-            "description": "Informe o valor do hematócrito inicial do paciente.",
-            "field_name": "hematocrito",
-            "unit": "%",
-            "min_value": 15,
-            "max_value": 70,
-            "validation_message": "Valor fora do range esperado (15-70%). Verifique.",
-            "next_step": "step_4_choque"
-          },
-          {
-            "id": "step_4_choque",
-            "type": "yes_no",
-            "title": "Sinais de Choque?",
-            "description": "Avalie: PA sistólica < 90 mmHg (adultos) ou pressão diferencial ≤ 20 mmHg, taquicardia, extremidades frias, enchimento capilar > 3s, oligúria, alteração do nível de consciência.",
-            "true_next": "step_5_peso",
-            "false_next": "step_13_plaquetas"
-          },
-          {
-            "id": "step_5_peso",
-            "type": "numeric_input",
-            "title": "Peso do Paciente",
-            "description": "Informe o peso atual do paciente em quilogramas.",
+            "title": "Peso do Paciente (Grupo C)",
+            "description": "Informe o peso atual do paciente em quilogramas para cálculo da reposição volêmica.",
             "field_name": "peso_kg",
             "unit": "kg",
             "min_value": 2,
             "max_value": 200,
-            "validation_message": "Peso fora do range esperado.",
-            "next_step": "step_6_expansao"
+            "validation_message": "Peso fora do range esperado. Verifique.",
+            "next_step": "step_c_expansao"
           },
+
           {
-            "id": "step_6_expansao",
+            "id": "step_c_expansao",
             "type": "derived_calc",
-            "title": "Cálculo de Expansão Volêmica",
-            "description": "Solução fisiológica 0,9% em bolus rápido (10-20 ml/kg em 15-20 minutos).",
+            "title": "Grupo C — Expansão Volêmica",
+            "description": "Administrar SF 0,9% — 10 ml/kg em 1h. Reavaliar ao término. Se sem sinais de congestão, repetir mais 1 bolus de 10 ml/kg em 1h. Solicitar Hct/Hg em até 2h após a expansão.",
             "inputs": ["peso_kg"],
             "formula": "peso_kg * 10",
-            "formula_alt": "peso_kg * 20",
-            "output_label": "Volume de SF 0,9%",
+            "output_label": "Volume de SF 0,9% por bolus",
             "output_unit": "ml",
-            "notes": "Iniciar com 10 ml/kg. Se choque persistir, repetir com 20 ml/kg.",
-            "next_step": "step_7_melhora"
+            "notes": "Cada bolus deve ser infundido em 1h (não em bolus rápido). Avaliar sinais de congestão antes de cada repetição. Solicitar Hct/Hg em até 2h da expansão.",
+            "next_step": "step_c_avaliacao1"
           },
+
           {
-            "id": "step_7_melhora",
+            "id": "step_c_avaliacao1",
             "type": "yes_no",
-            "title": "Melhora Clínica após Expansão?",
-            "description": "Avalie: redução do Ht, estabilização da PA, melhora da diurese, redução da taquicardia, enchimento capilar < 3s.",
-            "true_next": "step_10_monitoramento",
-            "false_next": "step_8_titulacao"
+            "title": "Grupo C — Resposta Satisfatória à Expansão?",
+            "description": "Após os bolus de SF 0,9%, avalie SIMULTANEAMENTE os dois critérios:\n• Queda do Hematócrito (Hct) E\n• Melhora dos SSVV, PA e diurese > 1 ml/kg/h\n\nAmbos devem estar presentes para resposta satisfatória.",
+            "true_next": "step_c_manutencao",
+            "false_next": "step_c_repeticao"
           },
+
           {
-            "id": "step_8_titulacao",
+            "id": "step_c_repeticao",
             "type": "titration_loop",
-            "title": "Repetição de Expansão Volêmica",
-            "description": "Repetir bolus de SF 0,9% (20 ml/kg). Monitorar sinais de congestão (estertores pulmonares, hepatomegalia progressiva, edema).",
+            "title": "Grupo C — Repetição da Expansão (até 3x adicionais)",
+            "description": "Repetir bolus de SF 0,9% (10 ml/kg em 1h). Total adicional máximo: +30 ml/kg (até 3 repetições). Vigiar sinais de congestão antes de cada bolus.",
             "max_iterations": 3,
-            "counter_field": "expansao_count",
-            "check_congestion": true,
+            "counter_field": "expansao_c_count",
             "congestion_check": {
               "title": "Sinais de Congestão?",
-              "description": "Avalie: estertores pulmonares, hepatomegalia progressiva, edema periférico, distensão jugular.",
-              "true_next": "step_9_coloides",
-              "false_next": "step_7_melhora"
+              "description": "Avalie antes de cada novo bolus: estertores pulmonares, hepatomegalia progressiva, edema periférico, distensão jugular.",
+              "true_next": "step_c_avaliacao_horaria",
+              "false_next": "step_c_avaliacao_horaria"
             },
-            "max_reached_next": "step_9_coloides"
+            "max_reached_next": "step_c_avaliacao_horaria"
           },
+
           {
-            "id": "step_9_coloides",
+            "id": "step_c_avaliacao_horaria",
+            "type": "wait_reassess",
+            "title": "Grupo C — Avaliação Horária",
+            "description": "Avaliar a cada hora: Débito urinário (DU), Pressão arterial (PA), Sinais vitais (SSVV). Hematócrito a cada 2h.",
+            "duration_hours": 2,
+            "reassess_fields": ["diurese", "pressao_arterial", "ssvv", "hematocrito"],
+            "next_step": "step_c_avaliacao2"
+          },
+
+          {
+            "id": "step_c_avaliacao2",
+            "type": "yes_no",
+            "title": "Grupo C — DU > 1 ml/kg/h, Parâmetros Estáveis e Queda do Hct?",
+            "description": "Avalie:\n• Débito urinário > 1 ml/kg/h\n• Parâmetros hemodinâmicos estáveis (PA, SSVV)\n• Queda do Hematócrito",
+            "true_next": "step_c_manutencao",
+            "false_next": "step_c_conduzir_d"
+          },
+
+          {
+            "id": "step_c_conduzir_d",
+            "type": "info",
+            "title": "Grupo C → Escalar para Conduta de Grupo D",
+            "content": "Sem resposta adequada à reposição volêmica no Grupo C. Escalar para conduta de Grupo D. Seguir fluxo a partir do passo 'Persiste Choque'.",
+            "next_step": "step_d_persiste_choque"
+          },
+
+          {
+            "id": "step_c_manutencao",
+            "type": "derived_calc",
+            "title": "Grupo C — Fase de Manutenção",
+            "description": "Manutenção volêmica em duas fases sequenciais com SF 0,9% (25 ml/kg por fase):\n\n• 1ª fase: infundir em 6h (4 ml/kg/h). Avaliar Hct ao término.\n• 2ª fase: infundir em 8h (3 ml/kg/h), SE melhora e Hct estável ou em queda. Avaliar Hct ao término.\n\nObservações:\n• Adicionar potássio (K⁺) se necessário\n• Bolus adicionais de SF 0,9% (10 ml/kg) podem ser necessários durante a manutenção",
+            "inputs": ["peso_kg"],
+            "formula": "peso_kg * 25",
+            "output_label": "Volume de SF 0,9% por fase (1ª e 2ª)",
+            "output_unit": "ml",
+            "notes": "1ª fase: volume total / 6h = taxa em ml/h. 2ª fase: volume total / 8h = taxa em ml/h. Controlar Hct ao término de cada fase.",
+            "next_step": "step_fases_dengue"
+          },
+
+          {
+            "id": "step_d_exames",
+            "type": "info",
+            "title": "Grupo D — Exames Iniciais",
+            "content": "Paciente classificado como GRUPO D (com sinais de gravidade).\n\nSolicitar obrigatoriamente: Hemograma completo, Hemocultura, PCR, Albumina, Ionograma, AST, ALT, Ureia, Creatinina, Coagulograma, Gasimetria arterial, Troponina (na suspeita de miocardite).\nImagem: Radiografia de tórax, Ultrassonografia abdominal, Ecocardiograma.",
+            "next_step": "step_d_peso"
+          },
+
+          {
+            "id": "step_d_peso",
+            "type": "numeric_input",
+            "title": "Peso do Paciente (Grupo D)",
+            "description": "Informe o peso atual do paciente em quilogramas para cálculo da reposição volêmica.",
+            "field_name": "peso_kg",
+            "unit": "kg",
+            "min_value": 2,
+            "max_value": 200,
+            "validation_message": "Peso fora do range esperado. Verifique.",
+            "next_step": "step_d_expansao"
+          },
+
+          {
+            "id": "step_d_expansao",
+            "type": "derived_calc",
+            "title": "Grupo D — Expansão Volêmica Inicial",
+            "description": "SF 0,9% — 20 ml/kg em 20 minutos (bolus rápido). Seguida de avaliação clínica. Pode ser repetida até 3 vezes (máximo 60 ml/kg total), se necessário e na ausência de sinais de congestão. Coletar Hct após cada expansão.",
+            "inputs": ["peso_kg"],
+            "formula": "peso_kg * 20",
+            "formula_max": "peso_kg * 60",
+            "output_label": "Volume de SF 0,9% por bolus",
+            "output_unit": "ml",
+            "notes": "Administrar em 20 minutos. Avaliar congestão antes de cada repetição. Máximo de 3 bolus (60 ml/kg total). Coletar Hct após as expansões.",
+            "next_step": "step_d_avaliacao1"
+          },
+
+          {
+            "id": "step_d_avaliacao1",
+            "type": "yes_no",
+            "title": "Grupo D — Melhora Clínica e Queda do Hct?",
+            "description": "Após expansão com SF 0,9%, avalie:\n• Melhora clínica (PA, SSVV, diurese > 1 ml/kg/h, perfusão periférica) E\n• Queda do Hematócrito (Hct)\n\nAmbos devem estar presentes.",
+            "true_next": "step_d_para_c",
+            "false_next": "step_d_hct_direcao"
+          },
+
+          {
+            "id": "step_d_para_c",
+            "type": "info",
+            "title": "Grupo D → Conduzir como Grupo C",
+            "content": "Melhora clínica com queda do Hct após expansão inicial. Conduzir como Grupo C: iniciar fase de manutenção volêmica conforme protocolo do Grupo C.",
+            "next_step": "step_c_manutencao"
+          },
+
+          {
+            "id": "step_d_hct_direcao",
+            "type": "yes_no",
+            "title": "Grupo D — Hct em Elevação?",
+            "description": "Persiste choque sem melhora clínica. Avalie a direção do Hematócrito:\n• SIM (Hct em ELEVAÇÃO) → extravasamento plasmático ativo → usar colóide\n• NÃO (Hct em QUEDA) → investigar hemorragia e coagulopatia",
+            "true_next": "step_d_albumina",
+            "false_next": "step_d_hemorragia"
+          },
+
+          {
+            "id": "step_d_albumina",
             "type": "medication_prescription",
-            "title": "Prescrição de Colóides",
-            "description": "Se expansão com cristaloides insuficiente após 3 tentativas ou sinais de congestão, considerar:",
+            "title": "Grupo D — Colóide (Hct em Elevação)",
+            "description": "Hct em elevação indica extravasamento plasmático ativo. Preferir Albumina; na indisponibilidade, usar colóide sintético.",
             "medications": [
               {
                 "name": "Albumina 5%",
-                "dose": "0.5-1 g/kg",
+                "dose": "0,5–1 g/kg",
                 "route": "IV",
-                "notes": "Preferir em caso de hipoalbuminemia"
+                "preparation": "Preparar: 25 ml de Albumina 20% + 75 ml de SF 0,9% = 100 ml de Albumina 5%",
+                "volume": "10–20 ml/kg da solução de Albumina 5%",
+                "notes": "Primeira escolha. Evitar na fase de hiperhidratação."
               },
               {
                 "name": "Colóide sintético (ex: Gelafundina)",
-                "dose": "10-20 ml/kg",
+                "dose": "10 ml/kg",
                 "route": "IV",
-                "notes": "Alternativa se albumina indisponível"
+                "notes": "Alternativa se Albumina indisponível."
               }
             ],
-            "next_step": "step_10_monitoramento"
+            "next_step": "step_d_persiste_choque"
           },
+
           {
-            "id": "step_10_monitoramento",
-            "type": "wait_reassess",
-            "title": "Monitoramento Contínuo",
-            "description": "Avaliação horária nas primeiras 4-6 horas. Monitorar: débito urinário (meta > 0,5 ml/kg/h), PA, SSVV, Ht a cada 2-4h. Manter acesso venoso calibroso.",
-            "duration_hours": 6,
-            "reassess_fields": ["diurese", "pressao_arterial", "ssvv", "hematocrito"],
-            "next_step": "step_11_persiste_choque"
+            "id": "step_d_hemorragia",
+            "type": "info",
+            "title": "Grupo D — Hemorragia e Coagulopatia (Hct em Queda)",
+            "content": "Hct em queda sem melhora clínica → investigar hemorragia ativa e coagulopatia.\n\n▶ HEMORRAGIA ATIVA:\n• Concentrado de Hemácias (CH): 10 ml/kg IV\n\n▶ COAGULOPATIA (conforme indicação padrão):\n• Vitamina K: 5 ou 10 mg IV\n• Crioprecipitado: 1 U/5–10 kg\n• Plasma Fresco Congelado (PFC): 10 ml/kg\n\n▶ PLAQUETOPENIA:\nTransfusão de plaquetas (1 U/5–10 kg): APENAS se hemorragia persistente não controlada, APÓS correção da coagulopatia e do choque, na presença simultânea de trombocitopenia E INR > 1,5x o valor normal.\n\nIMPORTANTE: Não há indicação de transfusão profilática de plaquetas independente do número de plaquetas.",
+            "next_step": "step_d_persiste_choque"
           },
+
           {
-            "id": "step_11_persiste_choque",
+            "id": "step_d_persiste_choque",
             "type": "yes_no",
-            "title": "Choque Persiste?",
-            "description": "Após reposição volêmica adequada, o choque persiste? Avaliar: PA, débito urinário, perfusão periférica, lactato.",
-            "true_next": "step_12_dva",
-            "false_next": "step_13_plaquetas"
+            "title": "Persiste Choque?",
+            "description": "Após reposição volêmica e/ou correção de hemorragia/coagulopatia, avalie:\n• Pressão arterial\n• Débito urinário (> 1 ml/kg/h)\n• Perfusão periférica e enchimento capilar\n• Lactato",
+            "true_next": "step_d_dva",
+            "false_next": "step_d_hiperhidratacao_check"
           },
+
           {
-            "id": "step_12_dva",
+            "id": "step_d_dva",
             "type": "medication_prescription",
-            "title": "Drogas Vasoativas (DVA)",
-            "description": "Iniciar drogas vasoativas se choque refratário à reposição volêmica.",
+            "title": "Drogas Vasoativas (DVA) — Choque Refratário",
+            "description": "Iniciar drogas vasoativas se choque refratário à reposição volêmica. Sempre iniciar com a MENOR dose. Atenção: 30–40% dos pacientes no Grupo D cursam com miocardite.",
             "medications": [
               {
                 "name": "Dobutamina",
                 "dose_inicial": "5 mcg/kg/min",
-                "dose_max": "20 mcg/kg/min",
+                "dose_max": "10 mcg/kg/min",
                 "route": "IV contínua",
-                "indication": "Choque com disfunção miocárdica"
-              },
-              {
-                "name": "Noradrenalina",
-                "dose_inicial": "0,1 mcg/kg/min",
-                "dose_max": "2 mcg/kg/min",
-                "route": "IV contínua",
-                "indication": "Choque com vasodilatação"
+                "indication": "1ª escolha. Indicada especialmente na suspeita de miocardite ou disfunção miocárdica."
               },
               {
                 "name": "Adrenalina",
-                "dose_inicial": "0,1 mcg/kg/min",
+                "dose_inicial": "0,05 mcg/kg/min",
+                "dose_max": "0,3 mcg/kg/min",
+                "route": "IV contínua",
+                "indication": "Alternativa à Dobutamina ou em associação em choque refratário."
+              },
+              {
+                "name": "Noradrenalina",
+                "dose_inicial": "0,05 mcg/kg/min",
                 "dose_max": "1 mcg/kg/min",
                 "route": "IV contínua",
-                "indication": "Choque refratário"
+                "indication": "Associar se persistir hipotensão após Dobutamina ou Adrenalina."
               }
             ],
-            "next_step": "step_13_plaquetas"
+            "next_step": "step_d_hiperhidratacao_check"
           },
+
           {
-            "id": "step_13_plaquetas",
-            "type": "info",
-            "title": "Atenção: Plaquetopenia e Coagulopatia",
-            "content": "Monitorar plaquetas. Indicações de transfusão: Plaquetas < 10.000/mm³ (profilaxia) ou < 50.000/mm³ com sangramento ativo. PFC: se TP/TTPa > 1,5x normal ou fibrinogênio < 100 mg/dL. Crioprecipitado: fibrinogênio < 100 mg/dL. Evitar aspirina e AINEs.",
-            "next_step": "step_14_fases"
+            "id": "step_d_hiperhidratacao_check",
+            "type": "yes_no",
+            "title": "Sinais de Hiperhidratação?",
+            "description": "Na fase de recuperação (48–72h após choque), avalie sinais de sobrecarga hídrica:\n• Queda do Hct na ausência de sangramento\n• Insuficiência cardíaca congestiva (ICC)\n• Estertores pulmonares\n• Hepatomegalia progressiva",
+            "true_next": "step_d_hiperhidratacao",
+            "false_next": "step_fases_dengue"
           },
+
           {
-            "id": "step_14_fases",
+            "id": "step_d_hiperhidratacao",
+            "type": "medication_prescription",
+            "title": "Manejo da Hiperhidratação",
+            "description": "Conduta: interromper reposição volêmica + inotrópico + diurético de alça. Evitar albumina nessa fase.",
+            "medications": [
+              {
+                "name": "Dobutamina",
+                "dose_inicial": "5 mcg/kg/min",
+                "dose_max": "10 mcg/kg/min",
+                "route": "IV contínua",
+                "indication": "Suporte inotrópico"
+              },
+              {
+                "name": "Furosemida (diurético de alça)",
+                "dose": "2–4 mg/kg/dia",
+                "frequency": "a cada 4h",
+                "route": "IV ou VO",
+                "indication": "Diurese forçada para descongestão"
+              }
+            ],
+            "notes": "Interromper toda reposição volêmica. Evitar albumina nessa fase.",
+            "next_step": "step_fases_dengue"
+          },
+
+          {
+            "id": "step_fases_dengue",
             "type": "wait_reassess",
-            "title": "Monitoramento por Fases",
-            "description": "Acompanhar evolução nas fases da dengue:",
+            "title": "Monitoramento por Fases da Dengue",
+            "description": "Acompanhar evolução clínica e laboratorial conforme fase:",
             "phases": [
               {
-                "phase": "D1-D3 (Fase Febril)",
-                "monitoring": "Controle de febre, hidratação, observação de sinais de alarme"
+                "phase": "D1–D3 (Fase Febril)",
+                "monitoring": "Controle de febre, hidratação, vigilância de sinais de alerta e gravidade."
               },
               {
-                "phase": "D4-D6 (Fase Crítica)",
-                "monitoring": "Máximo risco de extravasamento plasmático. Monitoramento intensivo: Ht 2/2h, plaquetas, SSVV contínuo"
+                "phase": "D4–D6 (Fase Crítica)",
+                "monitoring": "Máximo risco de extravasamento plasmático, choque, sangramento e disfunção orgânica. Monitoramento intensivo: Hct a cada 2h, plaquetas, SSVV contínuos. Duração do choque: 87,5% dos casos 0–23h; 12% de 24–47h; 0,5% de 48–72h."
               },
               {
-                "phase": "D7-D10 (Fase de Recuperação)",
-                "monitoring": "Reabsorção de líquidos, melhora clínica, normalização de plaquetas. Cuidado com sobrecarga hídrica"
+                "phase": "D7–D10 (Fase de Recuperação)",
+                "monitoring": "Reabsorção de líquidos, melhora clínica, normalização das plaquetas. Parâmetro de recuperação do choque: queda de 20% no Hct (sem sangramento) com diurese de 1–2 ml/kg/h. Vigiar sobrecarga hídrica (ver manejo de hiperhidratação)."
               }
             ],
+            "next_step": "step_diagnostico_laboratorial"
+          },
+
+          {
+            "id": "step_diagnostico_laboratorial",
+            "type": "info",
+            "title": "Pesquisa de Antígeno / Anticorpo — Dengue",
+            "content": "▶ NS1 (Antígeno):\nIndicado até o D5 do início dos sintomas. Especificidade maior que a sensibilidade.\n\n▶ IgM e IgG (Anticorpos):\nIndicados a partir do D6 até o D15 do início dos sintomas.",
             "next_step": null
           }
         ],
+
         "gates": [
           {
-            "step_id": "step_1",
+            "step_id": "step_1_gravidade",
             "condition": "min_checked >= 1",
-            "description": "Se 1 ou mais sinais de alarme → Grupo D"
+            "description": "Se 1 ou mais sinais de gravidade presentes → Grupo D"
+          },
+          {
+            "step_id": "step_1b_alerta",
+            "condition": "min_checked >= 1",
+            "description": "Se 1 ou mais sinais de alerta presentes (sem gravidade) → Grupo C"
           }
         ]
       },
+
       "panel_data": {},
+
       "metadata": {
-        "source": "Ministério da Saúde - Diretrizes Dengue 2024",
+        "source": "Protocolo ARCA — Manejo da Dengue (fluxograma PDF institucional)",
         "target_population": "Adultos e crianças",
         "severity_groups": ["C", "D"],
-        "version_notes": "Versão inicial do protocolo de dengue"
+        "version_notes": "Versão 2 — corrigida integralmente com base no PDF. Correções aplicadas: (1) Grupo C redefinido como 'com sinais de alerta, sem sinais de gravidade'; (2) conduta de Grupo C alterada de hidratação oral para expansão IV com SF 0,9% 10 ml/kg em 1h; (3) velocidade de infusão corrigida (1h para Grupo C vs 20min para Grupo D); (4) fase de manutenção do Grupo C adicionada (25 ml/kg em 6h + 25 ml/kg em 8h); (5) doses das DVA corrigidas (Dobutamina 5–10, Adrenalina 0,05–0,3, Noradrenalina 0,05–1 mcg/kg/min); (6) critério de transfusão de plaquetas corrigido (sem indicação profilática; somente com hemorragia persistente + trombocitopenia + INR > 1,5x VN após correção de coagulopatia e choque); (7) manejo de hiperhidratação adicionado (Dobutamina + Furosemida + restrição hídrica, sem albumina); (8) pesquisa sorológica (NS1 até D5; IgM/IgG D6–D15) adicionada; (9) fluxo de 2 etapas de triagem adicionado (gravidade → alerta)."
       },
-      "created_at": "2026-01-01T00:00:00Z",
+
+      "created_at": "2026-05-19T00:00:00Z",
       "is_current": true
     }
   }

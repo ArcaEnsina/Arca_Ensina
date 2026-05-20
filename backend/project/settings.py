@@ -14,6 +14,13 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,7 +52,13 @@ SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() == "true"
 
-ALLOWED_HOSTS = ["arca-ensina.vercel.app", "localhost", "127.0.0.1", "backend"]
+ALLOWED_HOSTS = [
+    "arca-ensina.vercel.app",
+    "localhost",
+    "127.0.0.1",
+    "backend",
+    ".vercel.app",
+]
 
 
 # Application definition
@@ -67,10 +80,12 @@ INSTALLED_APPS = [
     "apps.audit",
     "apps.calculator",
     "apps.medications",
-    "django_extensions",
     "apps.pacientes",
     "apps.protocols",
 ]
+
+if DEBUG:
+    INSTALLED_APPS += ["django_extensions"]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
