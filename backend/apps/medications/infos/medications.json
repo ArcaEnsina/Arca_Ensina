@@ -266,7 +266,7 @@
         "pk": 8,
         "fields": {
             "name": "Paracetamol",
-            "category": " Analgésico",
+            "category": "Analgésico",
             "description": "Analgésico e antipirético não opioide amplamente utilizado em pediatria para dor leve a moderada e febre. Boa tolerabilidade e perfil de segurança.",
             "prescription": 50,
             "frequency_hours": 8,
@@ -409,6 +409,196 @@
                     "min": 0.04,
                     "max": 0.1,
                     "absolute_max": 4.0
+                }
+            }
+        }
+    },
+    {
+        "model": "medications.medication",
+        "pk": 12,
+        "fields": {
+            "name": "Dobutamina",
+            "category": "Inotrópico e Droga Vasoativa",
+            "description": "Amina vasoativa inotrópica indicada no manejo do choque (Grupo D da Dengue) quando há suspeita ou confirmação de miocardite ou disfunção miocárdica.",
+            "prescription": 50,
+            "frequency_hours": 1,
+            "min_dose_mg_kg": 5.0,
+            "max_dose_mg_kg": 10.0,
+            "max_absolute_dose_mg": 20.0,
+            "concentration_mg": 250,
+            "concentration_ml": 20,
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 2.0,
+                    "max": 20.0,
+                    "absolute_max": 20.0
+                },
+                "lactente": {
+                    "min": 5.0,
+                    "max": 10.0,
+                    "absolute_max": 20.0
+                },
+                "crianca": {
+                    "min": 5.0,
+                    "max": 10.0,
+                    "absolute_max": 20.0
+                },
+                "adolescente": {
+                    "min": 5.0,
+                    "max": 10.0,
+                    "absolute_max": 20.0
+                }
+            }
+        }
+    },
+    {
+        "model": "medications.medication",
+        "pk": 13,
+        "fields": {
+            "name": "Adrenalina",
+            "category": "Vasopressor e Droga Vasoativa",
+            "description": "Catecolamina utilizada no suporte hemodinâmico do choque grave refratário na Dengue Grupo D. Deve ser iniciada com a menor dose recomendada.",
+            "prescription": 50,
+            "frequency_hours": 1,
+            "min_dose_mg_kg": 0.05,
+            "max_dose_mg_kg": 0.3,
+            "max_absolute_dose_mg": 1.0,
+            "concentration_mg": 1,
+            "concentration_ml": 1,
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 0.05,
+                    "max": 0.3,
+                    "absolute_max": 1.0
+                },
+                "lactente": {
+                    "min": 0.05,
+                    "max": 0.3,
+                    "absolute_max": 1.0
+                },
+                "crianca": {
+                    "min": 0.05,
+                    "max": 0.3,
+                    "absolute_max": 1.0
+                },
+                "adolescente": {
+                    "min": 0.05,
+                    "max": 0.3,
+                    "absolute_max": 1.0
+                }
+            }
+        }
+    },
+    {
+        "model": "medications.medication",
+        "pk": 14,
+        "fields": {
+            "name": "Noradrenalina",
+            "category": "Vasopressor e Droga Vasoativa",
+            "description": "Vasopressor potente indicado em associação quando o paciente com choque por Dengue Grupo D persiste hipotenso após medidas iniciais.",
+            "prescription": 50,
+            "frequency_hours": 1,
+            "min_dose_mg_kg": 0.05,
+            "max_dose_mg_kg": 1.0,
+            "max_absolute_dose_mg": 2.0,
+            "concentration_mg": 4,
+            "concentration_ml": 4,
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 0.05,
+                    "max": 1.0,
+                    "absolute_max": 2.0
+                },
+                "lactente": {
+                    "min": 0.05,
+                    "max": 1.0,
+                    "absolute_max": 2.0
+                },
+                "crianca": {
+                    "min": 0.05,
+                    "max": 1.0,
+                    "absolute_max": 2.0
+                },
+                "adolescente": {
+                    "min": 0.05,
+                    "max": 1.0,
+                    "absolute_max": 2.0
+                }
+            }
+        }
+    },
+    {
+        "model": "medications.medication",
+        "pk": 15,
+        "fields": {
+            "name": "Furosemida",
+            "category": "Diurético de Alça",
+            "description": "Diurético indicado em caso de sinais de hiperhidratação/sobrecarga hídrica (fase de recuperação de 48-72h) com restrição hídrica concomitante.",
+            "prescription": 50,
+            "frequency_hours": 4,
+            "min_dose_mg_kg": 2.0,
+            "max_dose_mg_kg": 4.0,
+            "max_absolute_dose_mg": 40.0,
+            "concentration_mg": 20,
+            "concentration_ml": 2,
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 1.0,
+                    "max": 2.0,
+                    "absolute_max": 20.0
+                },
+                "lactente": {
+                    "min": 2.0,
+                    "max": 4.0,
+                    "absolute_max": 40.0
+                },
+                "crianca": {
+                    "min": 2.0,
+                    "max": 4.0,
+                    "absolute_max": 40.0
+                },
+                "adolescente": {
+                    "min": 2.0,
+                    "max": 4.0,
+                    "absolute_max": 40.0
+                }
+            }
+        }
+    },
+    {
+        "model": "medications.medication",
+        "pk": 16,
+        "fields": {
+            "name": "Vitamina K",
+            "category": "Coagulante e Vitamina",
+            "description": "Indicada no manejo farmacológico de suporte para correção de coagulopatia padrão conforme diretrizes clínicas do protocolo.",
+            "prescription": 50,
+            "frequency_hours": 24,
+            "min_dose_mg_kg": 5.0,
+            "max_dose_mg_kg": 10.0,
+            "max_absolute_dose_mg": 10.0,
+            "concentration_mg": 10,
+            "concentration_ml": 1,
+            "limits_by_age": {
+                "neonatal": {
+                    "min": 1.0,
+                    "max": 2.0,
+                    "absolute_max": 2.0
+                },
+                "lactente": {
+                    "min": 5.0,
+                    "max": 10.0,
+                    "absolute_max": 10.0
+                },
+                "crianca": {
+                    "min": 5.0,
+                    "max": 10.0,
+                    "absolute_max": 10.0
+                },
+                "adolescente": {
+                    "min": 5.0,
+                    "max": 10.0,
+                    "absolute_max": 10.0
                 }
             }
         }
