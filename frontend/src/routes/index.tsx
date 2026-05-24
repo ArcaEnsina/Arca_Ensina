@@ -15,7 +15,6 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-/** Layout das rotas autenticadas: exige sessão e envolve tudo no AppShell. */
 function ShellLayout() {
   return (
     <RequireAuth>
@@ -73,6 +72,13 @@ const router = createBrowserRouter([
             Component: m.default,
           })),
       },
+      {
+      path: "/guided-protocol",
+      lazy: () =>
+        import("@/features/guidedProtocol/pages/GuidedProtocolPage").then((m) => ({
+          Component: m.default,
+        })),
+    },
     ],
   },
   {
