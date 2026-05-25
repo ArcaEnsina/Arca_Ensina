@@ -23,6 +23,12 @@ export async function getMedicationByCategory(category: string): Promise<CachedM
   return db.getAllFromIndex('bulas', 'by-category', category)
 }
 
+export async function isCached(id: number): Promise<boolean> {
+  const db = await getDB()
+  const count = await db.count('bulas', id)
+  return count > 0
+}
+
 export async function listCached(): Promise<CachedMedication[]> {
   const db = await getDB()
   return db.getAll('bulas')
