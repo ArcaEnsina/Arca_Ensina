@@ -117,16 +117,21 @@ class ProtocolSerializerTest(TestCase):
     def test_version_create_serializer_copies_previous_data(self):
         from .serializers import ProtocolVersionCreateSerializer
 
-        self.version.steps_data = {
-            "steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]
-        }
-        self.version.protocol_type = "guiado"
-        self.version.save()
+        ProtocolVersion.objects.create(
+            protocol=self.protocol,
+            version_number=2,
+            protocol_type="guiado",
+            is_current=False,
+            steps_data={
+                "steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]
+            },
+        )
 
         data = {"protocol": self.protocol.pk}
         serializer = ProtocolVersionCreateSerializer(data=data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         version = serializer.save()
+        self.assertEqual(version.version_number, 3)
         self.assertEqual(
             version.steps_data,
             {"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]},
