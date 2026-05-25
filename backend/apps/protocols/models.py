@@ -137,6 +137,13 @@ class ProtocolVersion(models.Model):
             ) from exc
 
     def save(self, *args, **kwargs):
+        if self.pk:
+            raise DjangoValidationError(
+                {
+                    "detail": "ProtocolVersion é imutável.",
+                    "code": "version_immutable",
+                }
+            )
         self.clean()
         if self.is_current:
             ProtocolVersion.objects.filter(

@@ -117,16 +117,19 @@ class ProtocolSerializerTest(TestCase):
     def test_version_create_serializer_copies_previous_data(self):
         from .serializers import ProtocolVersionCreateSerializer
 
-        self.version.steps_data = {
-            "steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]
-        }
-        self.version.protocol_type = "guiado"
-        self.version.save()
+        ProtocolVersion.objects.create(
+            protocol=self.protocol,
+            version_number=2,
+            protocol_type="guiado",
+            is_current=False,
+            steps_data={"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]},
+        )
 
         data = {"protocol": self.protocol.pk}
         serializer = ProtocolVersionCreateSerializer(data=data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         version = serializer.save()
+        self.assertEqual(version.version_number, 3)
         self.assertEqual(
             version.steps_data,
             {"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]},
@@ -1642,7 +1645,7 @@ class JsonProtocolExecutionServiceTest(TestCase):
     def setUp(self):
         self.protocol = Protocol.objects.create(title="JSON Protocol")
         self.version = self.protocol.versions.first()
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {
                     "id": "intro",
@@ -1744,7 +1747,8 @@ class JsonProtocolExecutionServiceTest(TestCase):
                 },
             ]
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
         self.physician = User.objects.create_user(
             email="json_doctor@test.com",
             password="testpass123",
@@ -1789,7 +1793,7 @@ class JsonProtocolExecutionServiceTest(TestCase):
         self.assertEqual(self.execution.current_step_key, "fim_sim")
 
     def test_start_with_context_evaluates_entry_gates(self):
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {"id": "intro", "type": "info", "title": "Intro", "next_step": None},
             ],
@@ -1800,7 +1804,8 @@ class JsonProtocolExecutionServiceTest(TestCase):
                 },
             ],
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
 
         execution = ProtocolExecution.objects.create(
             version=self.version,
@@ -1815,7 +1820,7 @@ class JsonProtocolExecutionServiceTest(TestCase):
         self.assertTrue(len(state.gate_warnings) > 0)
 
     def test_start_with_step_gate_warning(self):
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {
                     "id": "intro",
@@ -1830,7 +1835,8 @@ class JsonProtocolExecutionServiceTest(TestCase):
                 },
             ],
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
 
         execution = ProtocolExecution.objects.create(
             version=self.version,
@@ -1957,7 +1963,7 @@ class JsonProtocolExecutionApiTest(TestCase):
         self.client = APIClient()
         self.protocol = Protocol.objects.create(title="JSON API Protocol")
         self.version = self.protocol.versions.first()
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {
                     "id": "intro",
@@ -1976,7 +1982,8 @@ class JsonProtocolExecutionApiTest(TestCase):
                 {"id": "fim_nao", "type": "info", "title": "Fim nao"},
             ]
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
         self.doctor = User.objects.create_user(
             email="json_api_doctor@test.com",
             password="testpass123",
@@ -2061,8 +2068,10 @@ class ProtocolExecuteApiTest(TestCase):
         self.steps_data = data[1]["fields"]["steps_data"]
         self.protocol = Protocol.objects.create(title="Dengue JSON Runtime")
         self.version = self.protocol.versions.first()
-        self.version.steps_data = self.steps_data
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(
+            steps_data=self.steps_data
+        )
+        self.version.refresh_from_db()
         self.doctor = User.objects.create_user(
             email="exec_doctor@test.com",
             password="testpass123",

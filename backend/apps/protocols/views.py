@@ -289,8 +289,11 @@ class ProtocolVersionViewSet(AuditableMixin, ModelViewSet):
     def set_current(self, request, pk=None, **kwargs):
         """Marca esta versão como atual."""
         version = self.get_object()
-        version.is_current = True
-        version.save()
+        ProtocolVersion.objects.filter(
+            protocol=version.protocol, is_current=True
+        ).exclude(pk=version.pk).update(is_current=False)
+        ProtocolVersion.objects.filter(pk=version.pk).update(is_current=True)
+        version.refresh_from_db()
         return Response(ProtocolVersionSerializer(version).data)
 
 
