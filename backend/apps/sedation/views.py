@@ -51,9 +51,7 @@ class PanelViewSet(ViewSet):
                 horario=data.get("horario"),
             )
         except ValueError as exc:
-            raise ValidationError(
-                detail=str(exc), code="calculation_error"
-            ) from exc
+            raise ValidationError(detail=str(exc), code="calculation_error") from exc
 
         log_audit(
             user=request.user,
@@ -67,9 +65,7 @@ class PanelViewSet(ViewSet):
                 "dose": str(data["dose"]),
                 "peso_kg": str(data["peso_kg"]),
                 "client_uuid": (
-                    str(data.get("client_uuid"))
-                    if data.get("client_uuid")
-                    else None
+                    str(data.get("client_uuid")) if data.get("client_uuid") else None
                 ),
                 "result": result,
             },

@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 
 class PanelCalculateSerializer(serializers.Serializer):
-
     origem = serializers.CharField()
     destino = serializers.CharField()
     dose = serializers.DecimalField(max_digits=12, decimal_places=4)

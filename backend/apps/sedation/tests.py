@@ -393,9 +393,7 @@ class PanelAPITests(TestCase):
             password="testpass123",
             profile="medico",
         )
-        self.protocol = Protocol.objects.create(
-            title="Painel de Sedação"
-        )
+        self.protocol = Protocol.objects.create(title="Painel de Sedação")
         # Delete auto-created version (version_number=1) and create panel version
         self.protocol.versions.all().delete()
         self.panel_data = {
@@ -446,9 +444,7 @@ class PanelAPITests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            Decimal(response.data["converted_dose"]), Decimal("15.0000")
-        )
+        self.assertEqual(Decimal(response.data["converted_dose"]), Decimal("15.0000"))
         self.assertEqual(response.data["route"], "VO")
         self.assertEqual(response.data["frequency"], "6/6h")
         self.assertEqual(response.data["formula_applied"], "dose * peso_kg * 0.6")

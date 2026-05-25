@@ -122,9 +122,7 @@ class ProtocolSerializerTest(TestCase):
             version_number=2,
             protocol_type="guiado",
             is_current=False,
-            steps_data={
-                "steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]
-            },
+            steps_data={"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]},
         )
 
         data = {"protocol": self.protocol.pk}
@@ -2070,7 +2068,9 @@ class ProtocolExecuteApiTest(TestCase):
         self.steps_data = data[1]["fields"]["steps_data"]
         self.protocol = Protocol.objects.create(title="Dengue JSON Runtime")
         self.version = self.protocol.versions.first()
-        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=self.steps_data)
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(
+            steps_data=self.steps_data
+        )
         self.version.refresh_from_db()
         self.doctor = User.objects.create_user(
             email="exec_doctor@test.com",

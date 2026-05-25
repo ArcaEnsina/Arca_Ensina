@@ -19,9 +19,7 @@ class SedationConverter:
         """
         row = self._find_row(origem, destino)
         if not row:
-            raise ValueError(
-                f"Par de fármacos não encontrado: {origem} → {destino}."
-            )
+            raise ValueError(f"Par de fármacos não encontrado: {origem} → {destino}.")
 
         formula = row["formula"]
         context = {"dose": dose, "peso_kg": peso_kg}
@@ -137,9 +135,7 @@ class SedationConverter:
 
             if isinstance(node, ast.Name):
                 if node.id not in context:
-                    raise ValueError(
-                        f"Variável desconhecida na fórmula: {node.id}"
-                    )
+                    raise ValueError(f"Variável desconhecida na fórmula: {node.id}")
                 return Decimal(str(context[node.id]))
 
             if isinstance(node, ast.BinOp):
