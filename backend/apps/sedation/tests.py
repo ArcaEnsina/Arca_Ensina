@@ -389,7 +389,6 @@ class PanelAPITests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            username="medico_test",
             email="medico@test.com",
             password="testpass123",
             profile="medico",
