@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class ResearchConfig(AppConfig):
-    name = 'research'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.research"  # Deve ser 'apps.research', não apenas 'research'
