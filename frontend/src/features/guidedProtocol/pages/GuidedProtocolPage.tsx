@@ -9,7 +9,8 @@ import { ProtocolInfoBanner } from "../components/ProtocolInfoBanner";
 import type { Patient } from "@/features/patient";
 import type { Protocol } from "../types";
 
-const MOCK_PATIENT: Patient = { //dps trocar para dados reais
+export const MOCK_PATIENT: Patient = {
+  // dps trocar para dados reais
   id: "000123",
   nome: "Teste da Silva",
   dataNascimento: "2019-01-01",
@@ -21,7 +22,7 @@ const MOCK_PATIENT: Patient = { //dps trocar para dados reais
   sintomas: [],
 };
 
-const MOCK_PROTOCOL: Protocol = {
+export const MOCK_PROTOCOL: Protocol = {
   id: "dengue-d",
   name: "Protocolo Dengue",
   subtitle: "Manejo clínico · Hospitalar",
@@ -45,16 +46,22 @@ export default function GuidedProtocolPage() {
 
   return (
     <div className="relative mx-auto flex min-h-[calc(100vh-7rem)] max-w-lg flex-col items-center gap-6 overflow-hidden px-4 py-6">
-
       <h1 className="text-display-sm font-heading tracking-widest text-foreground">
         PROTOCOLOS GUIADOS
       </h1>
 
-      <ProtocolStepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <ProtocolStepper
+        currentStep={currentStep}
+        totalSteps={TOTAL_STEPS}
+      />
 
       <div className="grid w-full grid-cols-2 gap-3 items-start">
         <PatientCard patient={MOCK_PATIENT} />
-        <ProtocolCard protocol={protocol} onSwap={handleSwapProtocol} />
+
+        <ProtocolCard
+          protocol={protocol}
+          onSwap={handleSwapProtocol}
+        />
       </div>
 
       <ProtocolInfoBanner message="Indicado para pacientes com sinais de alarme e/ou critérios de gravidade" />
