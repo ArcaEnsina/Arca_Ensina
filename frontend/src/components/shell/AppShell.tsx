@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ClipboardNav } from "./ClipboardNav";
 import { DesktopNav } from "./DesktopNav";
 import { EmergencyButton } from "./EmergencyButton";
+import { OfflineIndicator } from "./OfflineIndicator";
 
 /**
  * Estrutura global de todas as rotas autenticadas (CORE-013 / UX-DR6):
@@ -20,6 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <DesktopNav />
       <ClipboardNav />
+      <OfflineIndicator />
 
       {/* padding reserva espaço para a nav fixa: rodapé no mobile, topo no desktop */}
       <main id="conteudo" className="w-full pb-32 pt-4 tablet:pb-16 tablet:pt-28">
