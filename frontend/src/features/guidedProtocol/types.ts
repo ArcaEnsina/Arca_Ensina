@@ -1,16 +1,4 @@
-export interface Protocol {
-  id: string;
-  name: string;
-  subtitle: string;
-  group: string;
-}
-
-export interface GuidedProtocolStep {
-  currentStep: number;
-  totalSteps: number;
-}
-
-export interface Patient{
+export interface Patient {
   id: number;
   name: string;
   dateOfBirth: string;
@@ -22,7 +10,15 @@ export interface Patient{
   symptoms: string[];
 }
 
-export interface Protocol{
+export interface ProtocolStep {
+  stepNumber: number;
+  title: string;
+  description: string;
+  questions: string[];
+  validations: string[];
+}
+
+export interface Protocol {
   id: string;
   title: string;
   specialty: string;
@@ -32,20 +28,20 @@ export interface Protocol{
   isActive: boolean;
 }
 
-export interface ProtocolVersion{
+export interface ProtocolVersion {
   id: number;
   protocolId: string;
   versionNumber: number;
   protocolType: string;
   isCurrent: boolean;
+  stepsData: Record<number, ProtocolStep>;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
 }
 
-export interface ProtocolStep{
-  stepNumber: number;
-  title: string;
-  description: string;
-  questions: string[];
-  validations: string[];
+export interface GuidedProtocolStep {
+  currentStep: number;
+  totalSteps: number;
 }
 
 export interface ProtocolExecution {
