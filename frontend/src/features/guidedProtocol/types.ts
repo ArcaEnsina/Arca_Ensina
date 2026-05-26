@@ -1,14 +1,6 @@
-export interface Patient {
-  id: number;
-  name: string;
-  dateOfBirth: string;
-  gender: string;
-  weight: number;
-  height: number;
-  phone: string;
-  allergies: string[];
-  symptoms: string[];
-}
+import type { Patient } from '@/features/patient/types';
+
+export type { Patient };
 
 export interface ProtocolStep {
   stepNumber: number;
