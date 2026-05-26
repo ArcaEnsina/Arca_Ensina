@@ -25,7 +25,10 @@ export default function GuidedProtocolPage() {
 
       <ProtocolMainHeader />
 
-      <ProtocolStepper currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+      <ProtocolStepper
+        currentStep={currentStep}
+        totalSteps={TOTAL_STEPS}
+      />
 
       <ProtocolSelectionSection />
 

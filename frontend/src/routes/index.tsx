@@ -73,13 +73,48 @@ const router = createBrowserRouter([
           })),
       },
       {
-      path: "/guided-protocol",
-      lazy: () =>
-        import("@/features/guidedProtocol/pages/GuidedProtocolPage").then((m) => ({
-          Component: m.default,
+        path: "/guided-protocol",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/GuidedProtocolPage").then((m) => ({
+            Component: m.default,
         })),
-    },
-    ],
+      },
+      {
+        path: "/guided-protocol/step/2",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/GuidedProtocolStep2Page").then((m) => ({
+            Component: m.default,
+        })),
+      },
+      {
+        path: "/guided-protocol/step/3",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/GuidedProtocolStep3Page").then((m) => ({
+            Component: m.default,
+        })),
+      },
+      {
+        path: "/guided-protocol/step/4",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/GuidedProtocolStep4Page").then((m) => ({
+            Component: m.default,
+        })),
+      },
+      {
+        path: "/guided-protocol/step/5",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/GuidedProtocolStep5Page").then((m) => ({
+            Component: m.default,
+        })),
+      },
+      {
+        path: "/guided-protocol/step/6",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/GuidedProtocolStep6Page").then((m) => ({
+            Component: m.default,
+        })),
+      },
+      ],
   },
   {
     path: "/login",
