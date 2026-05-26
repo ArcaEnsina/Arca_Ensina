@@ -15,6 +15,29 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** Redireciona para o dashboard se o usuário já estiver autenticado. */
+function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <p className="text-center mt-20">Carregando...</p>;
+  }
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <>{children}</>;
+}
+
+/** Catch-all: redireciona para dashboard se logado, login se não. */
+function CatchAll() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <p className="text-center mt-20">Carregando...</p>;
+  }
+  return <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />;
+}
+
 /** Layout das rotas autenticadas: exige sessão e envolve tudo no AppShell. */
 function ShellLayout() {
   return (
@@ -79,19 +102,27 @@ const router = createBrowserRouter([
     path: "/login",
     lazy: () =>
       import("@/features/auth/pages/LoginPage").then((m) => ({
-        Component: m.default,
+        Component: () => (
+          <RedirectIfAuthenticated>
+            <m.default />
+          </RedirectIfAuthenticated>
+        ),
       })),
   },
   {
     path: "/invite/:token",
     lazy: () =>
       import("@/features/auth/pages/InvitePage").then((m) => ({
-        Component: m.default,
+        Component: () => (
+          <RedirectIfAuthenticated>
+            <m.default />
+          </RedirectIfAuthenticated>
+        ),
       })),
   },
   {
     path: "*",
-    element: <Navigate to="/login" replace />,
+    Component: CatchAll,
   },
 ]);
 
