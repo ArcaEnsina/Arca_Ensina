@@ -18,6 +18,7 @@ def frontend_redirect(request):
     url = os.environ.get("FRONTEND_URL", "https://arcaapp.lat/")
     return HttpResponseRedirect(url)
 
+
 V = "api/<str:version>"
 
 urlpatterns = [
