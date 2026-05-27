@@ -95,7 +95,9 @@ def calculate_dose_pipeline(
                 ),
             })
 
-    total_daily_denom = total_daily.denominator_str()
+    total_daily_denom = total_daily_mg.denominator_str()
+    per_dose_denom = per_dose_mg.denominator_str()
+    recommended_denom = recommended.denominator_str()
     return {
         "total_daily": {
             "value": str(total_daily_mg.value.quantize(Decimal("0.0001"))),
@@ -103,13 +105,13 @@ def calculate_dose_pipeline(
         },
         "per_dose": {
             "value": str(per_dose_mg.value.quantize(Decimal("0.0001"))),
-            "unit": f"{per_dose_mg.mass_unit}/dose",
+            "unit": f"{per_dose_mg.mass_unit}/{per_dose_denom}" if per_dose_denom else per_dose_mg.mass_unit,
         },
         "doses_per_day": int(doses_per_day.to_integral_value()),
         "frequency": frequency_str,
         "recommended": {
             "value": str(recommended.value.quantize(Decimal("0.0001"))),
-            "unit": f"{recommended.mass_unit}/dose" if per_dose.per_dose else f"{recommended.mass_unit}/24h",
+            "unit": f"{recommended.mass_unit}/{recommended_denom}" if recommended_denom else recommended.mass_unit,
         },
         "formula_applied": formula_applied,
         "warnings": warnings,
