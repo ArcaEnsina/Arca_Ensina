@@ -2,6 +2,7 @@ import { useNavigate, Link } from 'react-router'
 import { Bell, LogOut, Plus, ArrowRight } from 'lucide-react'
 import { useAuth } from '@/features/auth'
 import { usePatients } from '@/features/patient/api'
+import { usePatientStore } from '@/features/patient/store'
 import PatientPill from '@/features/patient/components/PatientPill'
 import { cn } from '@/lib/utils'
 
@@ -49,6 +50,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { data: patients = [], isLoading } = usePatients()
+  const setActivePatient = usePatientStore((s) => s.setActivePatient)
 
   const now = new Date()
   const weekday = WEEKDAYS[now.getDay()]
@@ -149,10 +151,23 @@ export default function Dashboard() {
             : patients.map((patient) => (
                 <div key={patient.id} className="shrink-0">
                   <div className="tablet:hidden">
-                    <PatientPill patient={patient} />
+                    <PatientPill
+                      patient={patient}
+                      onClick={() => {
+                        setActivePatient(patient);
+                        navigate('/sedation');
+                      }}
+                    />
                   </div>
                   <div className="hidden tablet:block">
-                    <PatientPill patient={patient} size="lg" />
+                    <PatientPill
+                      patient={patient}
+                      size="lg"
+                      onClick={() => {
+                        setActivePatient(patient);
+                        navigate('/sedation');
+                      }}
+                    />
                   </div>
                 </div>
               ))}

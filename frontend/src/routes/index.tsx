@@ -96,6 +96,13 @@ const router = createBrowserRouter([
             Component: m.default,
           })),
       },
+      {
+        path: "/sedation",
+        lazy: () =>
+          import("@/features/sedacao/pages/SedationPanelPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
     ],
   },
   {

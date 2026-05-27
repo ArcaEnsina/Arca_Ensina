@@ -2,6 +2,14 @@ import '@testing-library/jest-dom/vitest'
 import 'fake-indexeddb/auto'
 import { getDB } from '@/lib/offline/db'
 
+// Polyfill Radix UI DOM methods not available in jsdom
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false
+}
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {}
+}
+
 // Mock navigator.onLine for offline tests
 Object.defineProperty(window.navigator, 'onLine', {
   writable: true,
