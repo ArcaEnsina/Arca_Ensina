@@ -26,7 +26,7 @@ class ResearchDataPointSerializer(BaseSerializer):
                 {
                     "motivo_ajuste": (
                         "Justificativa obrigatória quando a dose foi ajustada."
-                        )
+                    )
                 }
             )
         return data
