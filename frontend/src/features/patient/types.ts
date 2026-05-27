@@ -18,3 +18,13 @@ export interface Symptom {
   id: string;
   descricao: string;
 }
+
+export interface ProtocolHistoryEvent {
+  id: string;
+  type: 'guided_protocol' | 'sedation_conversion';
+  timestamp: string;
+  title: string;
+  status: string;
+  protocolVersion?: string;
+  details: Record<string, unknown>;
+}

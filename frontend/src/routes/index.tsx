@@ -1,53 +1,9 @@
-import { type ReactNode } from "react";
-import { createBrowserRouter, Navigate, Outlet } from "react-router";
-import { useAuth } from "@/features/auth";
-import { AppShell } from "@/components/shell/AppShell";
-
-function RequireAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return <>{children}</>;
-}
-
-/** Redireciona para o dashboard se o usuário já estiver autenticado. */
-function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>;
-  }
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  return <>{children}</>;
-}
-
-/** Catch-all: redireciona para dashboard se logado, login se não. */
-function CatchAll() {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>;
-  }
-  return <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />;
-}
-
-/** Layout das rotas autenticadas: exige sessão e envolve tudo no AppShell. */
-function ShellLayout() {
-  return (
-    <RequireAuth>
-      <AppShell>
-        <Outlet />
-      </AppShell>
-    </RequireAuth>
-  );
-}
+import { createBrowserRouter } from "react-router";
+import {
+  RedirectIfAuthenticated,
+  CatchAll,
+  ShellLayout,
+} from "./guards";
 
 const router = createBrowserRouter([
   {
@@ -78,6 +34,20 @@ const router = createBrowserRouter([
           })),
       },
       {
+        path: "/patients/:id/history",
+        lazy: () =>
+          import("@/features/patient/pages/PatientHistoryPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
+        path: "/protocols/manual",
+        lazy: () =>
+          import("@/features/protocol/pages/ManualProtocolSelectPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
         path: "/medications",
         lazy: () =>
           import("@/features/calculator/pages/MedicationSelectPage").then(
@@ -93,6 +63,13 @@ const router = createBrowserRouter([
         path: "/calculator/calculate/:medicationId",
         lazy: () =>
           import("@/features/calculator/pages/CalculatorPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
+        path: "/sedation",
+        lazy: () =>
+          import("@/features/sedacao/pages/SedationPanelPage").then((m) => ({
             Component: m.default,
           })),
       },

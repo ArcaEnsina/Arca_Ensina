@@ -17,6 +17,7 @@ const queryClient = new QueryClient({
   },
 })
 
+// eslint-disable-next-line react-refresh/only-export-components
 function SWRegistration() {
   useRegisterSW()
   return null

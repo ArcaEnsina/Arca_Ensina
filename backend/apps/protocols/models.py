@@ -225,6 +225,14 @@ class ProtocolExecution(models.Model):
         related_name="protocol_executions",
         verbose_name="Médico",
     )
+    patient = models.ForeignKey(
+        "pacientes.Paciente",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="protocol_executions",
+        verbose_name="Paciente",
+    )
     patient_name = models.CharField(max_length=255, verbose_name="Nome do paciente")
     client_uuid = models.UUIDField(
         null=True,

@@ -2262,3 +2262,85 @@ class ProtocolExecuteApiTest(TestCase):
         state = execution.states.first()
         self.assertEqual(state.values, {"sintomas": ["febre"]})
         self.assertEqual(state.gate_warnings, [])
+
+
+class ProtocolCatalogFilterTest(TestCase):
+    """Tests for CORE-009 protocol catalog filters."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="catalog_filter@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.client.force_authenticate(user=self.user)
+
+        # Protocol A: Dengue Grave — guiado
+        self.protocol_a = Protocol.objects.create(
+            title="Dengue Grave",
+            tags=["UTIP", "Emergência"],
+            age_range_min=0,
+            age_range_max=216,
+            gender_applicable=None,
+        )
+        # auto-created version is guiado (default) — correct
+
+        # Protocol B: Sedação — painel
+        self.protocol_b = Protocol.objects.create(
+            title="Sedação",
+            tags=["UTIP", "Sedação"],
+            age_range_min=0,
+            age_range_max=300,
+            gender_applicable="M",
+        )
+        ProtocolVersion.objects.filter(
+            protocol=self.protocol_b, is_current=True
+        ).update(protocol_type="painel")
+
+        # Protocol C: Asma Aguda — guiado
+        self.protocol_c = Protocol.objects.create(
+            title="Asma Aguda",
+            tags=["Emergência"],
+            age_range_min=24,
+            age_range_max=180,
+            gender_applicable="F",
+        )
+
+        # Protocol D: Choque Séptico — guiado
+        self.protocol_d = Protocol.objects.create(
+            title="Choque Séptico",
+            tags=["UTIP"],
+            age_range_min=None,
+            age_range_max=None,
+            gender_applicable=None,
+        )
+
+    def test_filter_by_type_guiado(self):
+        response = self.client.get("/api/v1/protocols/", {"type": "guiado"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 3)
+
+    def test_filter_by_type_painel(self):
+        response = self.client.get("/api/v1/protocols/", {"type": "painel"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+    def test_filter_by_age_range(self):
+        response = self.client.get(
+            "/api/v1/protocols/", {"age_min": 10, "age_max": 200}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # A: min=0≤10✓ max=216≥200✓
+        # B: min=0≤10✓ max=300≥200✓
+        # C: min=24>10✗ → excluded
+        # D: null✓ null✓
+        self.assertEqual(response.data["count"], 3)
+
+    def test_filter_by_gender_male(self):
+        response = self.client.get("/api/v1/protocols/", {"gender": "M"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # A: gender=None → match (applies to all)
+        # B: gender=M → match
+        # D: gender=None → match (applies to all)
+        self.assertEqual(response.data["count"], 3)
