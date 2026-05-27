@@ -25,6 +25,7 @@ function SedationPanelContent() {
     goToSelect,
     goToConvert,
     goToTaper,
+    goToReview,
   } = useSedationPanel();
 
   if (!activePatient) {
@@ -77,7 +78,7 @@ function SedationPanelContent() {
         <TaperingStep
           schedule={taperSchedule}
           onBack={goToConvert}
-          onNext={goToTaper}
+          onNext={goToReview}
         />
       )}
 

@@ -7,18 +7,17 @@ import { usePatientStore } from '@/features/patient/store';
 
 // Mock api hooks
 const mockCalculateMutate = vi.fn();
-const mockPrescribeMutate = vi.fn();
+const mockConversionMutate = vi.fn();
 vi.mock('../api', () => ({
   usePanelCalculate: () => ({
     mutate: mockCalculateMutate,
     isPending: false,
     error: null,
   }),
-  useCreatePrescription: () => ({
-    mutate: mockPrescribeMutate,
+  useCreateConversion: () => ({
+    mutate: mockConversionMutate,
     isPending: false,
   }),
-  getDrugById: () => undefined,
   getTaperSchedule: () => null,
 }));
 

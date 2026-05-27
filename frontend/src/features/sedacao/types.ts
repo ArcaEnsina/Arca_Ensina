@@ -71,6 +71,35 @@ export interface PrescriptionPayload {
   clientUuid: string;
 }
 
+export interface ConversionPayload {
+  panelId: string;
+  origem: string;
+  destino: string;
+  dose: string;
+  pesoKg: string;
+  convertedDose: string;
+  convertedDoseUnit: string;
+  frequency: string;
+  patientId?: number | null;
+  clientUuid: string;
+}
+
+export interface PanelConversionResponse {
+  id: number;
+  physicianId: number;
+  panelVersionId: number;
+  patientId: number | null;
+  sourceDrug: string;
+  targetDrug: string;
+  originalDose: string;
+  convertedDose: string;
+  convertedDoseUnit: string;
+  frequency: string;
+  pesoKg: string;
+  clientUuid: string;
+  createdAt: string;
+}
+
 export interface TaperStep {
   day: string;
   action: string;

@@ -20,7 +20,7 @@ export function StepIndicator({ currentPhase }: StepIndicatorProps) {
 
   return (
     <nav aria-label="Progresso do painel de sedação">
-      <ol className="flex items-center justify-between">
+      <ol className="flex items-center justify-center">
         {STEPS.map((step, index) => {
           const isActive = step.phase === currentPhase;
           const isCompleted = index < currentIndex;
@@ -28,7 +28,7 @@ export function StepIndicator({ currentPhase }: StepIndicatorProps) {
           return (
             <li
               key={step.phase}
-              className="flex flex-1 items-center"
+              className="flex items-center"
               aria-current={isActive ? 'step' : undefined}
             >
               <div className="flex flex-col items-center gap-1.5">
@@ -60,7 +60,7 @@ export function StepIndicator({ currentPhase }: StepIndicatorProps) {
               {index < STEPS.length - 1 && (
                 <div
                   className={cn(
-                    'mx-2 h-0.5 flex-1 rounded-full transition-colors duration-200 motion-reduce:transition-none',
+                    'mx-2 h-0.5 w-8 rounded-full transition-colors duration-200 motion-reduce:transition-none',
                     isCompleted ? 'bg-blue-700' : 'bg-gray-200',
                   )}
                   aria-hidden="true"

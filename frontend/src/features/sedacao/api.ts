@@ -7,6 +7,8 @@ import type {
   PanelCalculationResult,
   PanelCalculatePayload,
   PrescriptionPayload,
+  ConversionPayload,
+  PanelConversionResponse,
   TaperSchedule,
 } from './types';
 
@@ -292,6 +294,24 @@ export const useCreatePrescription = () => {
     retry: 0, // safety-critical: no automatic retry
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prescriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['sedation'] });
+    },
+  });
+};
+
+/** Create conversion (prescrição) via panel endpoint. Safety-critical: retry 0. */
+export const useCreateConversion = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<PanelConversionResponse, Error, ConversionPayload>({
+    mutationFn: async (payload) => {
+      const { panelId, ...rest } = payload;
+      const body = deepToSnakeCase(rest as unknown as Record<string, unknown>) as Record<string, unknown>;
+      const res = await api.post(`panels/${panelId}/conversions/`, body);
+      return deepToCamelCase(res.data as Record<string, unknown>) as PanelConversionResponse;
+    },
+    retry: 0,
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sedation'] });
     },
   });

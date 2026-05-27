@@ -2,9 +2,9 @@ import { useCallback, useState } from 'react';
 import Decimal from 'decimal.js';
 import { toast } from 'sonner';
 import { useSedationStore } from '../store';
-import { usePanelCalculate, useCreatePrescription, getDrugById, getTaperSchedule } from '../api';
+import { usePanelCalculate, useCreateConversion, getTaperSchedule } from '../api';
 import { usePatientStore } from '@/features/patient/store';
-import type { PanelCalculationResult, PrescriptionPayload, TaperSchedule } from '../types';
+import type { PanelCalculationResult, ConversionPayload, TaperSchedule } from '../types';
 
 // TODO: derive panelId dynamically from API or route params
 const DEFAULT_PANEL_ID = '2';
@@ -16,7 +16,7 @@ export function useSedationPanel() {
   const [selectedDose, setSelectedDose] = useState<'calculated' | 'recommended'>('calculated');
 
   const calculateMutation = usePanelCalculate();
-  const prescriptionMutation = useCreatePrescription();
+  const conversionMutation = useCreateConversion();
 
   // Get taper schedule based on selected source drug
   const taperSchedule: TaperSchedule | null = sourceDrugId
@@ -62,32 +62,36 @@ export function useSedationPanel() {
   const onPrescribe = useCallback(() => {
     if (!result || !sourceDrugId || !targetDrugId) return;
 
-    const sourceDrug = getDrugById(sourceDrugId);
     const finalDose =
       selectedDose === 'recommended'
         ? result.recommended.value
         : result.perDose.value;
 
-    const payload: PrescriptionPayload = {
+    const dose = useSedationStore.getState().currentDose;
+    if (!dose || !activePatient?.peso) return;
+
+    const payload: ConversionPayload = {
       panelId: DEFAULT_PANEL_ID,
-      sourceDrugId,
-      targetDrugId,
-      route: sourceDrug?.route ?? '',
+      origem: sourceDrugId,
+      destino: targetDrugId,
+      dose,
+      pesoKg: activePatient.peso,
       convertedDose: finalDose,
       convertedDoseUnit: result.perDose.unit,
       frequency: result.frequency,
+      patientId: activePatient?.id ? Number(activePatient.id) : null,
       clientUuid: crypto.randomUUID(),
     };
-    prescriptionMutation.mutate(payload, {
+    conversionMutation.mutate(payload, {
       onSuccess: () => {
-        toast.success('Prescrição registrada');
+        toast.success('Conversão registrada');
         setPhase('taper');
       },
       onError: () => {
-        toast.error('Erro ao registrar prescrição. Tente novamente.');
+        toast.error('Erro ao registrar conversão. Tente novamente.');
       },
     });
-  }, [result, sourceDrugId, targetDrugId, prescriptionMutation, setPhase, selectedDose]);
+  }, [result, sourceDrugId, targetDrugId, conversionMutation, setPhase, selectedDose, activePatient]);
 
   const onFinish = useCallback(() => {
     toast.success('Atendimento finalizado com sucesso');
@@ -102,6 +106,7 @@ export function useSedationPanel() {
     else calculate();
   }, [result, calculate, setPhase]);
   const goToTaper = useCallback(() => setPhase('taper'), [setPhase]);
+  const goToReview = useCallback(() => setPhase('review'), [setPhase]);
 
   return {
     result,
@@ -112,7 +117,7 @@ export function useSedationPanel() {
     setPhase,
     calculate,
     onPrescribe,
-    prescribing: prescriptionMutation.isPending,
+    prescribing: conversionMutation.isPending,
     selectedDose,
     setSelectedDose,
     taperSchedule,
@@ -121,6 +126,7 @@ export function useSedationPanel() {
     goToSelect,
     goToConvert,
     goToTaper,
+    goToReview,
     sourceDrugId,
     targetDrugId,
   };
