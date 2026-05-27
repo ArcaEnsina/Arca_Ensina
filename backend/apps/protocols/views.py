@@ -24,7 +24,12 @@ from .services import ProtocolExecutionEngine
 
 
 class ProtocolFilter(django_filters.FilterSet):
-    gender_applicable = django_filters.CharFilter(method="filter_gender")
+    gender = django_filters.CharFilter(method="filter_gender")
+    search = django_filters.CharFilter(method="filter_search")
+    type = django_filters.CharFilter(method="filter_type")
+    tag = django_filters.CharFilter(method="filter_tag")
+    age_min = django_filters.NumberFilter(method="filter_age_min")
+    age_max = django_filters.NumberFilter(method="filter_age_max")
 
     class Meta:
         model = Protocol
@@ -35,6 +40,44 @@ class ProtocolFilter(django_filters.FilterSet):
             return queryset
         return queryset.filter(
             Q(gender_applicable=value) | Q(gender_applicable__isnull=True)
+        )
+
+    def filter_search(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(title__icontains=value)
+            | Q(specialty__icontains=value)
+            | Q(cid__icontains=value)
+            | Q(author__icontains=value)
+            | Q(tags__contains=[value])
+        )
+
+    def filter_type(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            versions__is_current=True,
+            versions__protocol_type=value,
+        ).distinct()
+
+    def filter_tag(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(tags__contains=[value])
+
+    def filter_age_min(self, queryset, name, value):
+        if value is None:
+            return queryset
+        return queryset.filter(
+            Q(age_range_min__lte=value) | Q(age_range_min__isnull=True)
+        )
+
+    def filter_age_max(self, queryset, name, value):
+        if value is None:
+            return queryset
+        return queryset.filter(
+            Q(age_range_max__gte=value) | Q(age_range_max__isnull=True)
         )
 
 

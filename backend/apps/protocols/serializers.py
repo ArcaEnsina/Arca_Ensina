@@ -136,6 +136,8 @@ class ProtocolListSerializer(BaseSerializer):
             "author",
             "tags",
             "gender_applicable",
+            "age_range_min",
+            "age_range_max",
             "is_active",
             "current_version_type",
             "created_at",
