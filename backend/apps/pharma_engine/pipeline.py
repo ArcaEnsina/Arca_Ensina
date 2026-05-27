@@ -64,6 +64,16 @@ def calculate_dose_pipeline(
             limit_dose = parse_unit_string(f"{max_dose_raw} {limit_unit_str}")
 
         if limit_type == "per_kg":
+            if not limit_dose.per_kg:
+                limit_dose = Dose(
+                    value=limit_dose.value,
+                    mass_unit=limit_dose.mass_unit,
+                    per_kg=True,
+                    per_minute=limit_dose.per_minute,
+                    per_hour=limit_dose.per_hour,
+                    per_24h=limit_dose.per_24h,
+                    per_dose=limit_dose.per_dose,
+                )
             limit_dose = limit_dose.to_absolute(weight_kg)
         limit_mg = normalize_to_mg(limit_dose, weight_kg)
 

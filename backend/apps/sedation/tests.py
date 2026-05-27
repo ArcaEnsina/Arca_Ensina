@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 from apps.protocols.models import Protocol, ProtocolVersion
 
 from .engine.converter import SedationConverter
+from .models import SedationConversion
 
 User = get_user_model()
 
@@ -555,3 +556,163 @@ class PanelAPITests(TestCase):
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PanelConversionAPITests(TestCase):
+    """Testes da API de conversão de sedação (POST conversions)."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="medico2@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.protocol = Protocol.objects.create(title="Painel de Sedação Conv")
+        self.protocol.versions.all().delete()
+        self.panel_data = {
+            "sections": [
+                {
+                    "id": "equiv_midaz_diaz",
+                    "title": "Midazolam → Diazepam",
+                    "type": "equivalence_table",
+                    "rows": [
+                        {
+                            "drug_a": "Midazolam IV contínua",
+                            "drug_b": "Diazepam VO",
+                            "formula": "dose * peso_kg * 0.6",
+                            "route": "VO",
+                            "frequency": "6/6h",
+                        }
+                    ],
+                    "dose_limits": [
+                        {
+                            "drug": "Diazepam",
+                            "type": "absolute",
+                            "max_dose": "10",
+                            "unit": "mg/dose",
+                        }
+                    ],
+                }
+            ]
+        }
+        self.version = ProtocolVersion.objects.create(
+            protocol=self.protocol,
+            version_number=1,
+            protocol_type="painel",
+            panel_data=self.panel_data,
+            is_current=True,
+        )
+        self.url = f"/api/v1/panels/{self.version.pk}/conversions/"
+        self.valid_payload = {
+            "origem": "Midazolam IV contínua",
+            "destino": "Diazepam VO",
+            "dose": "2.5",
+            "peso_kg": "10",
+            "converted_dose": "3.7500",
+            "converted_dose_unit": "mg/dose",
+            "frequency": "6/6h",
+            "client_uuid": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        }
+
+    def test_api_convert_success(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(
+            self.url,
+            self.valid_payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["source_drug"], "Midazolam IV contínua")
+        self.assertEqual(response.data["target_drug"], "Diazepam VO")
+        self.assertEqual(response.data["converted_dose"], "3.7500")
+        self.assertEqual(response.data["frequency"], "6/6h")
+        self.assertEqual(
+            response.data["client_uuid"],
+            "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        )
+        self.assertEqual(SedationConversion.objects.count(), 1)
+        from apps.audit.models import AuditLog
+
+        audit = AuditLog.objects.filter(action="PRESCRIBE").first()
+        self.assertIsNotNone(audit)
+        self.assertEqual(audit.user, self.user)
+
+    def test_api_convert_idempotent(self):
+        self.client.force_authenticate(user=self.user)
+        resp1 = self.client.post(self.url, self.valid_payload, format="json")
+        self.assertEqual(resp1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(SedationConversion.objects.count(), 1)
+
+        resp2 = self.client.post(self.url, self.valid_payload, format="json")
+        self.assertEqual(resp2.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp2.data["id"], resp1.data["id"])
+        self.assertEqual(SedationConversion.objects.count(), 1)
+
+    def test_api_convert_invalid_panel(self):
+        self.client.force_authenticate(user=self.user)
+        guided_protocol = Protocol.objects.create(title="Protocolo Guiado Conv")
+        guided_protocol.versions.all().delete()
+        guided_version = ProtocolVersion.objects.create(
+            protocol=guided_protocol,
+            version_number=1,
+            protocol_type="guiado",
+            steps_data={"steps": []},
+            is_current=True,
+        )
+        response = self.client.post(
+            f"/api/v1/panels/{guided_version.pk}/conversions/",
+            self.valid_payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_api_convert_invalid_input(self):
+        self.client.force_authenticate(user=self.user)
+        payload = {**self.valid_payload, "dose": "-1"}
+        response = self.client.post(self.url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_api_convert_same_drug(self):
+        self.client.force_authenticate(user=self.user)
+        payload = {
+            **self.valid_payload,
+            "origem": "Midazolam IV contínua",
+            "destino": "Midazolam IV contínua",
+        }
+        response = self.client.post(self.url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_api_convert_unauthenticated(self):
+        response = self.client.post(
+            self.url,
+            self.valid_payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_api_convert_invalid_pair(self):
+        self.client.force_authenticate(user=self.user)
+        payload = {
+            **self.valid_payload,
+            "origem": "Midazolam IV contínua",
+            "destino": "Metadona VO",
+            "client_uuid": "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+        }
+        response = self.client.post(self.url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_api_convert_non_clinico_forbidden(self):
+        """Non-clínico user (pesquisador) gets 403 on conversions endpoint."""
+        researcher = User.objects.create_user(
+            email="pesquisador@test.com",
+            password="testpass123",
+            profile="pesquisador",
+        )
+        self.client.force_authenticate(user=researcher)
+        response = self.client.post(
+            self.url,
+            self.valid_payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
