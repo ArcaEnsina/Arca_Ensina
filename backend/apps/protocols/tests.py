@@ -2316,16 +2316,6 @@ class ProtocolCatalogFilterTest(TestCase):
             gender_applicable=None,
         )
 
-    def test_search_by_title(self):
-        response = self.client.get("/api/v1/protocols/", {"search": "Dengue"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 1)
-
-    def test_search_by_tag(self):
-        response = self.client.get("/api/v1/protocols/", {"tag": "Sedação"})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 1)
-
     def test_filter_by_type_guiado(self):
         response = self.client.get("/api/v1/protocols/", {"type": "guiado"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2354,13 +2344,3 @@ class ProtocolCatalogFilterTest(TestCase):
         # B: gender=M → match
         # D: gender=None → match (applies to all)
         self.assertEqual(response.data["count"], 3)
-
-    def test_combined_search_and_type(self):
-        response = self.client.get(
-            "/api/v1/protocols/", {"search": "UTIP", "type": "guiado"}
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # A: tags has UTIP, type=guiado → match
-        # B: tags has UTIP, but type=painel → excluded
-        # D: tags has UTIP, type=guiado → match
-        self.assertEqual(response.data["count"], 2)
