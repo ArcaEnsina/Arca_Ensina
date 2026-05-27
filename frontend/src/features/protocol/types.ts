@@ -40,6 +40,8 @@ export interface ProtocolListItem {
   author: string
   tags: string[]
   gender_applicable: 'M' | 'F' | null
+  age_range_min: number | null
+  age_range_max: number | null
   is_active: boolean
   current_version_type: 'guiado' | 'painel' | null
   created_at: string

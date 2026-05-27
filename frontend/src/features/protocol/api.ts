@@ -3,11 +3,27 @@ import api from '@/lib/api/client'
 import { protocolCache, isOffline } from '@/lib/offline'
 import type { Protocol, ProtocolListItem } from './types'
 
-export function useProtocols() {
-  return useQuery<ProtocolListItem[]>({
-    queryKey: ['protocols'],
+export interface PaginatedResponse<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
+export interface ProtocolFilters {
+  search?: string
+  tag?: string
+  age_min?: number
+  age_max?: number
+  gender?: 'M' | 'F'
+  type?: 'guiado' | 'painel'
+}
+
+export function useProtocols(filters?: ProtocolFilters) {
+  return useQuery<PaginatedResponse<ProtocolListItem>>({
+    queryKey: ['protocols', filters],
     queryFn: async () => {
-      const { data } = await api.get<ProtocolListItem[]>('protocols/')
+      const { data } = await api.get<PaginatedResponse<ProtocolListItem>>('protocols/', { params: filters })
       return data
     },
     networkMode: 'offlineFirst',
