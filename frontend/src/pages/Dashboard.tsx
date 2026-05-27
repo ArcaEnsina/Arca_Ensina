@@ -158,6 +158,9 @@ export default function Dashboard() {
               ))}
         </div>
       </section>
+
+      {/* ── Protocols row (for now) ── */}
+      
     </div>
   )
 }

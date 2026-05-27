@@ -25,11 +25,35 @@ import { useCreatePatient } from '../api';
 import PatientSymptomSelector from './PatientSymptomSelector';
 import PatientAllergyInput from './PatientAllergyInput';
 
-function isApiError(
-  error: unknown,
-): error is { response?: { data?: { code?: string } } } {
+type ApiFieldErrors = Record<string, string[]>;
+
+interface ApiError {
+  response?: {
+    data?: {
+      error?: {
+        code?: string;
+        message?: string;
+        details?: ApiFieldErrors;
+      };
+    };
+  };
+}
+
+function isApiError(error: unknown): error is ApiError {
   return typeof error === 'object' && error !== null && 'response' in error;
 }
+
+// Campos do formulário que o backend pode retornar como detalhes de erro
+const BACKEND_FIELD_MAP: Record<string, keyof PatientCreateInput> = {
+  nome: 'nome',
+  data_nascimento: 'dataNascimento',
+  genero: 'genero',
+  telefone: 'telefone',
+  peso: 'peso',
+  altura: 'altura',
+  cidade: 'cidade',
+  nome_responsavel: 'nomeResponsavel',
+};
 
 export default function PatientCreateForm() {
   const navigate = useNavigate();
@@ -40,6 +64,7 @@ export default function PatientCreateForm() {
     handleSubmit,
     setValue,
     watch,
+    setError,
     formState: { errors },
   } = useForm<PatientCreateInput>({
     resolver: zodResolver(patientCreateSchema),
@@ -76,18 +101,44 @@ export default function PatientCreateForm() {
         navigate('/dashboard');
       },
       onError: (error: unknown) => {
-        const code = isApiError(error)
-          ? error.response?.data?.code
-          : undefined;
+        if (!isApiError(error)) {
+          toast.error('Erro inesperado. Tente novamente.');
+          return;
+        }
+
+        const apiError = error.response?.data?.error;
+        const code = apiError?.code;
+        const details = apiError?.details;
+
+        // Se o backend devolveu erros por campo, seta cada um no formulário
+        if (code === 'validation_error' && details && typeof details === 'object') {
+          let hasFieldError = false;
+
+          for (const [backendField, messages] of Object.entries(details)) {
+            const formField = BACKEND_FIELD_MAP[backendField];
+            if (formField && Array.isArray(messages) && messages.length > 0) {
+              setError(formField, {
+                type: 'server',
+                message: messages[0],
+              });
+              hasFieldError = true;
+            }
+          }
+
+          if (hasFieldError) {
+            toast.error('Corrija os campos destacados antes de continuar.');
+          } else {
+            toast.error(apiError?.message ?? 'Dados inválidos. Verifique os campos.');
+          }
+          return;
+        }
+
         switch (code) {
-          case 'validation_error':
-            toast.error('Dados inválidos. Verifique os campos.');
-            break;
           case 'idempotency_conflict':
             toast.error('Este registro já foi criado.');
             break;
           default:
-            toast.error('Erro inesperado. Tente novamente.');
+            toast.error(apiError?.message ?? 'Erro inesperado. Tente novamente.');
         }
       },
     });
@@ -167,9 +218,13 @@ export default function PatientCreateForm() {
               {...register('telefone')}
               aria-invalid={!!errors.telefone}
             />
-            {errors.telefone && (
+            {errors.telefone ? (
               <p className="text-xs text-destructive">
                 {errors.telefone.message}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Inclua o código do país e DDD (ex: 5581999999999)
               </p>
             )}
           </div>
