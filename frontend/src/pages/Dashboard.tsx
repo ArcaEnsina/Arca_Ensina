@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
 import { Bell, LogOut, Plus, ArrowRight } from 'lucide-react'
 import { useAuth } from '@/features/auth'
 import { usePatients } from '@/features/patient/api'
 import PatientPill from '@/features/patient/components/PatientPill'
+import { PatientSelectionDialog } from '@/features/guidedProtocol/components/shared/PatientSelectionDialog'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = [
@@ -49,6 +51,8 @@ export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { data: patients = [], isLoading } = usePatients()
+  const [patientDialogOpen, setPatientDialogOpen] = useState(false)
+  const [selectedProtocolId, setSelectedProtocolId] = useState<string | null>(null)
 
   const now = new Date()
   const weekday = WEEKDAYS[now.getDay()]
@@ -172,7 +176,10 @@ export default function Dashboard() {
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none tablet:gap-4">
           <button
             type="button"
-            onClick={() => navigate('/guided-protocol')}
+            onClick={() => {
+              setSelectedProtocolId('dengue')
+              setPatientDialogOpen(true)
+            }}
             className={cn(
               'group inline-flex min-w-64 max-w-sm shrink-0 flex-col items-start gap-2 rounded-2xl border border-border bg-background px-4 py-4 text-left transition-all',
               'hover:border-primary hover:bg-arca-blue-50',
@@ -194,6 +201,15 @@ export default function Dashboard() {
           </button>
         </div>
       </section>
+
+      {/* Dialog de seleção de paciente */}
+      {selectedProtocolId && (
+        <PatientSelectionDialog
+          open={patientDialogOpen}
+          onOpenChange={setPatientDialogOpen}
+          protocolId={selectedProtocolId}
+        />
+      )}
     </div>
   )
 }
