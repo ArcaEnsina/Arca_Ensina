@@ -4,25 +4,23 @@ import type { SedationPhase } from '../types';
 
 const STEPS: { phase: SedationPhase; label: string }[] = [
   { phase: 'select', label: 'Seleção' },
-  { phase: 'convert', label: 'Conversão' },
+  { phase: 'convert', label: 'Cálculo' },
   { phase: 'taper', label: 'Desmame' },
   { phase: 'review', label: 'Revisão' },
 ];
 
 const phaseOrder: SedationPhase[] = ['select', 'convert', 'taper', 'review'];
 
-interface SedationStepperProps {
+interface StepIndicatorProps {
   currentPhase: SedationPhase;
 }
 
-export function SedationStepper({ currentPhase }: SedationStepperProps) {
+export function StepIndicator({ currentPhase }: StepIndicatorProps) {
   const currentIndex = phaseOrder.indexOf(currentPhase);
 
   return (
     <nav aria-label="Progresso do painel de sedação">
-      <ol
-        className="flex items-center justify-center gap-2 overflow-x-auto pb-2 md:gap-4"
-      >
+      <ol className="flex items-center justify-between">
         {STEPS.map((step, index) => {
           const isActive = step.phase === currentPhase;
           const isCompleted = index < currentIndex;
@@ -30,15 +28,15 @@ export function SedationStepper({ currentPhase }: SedationStepperProps) {
           return (
             <li
               key={step.phase}
-              className="flex items-center gap-2 md:gap-4"
+              className="flex flex-1 items-center"
               aria-current={isActive ? 'step' : undefined}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col items-center gap-1.5">
                 <div
                   className={cn(
-                    'flex size-8 items-center justify-center rounded-full text-sm font-medium transition-colors',
+                    'flex size-8 items-center justify-center rounded-full text-xs font-bold transition-colors duration-200 motion-reduce:transition-none',
                     isCompleted && 'bg-blue-700 text-white',
-                    isActive && 'bg-blue-700 text-white',
+                    isActive && 'bg-blue-700 text-white ring-4 ring-blue-100',
                     !isActive && !isCompleted && 'bg-gray-200 text-gray-500',
                   )}
                 >
@@ -50,10 +48,10 @@ export function SedationStepper({ currentPhase }: SedationStepperProps) {
                 </div>
                 <span
                   className={cn(
-                    'whitespace-nowrap text-sm font-medium',
+                    'whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider',
                     isActive && 'text-blue-700',
                     isCompleted && 'text-blue-700',
-                    !isActive && !isCompleted && 'text-gray-500',
+                    !isActive && !isCompleted && 'text-gray-400',
                   )}
                 >
                   {step.label}
@@ -62,7 +60,7 @@ export function SedationStepper({ currentPhase }: SedationStepperProps) {
               {index < STEPS.length - 1 && (
                 <div
                   className={cn(
-                    'hidden h-px w-8 md:block',
+                    'mx-2 h-0.5 flex-1 rounded-full transition-colors duration-200 motion-reduce:transition-none',
                     isCompleted ? 'bg-blue-700' : 'bg-gray-200',
                   )}
                   aria-hidden="true"

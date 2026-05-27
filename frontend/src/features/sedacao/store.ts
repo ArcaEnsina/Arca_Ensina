@@ -3,22 +3,30 @@ import type { SedationPhase } from './types';
 
 interface SedationState {
   phase: SedationPhase;
+  sourceDrugId: string | null;
+  targetDrugId: string | null;
+  currentDose: string;
   setPhase: (p: SedationPhase) => void;
-  expandedDays: Record<number, boolean>;
-  toggleDay: (day: number) => void;
+  setSourceDrug: (id: string | null) => void;
+  setTargetDrug: (id: string | null) => void;
+  setCurrentDose: (dose: string) => void;
   resetPanel: () => void;
 }
 
 export const useSedationStore = create<SedationState>((set) => ({
   phase: 'select',
+  sourceDrugId: null,
+  targetDrugId: null,
+  currentDose: '',
   setPhase: (p) => set({ phase: p }),
-  expandedDays: {},
-  toggleDay: (day) =>
-    set((state) => ({
-      expandedDays: {
-        ...state.expandedDays,
-        [day]: !state.expandedDays[day],
-      },
-    })),
-  resetPanel: () => set({ phase: 'select', expandedDays: {} }),
+  setSourceDrug: (id) => set({ sourceDrugId: id, targetDrugId: null }),
+  setTargetDrug: (id) => set({ targetDrugId: id }),
+  setCurrentDose: (dose) => set({ currentDose: dose }),
+  resetPanel: () =>
+    set({
+      phase: 'select',
+      sourceDrugId: null,
+      targetDrugId: null,
+      currentDose: '',
+    }),
 }));
