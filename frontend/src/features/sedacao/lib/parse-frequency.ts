@@ -14,7 +14,7 @@ export function parseFrequencyToDosesPerDay(frequency: string): number {
   // Match patterns like "6/6h", "q6h", "a cada 6h"
   const intervalMatch = normalized.match(/(\d+)\s*[/h]/);
   if (intervalMatch) {
-    const intervalHours = parseInt(intervalMatch[1], 10);
+    const intervalHours = parseInt(intervalMatch[1]!, 10);
     if (intervalHours > 0) {
       return Math.floor(24 / intervalHours);
     }
@@ -23,7 +23,7 @@ export function parseFrequencyToDosesPerDay(frequency: string): number {
   // Match "q4h", "q6h" etc.
   const qMatch = normalized.match(/q(\d+)h?/);
   if (qMatch) {
-    const intervalHours = parseInt(qMatch[1], 10);
+    const intervalHours = parseInt(qMatch[1]!, 10);
     if (intervalHours > 0) {
       return Math.floor(24 / intervalHours);
     }
