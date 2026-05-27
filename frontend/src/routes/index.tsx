@@ -78,6 +78,20 @@ const router = createBrowserRouter([
           })),
       },
       {
+        path: "/patients/:id/history",
+        lazy: () =>
+          import("@/features/patient/pages/PatientHistoryPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
+        path: "/protocols/manual",
+        lazy: () =>
+          import("@/features/protocol/pages/ManualProtocolSelectPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
         path: "/medications",
         lazy: () =>
           import("@/features/calculator/pages/MedicationSelectPage").then(
