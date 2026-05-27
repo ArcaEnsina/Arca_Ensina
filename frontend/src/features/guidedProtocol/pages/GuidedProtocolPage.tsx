@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProtocolStepper } from "@/features/guidedProtocol/components/shared/ProtocolStepper";
@@ -7,13 +7,44 @@ import { ProtocolInfoBanner } from "@/features/guidedProtocol/components/shared/
 import ProtocolMainHeader from "@/features/guidedProtocol/components/layout/ProtocolMainHeader";
 import ProtocolSelectionSection from "@/features/guidedProtocol/components/layout/ProtocolSelectionSection";
 import { useProtocolSelection } from "@/features/guidedProtocol/hooks/useProtocolSelection";
+import { usePatient } from "@/features/guidedProtocol/api";
+import type { Protocol } from "@/features/guidedProtocol/types";
 
 const TOTAL_STEPS = 6;
 
+const MOCK_PROTOCOL: Protocol = {
+  id: 'dengue',
+  name: 'Protocolo de Dengue',
+  subtitle: 'Manejo clínico conforme diretrizes vigentes',
+  group: 'Doenças Infecciosas',
+  isActive: true,
+};
+
 export default function GuidedProtocolPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [currentStep] = useState(1);
-  const { selectedProtocol, selectedPatient } = useProtocolSelection();
+  const { selectedProtocol, selectedPatient, setSelectedPatient, setSelectedProtocol } = useProtocolSelection();
+
+  const protocolId = searchParams.get('protocolId');
+  const patientId = searchParams.get('patientId');
+  const { data: patient } = usePatient(patientId ?? undefined);
+
+  useEffect(() => {
+    if (protocolId && !selectedProtocol) {
+      setSelectedProtocol(MOCK_PROTOCOL);
+    }
+  }, [protocolId, selectedProtocol, setSelectedProtocol]);
+
+  useEffect(() => {
+    if (patient && !selectedPatient) {
+      setSelectedPatient(patient);
+    }
+  }, [patient, selectedPatient, setSelectedPatient]);
+
+  function handleSwapProtocol() {
+    setSelectedProtocol(null);
+  }
 
   function handleStart() {
     if (!selectedProtocol) return;
@@ -30,7 +61,11 @@ export default function GuidedProtocolPage() {
         totalSteps={TOTAL_STEPS}
       />
 
-      <ProtocolSelectionSection />
+      <ProtocolSelectionSection
+        selectedProtocol={selectedProtocol}
+        selectedPatient={selectedPatient}
+        onSwapProtocol={handleSwapProtocol}
+      />
 
       <ProtocolInfoBanner message="Indicado para pacientes com sinais de alarme e/ou critérios de gravidade" />
 

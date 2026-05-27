@@ -12,11 +12,9 @@ export interface ProtocolStep {
 
 export interface Protocol {
   id: string;
-  title: string;
-  specialty: string;
-  cid: string;
-  author: string;
-  tags: string[];
+  name: string;
+  subtitle: string;
+  group: string;
   isActive: boolean;
 }
 

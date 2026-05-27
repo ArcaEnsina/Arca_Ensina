@@ -3,6 +3,14 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router";
 import { useAuth } from "@/features/auth";
 import { AppShell } from "@/components/shell/AppShell";
 
+function LoadingFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <p className="text-muted-foreground">Carregando...</p>
+    </div>
+  );
+}
+
 function RequireAuth({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
 
@@ -31,16 +39,19 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/dashboard",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/Dashboard").then((m) => ({ Component: m.default })),
       },
       {
         path: "/_/design-system",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/DesignSystem").then((m) => ({ Component: m.default })),
       },
       {
         path: "/patients",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/patient/pages/PatientCreatePage").then((m) => ({
             Component: m.default,
@@ -48,6 +59,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/patients/list",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/PatientListPage").then((m) => ({
             Component: m.default,
@@ -55,6 +67,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/medications",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/calculator/pages/MedicationSelectPage").then(
             (m) => ({ Component: m.default }),
@@ -62,11 +75,13 @@ const router = createBrowserRouter([
       },
       {
         path: "/repositorio",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/Repositorio").then((m) => ({ Component: m.default })),
       },
       {
         path: "/calculator/calculate/:medicationId",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/calculator/pages/CalculatorPage").then((m) => ({
             Component: m.default,
@@ -74,6 +89,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/guided-protocol",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/guidedProtocol/pages/GuidedProtocolPage").then((m) => ({
             Component: m.default,
@@ -81,6 +97,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/guided-protocol/:protocolId/step/:stepNumber",
+        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/guidedProtocol/pages/GuidedProtocolStepRouter").then((m) => ({
             Component: m.default,
@@ -90,6 +107,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/login",
+    HydrateFallback: LoadingFallback,
     lazy: () =>
       import("@/features/auth/pages/LoginPage").then((m) => ({
         Component: m.default,
@@ -97,6 +115,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/invite/:token",
+    HydrateFallback: LoadingFallback,
     lazy: () =>
       import("@/features/auth/pages/InvitePage").then((m) => ({
         Component: m.default,
