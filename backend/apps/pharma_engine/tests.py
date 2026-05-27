@@ -15,16 +15,50 @@ class DoseModelTest(TestCase):
         self.assertEqual(dose.mass_unit, "mg")
 
     def test_mcg_to_mg(self):
-        dose = Dose(Decimal("1000"), "mcg", "dose").convert_mass("mg")
+        dose = Dose(Decimal("1000"), "mcg", per_dose=True).convert_mass("mg")
         self.assertEqual(dose.value, Decimal("1"))
 
     def test_per_kg_to_absolute(self):
-        dose = Dose(Decimal("0.5"), "mg", "kg").to_absolute(Decimal("20"))
+        dose = Dose(Decimal("0.5"), "mg", per_kg=True).to_absolute(Decimal("20"))
         self.assertEqual(dose.value, Decimal("10"))
 
     def test_per_24h_to_per_dose(self):
-        dose = Dose(Decimal("162"), "mg", "24h").to_dose(Decimal("4"))
+        dose = Dose(Decimal("162"), "mg", per_24h=True).to_dose(Decimal("4"))
         self.assertEqual(dose.value, Decimal("40.5"))
+
+    def test_parse_mcg_kg_min(self):
+        dose = parse_unit_string("5 mcg/kg/min")
+        self.assertEqual(dose.value, Decimal("5"))
+        self.assertEqual(dose.mass_unit, "mcg")
+        self.assertTrue(dose.per_kg)
+        self.assertTrue(dose.per_minute)
+        self.assertFalse(dose.per_hour)
+        self.assertFalse(dose.per_24h)
+        self.assertFalse(dose.per_dose)
+
+    def test_is_per_kg_and_time(self):
+        dose = parse_unit_string("5 mcg/kg/min")
+        self.assertTrue(dose.is_per_kg())
+        self.assertTrue(dose.is_per_time())
+
+    def test_to_absolute_preserves_time(self):
+        dose = Dose(Decimal("5"), "mcg", per_kg=True, per_minute=True)
+        result = dose.to_absolute(Decimal("10"))
+        self.assertEqual(result.value, Decimal("50"))
+        self.assertFalse(result.per_kg)
+        self.assertTrue(result.per_minute)
+
+    def test_denominator_str_mcg_kg_min(self):
+        dose = Dose(Decimal("5"), "mcg", per_kg=True, per_minute=True)
+        self.assertEqual(dose.denominator_str(), "kg/min")
+
+    def test_denominator_str_24h(self):
+        dose = Dose(Decimal("162"), "mg", per_24h=True)
+        self.assertEqual(dose.denominator_str(), "24h")
+
+    def test_denominator_str_empty(self):
+        dose = Dose(Decimal("10"), "mg")
+        self.assertEqual(dose.denominator_str(), "")
 
 
 class FrequencyTest(TestCase):

@@ -42,7 +42,7 @@ def calculate_dose_pipeline(
     per_dose = total_daily
     doses_per_day = Decimal("1")
 
-    if total_daily.denominator == "24h" and frequency_str:
+    if total_daily.per_24h and frequency_str:
         freq = parse_frequency(frequency_str)
         doses_per_day = freq["doses_per_day"]
         per_dose = total_daily.to_dose(doses_per_day)
@@ -64,15 +64,11 @@ def calculate_dose_pipeline(
             limit_dose = parse_unit_string(f"{max_dose_raw} {limit_unit_str}")
 
         if limit_type == "per_kg":
-            limit_dose = Dose(
-                limit_dose.value * weight_kg,
-                limit_dose.mass_unit,
-                limit_dose.denominator,
-            )
+            limit_dose = limit_dose.to_absolute(weight_kg)
         limit_mg = normalize_to_mg(limit_dose, weight_kg)
 
         # Compare in the same dimension
-        if limit_dose.denominator in ("dose", "") and per_dose_mg.value > limit_mg.value:
+        if (limit_dose.per_dose or limit_dose.denominator_str() == "") and per_dose_mg.value > limit_mg.value:
             recommended = limit_mg
             warnings.append({
                 "type": "above_max_recommended",
@@ -85,7 +81,7 @@ def calculate_dose_pipeline(
                     f"excede o máximo recomendado ({limit_mg.value} {limit_dose.mass_unit}/dose)."
                 ),
             })
-        elif limit_dose.denominator == "24h" and total_daily_mg.value > limit_mg.value:
+        elif limit_dose.per_24h and total_daily_mg.value > limit_mg.value:
             recommended = limit_mg
             warnings.append({
                 "type": "above_max_recommended",
@@ -99,10 +95,11 @@ def calculate_dose_pipeline(
                 ),
             })
 
+    total_daily_denom = total_daily.denominator_str()
     return {
         "total_daily": {
             "value": str(total_daily_mg.value.quantize(Decimal("0.0001"))),
-            "unit": f"{total_daily_mg.mass_unit}/24h" if total_daily.denominator == "24h" else f"{total_daily_mg.mass_unit}/{total_daily.denominator}",
+            "unit": f"{total_daily_mg.mass_unit}/{total_daily_denom}" if total_daily_denom else total_daily_mg.mass_unit,
         },
         "per_dose": {
             "value": str(per_dose_mg.value.quantize(Decimal("0.0001"))),
@@ -112,7 +109,7 @@ def calculate_dose_pipeline(
         "frequency": frequency_str,
         "recommended": {
             "value": str(recommended.value.quantize(Decimal("0.0001"))),
-            "unit": f"{recommended.mass_unit}/dose" if per_dose.denominator == "dose" else f"{recommended.mass_unit}/24h",
+            "unit": f"{recommended.mass_unit}/dose" if per_dose.per_dose else f"{recommended.mass_unit}/24h",
         },
         "formula_applied": formula_applied,
         "warnings": warnings,
