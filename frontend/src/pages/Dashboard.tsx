@@ -160,7 +160,40 @@ export default function Dashboard() {
       </section>
 
       {/* ── Protocols row (for now) ── */}
-      
+      <section>
+        <div className="mb-3 flex items-center justify-between tablet:mb-5">
+          <span className="text-caption font-medium tracking-widest text-muted-foreground tablet:text-body-md">
+            PROTOCOLOS RECOMENDADOS
+          </span>
+        </div>
+
+        {/*protocolo da dengue por enquanto, tirar daqui quando for feita o sistema de recomendação dos protocolos*/}
+
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none tablet:gap-4">
+          <button
+            type="button"
+            onClick={() => navigate('/guided-protocol')}
+            className={cn(
+              'group inline-flex min-w-64 max-w-sm shrink-0 flex-col items-start gap-2 rounded-2xl border border-border bg-background px-4 py-4 text-left transition-all',
+              'hover:border-primary hover:bg-arca-blue-50',
+              'outline-none focus-visible:ring-3 focus-visible:ring-ring/30',
+              'tablet:px-5 tablet:py-5'
+            )}
+          >
+            <div className="flex w-full items-start justify-between gap-4">
+              <span className="text-body-lg font-bold text-foreground transition-colors group-hover:text-primary">
+                Protocolo de Dengue
+              </span>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                <ArrowRight size={16} />
+              </span>
+            </div>
+            <span className="text-caption text-muted-foreground line-clamp-2 tablet:text-body-sm">
+              Manejo clínico e hidratação para casos de dengue, conforme diretrizes vigentes.
+            </span>
+          </button>
+        </div>
+      </section>
     </div>
   )
 }
