@@ -1,5 +1,5 @@
-import { PatientCard } from "@/features/guidedProtocol/components/PatientCard";
-import { ProtocolCard } from "@/features/guidedProtocol/components/ProtocolCard";
+import { PatientCard } from "@/features/guidedProtocol/components/shared/PatientCard";
+import { ProtocolCard } from "@/features/guidedProtocol/components/shared/ProtocolCard";
 
 import { useProtocolSelection } from "@/features/guidedProtocol/hooks/useProtocolSelection";
 

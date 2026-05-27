@@ -1,28 +1,29 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProtocolStepper } from "../components/ProtocolStepper";
-import { YesNoStep } from "../components/YesNoStep";
-import { ProtocolMiniHeader } from "../components/ProtocolMiniHeader";
-import { MOCK_PATIENT, MOCK_PROTOCOL } from "./GuidedProtocolPage";
+import { ProtocolStepper } from "@/features/guidedProtocol/components/shared/ProtocolStepper";
+import { YesNoStep } from "@/features/guidedProtocol/components/shared/YesNoStep";
+
 
 const TOTAL_STEPS = 6;
 const CURRENT_STEP = 3;
+const NEXT_STEP = 4;
 
 export default function GuidedProtocolStep3Page() {
   const navigate = useNavigate();
+  const { protocolId } = useParams<{ protocolId: string }>();
+  const [searchParams] = useSearchParams();
+  const patientId = searchParams.get("patientId") || undefined;
   const [answer, setAnswer] = useState<boolean | null>(null);
 
   function handleContinue() {
-    navigate("/guided-protocol/step/4");
+    navigate(`/guided-protocol/${protocolId}/step/${NEXT_STEP}?patientId=${patientId}`);
   }
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-lg flex-col items-center gap-6 px-4 py-6">
       <ProtocolStepper currentStep={CURRENT_STEP} totalSteps={TOTAL_STEPS} />
-
-      <ProtocolMiniHeader patient={MOCK_PATIENT} protocol={MOCK_PROTOCOL} />
 
       <YesNoStep
         title="Paciente apresenta sinais de Choque?"

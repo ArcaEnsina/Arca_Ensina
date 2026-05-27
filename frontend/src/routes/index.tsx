@@ -80,37 +80,9 @@ const router = createBrowserRouter([
         })),
       },
       {
-        path: "/guided-protocol/step/2",
+        path: "/guided-protocol/:protocolId/step/:stepNumber",
         lazy: () =>
-          import("@/features/guidedProtocol/pages/GuidedProtocolStep2Page").then((m) => ({
-            Component: m.default,
-        })),
-      },
-      {
-        path: "/guided-protocol/step/3",
-        lazy: () =>
-          import("@/features/guidedProtocol/pages/GuidedProtocolStep3Page").then((m) => ({
-            Component: m.default,
-        })),
-      },
-      {
-        path: "/guided-protocol/step/4",
-        lazy: () =>
-          import("@/features/guidedProtocol/pages/GuidedProtocolStep4Page").then((m) => ({
-            Component: m.default,
-        })),
-      },
-      {
-        path: "/guided-protocol/step/5",
-        lazy: () =>
-          import("@/features/guidedProtocol/pages/GuidedProtocolStep5Page").then((m) => ({
-            Component: m.default,
-        })),
-      },
-      {
-        path: "/guided-protocol/step/6",
-        lazy: () =>
-          import("@/features/guidedProtocol/pages/GuidedProtocolStep6Page").then((m) => ({
+          import("@/features/guidedProtocol/pages/GuidedProtocolStepRouter").then((m) => ({
             Component: m.default,
         })),
       },

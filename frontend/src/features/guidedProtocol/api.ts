@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api/client';
 import { toCamelCase } from '@/lib/api/case';
 import type { Protocol, ProtocolExecution, ProtocolVersion } from './types';
+import type { Patient } from '@/features/patient/types';
 import { useMutation } from '@tanstack/react-query';
 
 export function useProtocols() {
@@ -23,6 +24,19 @@ export function useProtocolVersion(protocolId: string) {
             return toCamelCase(res.data) as unknown as ProtocolVersion;
         },
         enabled: !!protocolId,
+        staleTime: 5 * 60_000,
+    });
+}
+
+export function usePatient(patientId: string | undefined) {
+    return useQuery({
+        queryKey: ['patients', patientId],
+        queryFn: async () => {
+            if (!patientId) return null;
+            const res = await api.get<Record<string, unknown>>(`pacientes/${patientId}/`);
+            return toCamelCase(res.data) as unknown as Patient;
+        },
+        enabled: !!patientId,
         staleTime: 5 * 60_000,
     });
 }
