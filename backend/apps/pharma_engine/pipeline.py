@@ -78,32 +78,42 @@ def calculate_dose_pipeline(
         limit_mg = normalize_to_mg(limit_dose, weight_kg)
 
         # Compare in the same dimension
-        if (limit_dose.per_dose or limit_dose.denominator_str() == "") and per_dose_mg.value > limit_mg.value:
+        if (
+            limit_dose.per_dose or limit_dose.denominator_str() == ""
+        ) and per_dose_mg.value > limit_mg.value:
             recommended = limit_mg
-            warnings.append({
-                "type": "above_max_recommended",
-                "drug": limit_dict.get("drug", ""),
-                "current_dose": str(per_dose_mg.value),
-                "max_allowed": str(limit_mg.value),
-                "unit": str(limit_dose.mass_unit),
-                "message": (
-                    f"Dose por administração ({per_dose_mg.value} {limit_dose.mass_unit}/dose) "
-                    f"excede o máximo recomendado ({limit_mg.value} {limit_dose.mass_unit}/dose)."
-                ),
-            })
+            warnings.append(
+                {
+                    "type": "above_max_recommended",
+                    "drug": limit_dict.get("drug", ""),
+                    "current_dose": str(per_dose_mg.value),
+                    "max_allowed": str(limit_mg.value),
+                    "unit": str(limit_dose.mass_unit),
+                    "message": (
+                        f"Dose por administração ("
+                        f"{per_dose_mg.value} {limit_dose.mass_unit}/dose) "
+                        f"excede o máximo recomendado ("
+                        f"{limit_mg.value} {limit_dose.mass_unit}/dose)."
+                    ),
+                }
+            )
         elif limit_dose.per_24h and total_daily_mg.value > limit_mg.value:
             recommended = limit_mg
-            warnings.append({
-                "type": "above_max_recommended",
-                "drug": limit_dict.get("drug", ""),
-                "current_dose": str(total_daily_mg.value),
-                "max_allowed": str(limit_mg.value),
-                "unit": str(limit_dose.mass_unit),
-                "message": (
-                    f"Dose diária ({total_daily_mg.value} {limit_dose.mass_unit}/24h) "
-                    f"excede o máximo recomendado ({limit_mg.value} {limit_dose.mass_unit}/24h)."
-                ),
-            })
+            warnings.append(
+                {
+                    "type": "above_max_recommended",
+                    "drug": limit_dict.get("drug", ""),
+                    "current_dose": str(total_daily_mg.value),
+                    "max_allowed": str(limit_mg.value),
+                    "unit": str(limit_dose.mass_unit),
+                    "message": (
+                        f"Dose diária ("
+                        f"{total_daily_mg.value} {limit_dose.mass_unit}/24h) "
+                        f"excede o máximo recomendado ("
+                        f"{limit_mg.value} {limit_dose.mass_unit}/24h)."
+                    ),
+                }
+            )
 
     total_daily_denom = total_daily_mg.denominator_str()
     per_dose_denom = per_dose_mg.denominator_str()
@@ -111,17 +121,23 @@ def calculate_dose_pipeline(
     return {
         "total_daily": {
             "value": str(total_daily_mg.value.quantize(Decimal("0.0001"))),
-            "unit": f"{total_daily_mg.mass_unit}/{total_daily_denom}" if total_daily_denom else total_daily_mg.mass_unit,
+            "unit": f"{total_daily_mg.mass_unit}/{total_daily_denom}"
+            if total_daily_denom
+            else total_daily_mg.mass_unit,
         },
         "per_dose": {
             "value": str(per_dose_mg.value.quantize(Decimal("0.0001"))),
-            "unit": f"{per_dose_mg.mass_unit}/{per_dose_denom}" if per_dose_denom else per_dose_mg.mass_unit,
+            "unit": f"{per_dose_mg.mass_unit}/{per_dose_denom}"
+            if per_dose_denom
+            else per_dose_mg.mass_unit,
         },
         "doses_per_day": int(doses_per_day.to_integral_value()),
         "frequency": frequency_str,
         "recommended": {
             "value": str(recommended.value.quantize(Decimal("0.0001"))),
-            "unit": f"{recommended.mass_unit}/{recommended_denom}" if recommended_denom else recommended.mass_unit,
+            "unit": f"{recommended.mass_unit}/{recommended_denom}"
+            if recommended_denom
+            else recommended.mass_unit,
         },
         "formula_applied": formula_applied,
         "warnings": warnings,

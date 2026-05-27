@@ -36,7 +36,10 @@ class SafeFormulaEvaluator:
             op = self.ALLOWED_OPERATORS.get(type(node.op))
             if op is None:
                 raise ValueError("Operator not allowed.")
-            return op(self._eval_node(node.left, context), self._eval_node(node.right, context))
+            return op(
+                self._eval_node(node.left, context),
+                self._eval_node(node.right, context),
+            )
 
         if isinstance(node, ast.UnaryOp):
             op = self.ALLOWED_OPERATORS.get(type(node.op))

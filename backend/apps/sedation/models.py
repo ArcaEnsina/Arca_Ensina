@@ -3,9 +3,7 @@ from django.db import models
 
 
 class SedationConversion(models.Model):
-    physician = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT
-    )
+    physician = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     panel_version = models.ForeignKey(
         "protocols.ProtocolVersion", on_delete=models.PROTECT
     )

@@ -5,7 +5,7 @@ from django.test import TestCase
 from .frequency import parse_frequency
 from .models import Dose
 from .pipeline import calculate_dose_pipeline
-from .unit import normalize_to_mg, parse_unit_string
+from .unit import parse_unit_string
 
 
 class DoseModelTest(TestCase):
@@ -78,7 +78,12 @@ class PipelineTest(TestCase):
             output_unit_str="mg/24h",
             frequency_str="6/6h",
             weight_kg=Decimal("54"),
-            limit_dict={"max_dose": "10", "unit": "mg/dose", "type": "absolute", "drug": "Diazepam"},
+            limit_dict={
+                "max_dose": "10",
+                "unit": "mg/dose",
+                "type": "absolute",
+                "drug": "Diazepam",
+            },
             formula_applied="dose * peso_kg * 0.6",
         )
         self.assertEqual(result["per_dose"]["value"], "40.5000")
@@ -94,7 +99,12 @@ class PipelineTest(TestCase):
             output_unit_str="mg/24h",
             frequency_str="6/6h",
             weight_kg=Decimal("1"),
-            limit_dict={"max_dose": "200", "unit": "mcg", "type": "absolute", "drug": "Clonidina"},
+            limit_dict={
+                "max_dose": "200",
+                "unit": "mcg",
+                "type": "absolute",
+                "drug": "Clonidina",
+            },
         )
         self.assertEqual(len(result["warnings"]), 1)
         self.assertEqual(result["warnings"][0]["type"], "above_max_recommended")

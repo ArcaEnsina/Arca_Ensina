@@ -64,23 +64,18 @@ class PatientHistoryView(APIView):
                     "details": {
                         "current_step": exec_.current_step_key or "",
                         "finished_at": (
-                            exec_.finished_at.isoformat()
-                            if exec_.finished_at
-                            else None
+                            exec_.finished_at.isoformat() if exec_.finished_at else None
                         ),
                     },
                 }
             )
 
         # --- Sedation conversions ---
-        conversions = (
-            SedationConversion.objects.filter(
-                patient=patient,
-                physician=request.user,
-                patient__isnull=False,
-            )
-            .order_by("-created_at")
-        )
+        conversions = SedationConversion.objects.filter(
+            patient=patient,
+            physician=request.user,
+            patient__isnull=False,
+        ).order_by("-created_at")
         for conv in conversions:
             events.append(
                 {

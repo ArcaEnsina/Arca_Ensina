@@ -2348,9 +2348,7 @@ class ProtocolCatalogFilterTest(TestCase):
         self.assertEqual(response.data["count"], 3)
 
     def test_filter_by_gender_male(self):
-        response = self.client.get(
-            "/api/v1/protocols/", {"gender": "M"}
-        )
+        response = self.client.get("/api/v1/protocols/", {"gender": "M"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # A: gender=None → match (applies to all)
         # B: gender=M → match

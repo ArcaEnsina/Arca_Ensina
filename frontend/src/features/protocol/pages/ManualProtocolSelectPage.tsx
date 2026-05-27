@@ -194,10 +194,11 @@ export default function ManualProtocolSelectPage() {
           </SheetHeader>
           <div className="space-y-4 px-6 py-4">
             <div>
-              <label className="text-body-md mb-1 block font-medium text-foreground">
+              <label htmlFor="ageMin" className="text-body-md mb-1 block font-medium text-foreground">
                 Idade mínima
               </label>
               <Input
+                id="ageMin"
                 type="number"
                 placeholder="Ex: 0"
                 value={ageMin}
@@ -206,10 +207,11 @@ export default function ManualProtocolSelectPage() {
               />
             </div>
             <div>
-              <label className="text-body-md mb-1 block font-medium text-foreground">
+              <label htmlFor="ageMax" className="text-body-md mb-1 block font-medium text-foreground">
                 Idade máxima
               </label>
               <Input
+                id="ageMax"
                 type="number"
                 placeholder="Ex: 18"
                 value={ageMax}
@@ -218,7 +220,7 @@ export default function ManualProtocolSelectPage() {
               />
             </div>
             <div>
-              <label className="text-body-md mb-1 block font-medium text-foreground">
+              <label htmlFor="gender" className="text-body-md mb-1 block font-medium text-foreground">
                 Gênero
               </label>
               <Select value={gender} onValueChange={setGender}>

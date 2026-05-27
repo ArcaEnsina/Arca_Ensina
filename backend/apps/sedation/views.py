@@ -3,7 +3,6 @@ from decimal import Decimal
 
 from django.db import transaction
 from django.db.utils import IntegrityError
-
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.exceptions import APIException, NotFound, ValidationError
@@ -74,9 +73,7 @@ class PanelViewSet(ViewSet):
                 "dose": str(data["dose"]),
                 "peso_kg": str(data["peso_kg"]),
                 "client_uuid": (
-                    str(data.get("client_uuid"))
-                    if data.get("client_uuid")
-                    else None
+                    str(data.get("client_uuid")) if data.get("client_uuid") else None
                 ),
                 "result": result,
             },
@@ -147,9 +144,7 @@ class PanelViewSet(ViewSet):
                     client_uuid=data["client_uuid"],
                 )
         except IntegrityError:
-            existing = SedationConversion.objects.get(
-                client_uuid=data["client_uuid"]
-            )
+            existing = SedationConversion.objects.get(client_uuid=data["client_uuid"])
             return Response(
                 self._serialize_conversion(existing),
                 status=status.HTTP_200_OK,
@@ -259,12 +254,14 @@ class PanelViewSet(ViewSet):
                 # Add destination if not already present
                 dest_ids = [d.get("id") for d in source_drugs[drug_a]["destinations"]]
                 if drug_b not in dest_ids:
-                    source_drugs[drug_a]["destinations"].append({
-                        "id": drug_b,
-                        "name": drug_b.split()[0] if drug_b else "",
-                        "full_name": drug_b,
-                        "route": row.get("route") or "",
-                    })
+                    source_drugs[drug_a]["destinations"].append(
+                        {
+                            "id": drug_b,
+                            "name": drug_b.split()[0] if drug_b else "",
+                            "full_name": drug_b,
+                            "route": row.get("route") or "",
+                        }
+                    )
 
         # Infer taper type and scale from taper_schedules
         taper_map = {}
@@ -291,8 +288,16 @@ class PanelViewSet(ViewSet):
         for drug_id, drug in source_drugs.items():
             drug_lower = drug_id.lower()
             if any(k in drug_lower for k in ["morfina", "fentanil"]):
-                drug.update(taper_map.get("morfina", {"taper_type": "morfina", "scale_type": "SOS"}))
+                drug.update(
+                    taper_map.get(
+                        "morfina", {"taper_type": "morfina", "scale_type": "SOS"}
+                    )
+                )
             else:
-                drug.update(taper_map.get("midaz", {"taper_type": "midaz", "scale_type": "RASS"}))
+                drug.update(
+                    taper_map.get(
+                        "midaz", {"taper_type": "midaz", "scale_type": "RASS"}
+                    )
+                )
 
         return list(source_drugs.values())

@@ -5,7 +5,7 @@ from decimal import Decimal
 @dataclass(frozen=True)
 class Dose:
     value: Decimal
-    mass_unit: str   # "mg", "mcg", "g"
+    mass_unit: str  # "mg", "mcg", "g"
     per_kg: bool = False
     per_minute: bool = False
     per_hour: bool = False
