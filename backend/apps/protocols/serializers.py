@@ -182,6 +182,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
             "id",
             "version",
             "physician",
+            "patient",
             "patient_name",
             "client_uuid",
             "status",
@@ -192,7 +193,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
             "started_at",
             "finished_at",
         ]
-        read_only_fields = ["id", "physician", "started_at", "version"]
+        read_only_fields = ["id", "physician", "patient", "started_at", "version"]
 
     def get_current_step_data(self, obj):
         if not obj.current_step_key:
