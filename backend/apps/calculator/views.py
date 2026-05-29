@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 
 from apps.audit.mixins import AuditableMixin
 from apps.audit.utils import log_audit
+from apps.pharma_engine import medication as med_engine
 
-from . import services
 from .serializers import CalculatorSerializer
 
 
@@ -24,60 +24,31 @@ class CalculatorView(AuditableMixin, APIView):
         age_days = serializer.validated_data.get("age_days")
         medication = serializer.validated_data.get("medication_id")
 
-        # Lógica para criar um novo cálculo de dose
-
-        # 1-calculo
-        if height:
-            dosage = services.calculate_dosage_mg(
-                medication.prescription, weight, height
-            )
-        else:
-            dosage = services.calculate_dosage_mg(medication.prescription, weight)
-
-        frequency_per_day = services.prescription_to_frequency(
-            medication.frequency_hours
+        # cálculo completo no motor único (pharma_engine)
+        result = med_engine.calculate_medication_dose(
+            prescription=medication.prescription,
+            weight=weight,
+            frequency_hours=medication.frequency_hours,
+            height=height if height else None,
+            age_days=age_days,
+            min_dose=medication.min_dose_mg_kg,
+            max_dose=medication.max_dose_mg_kg,
+            absolute_max=medication.max_absolute_dose_mg,
+            limits_by_age=medication.limits_by_age,
+            concentration_mg=medication.concentration_mg,
+            concentration_ml=medication.concentration_ml,
+            drug=medication.name,
         )
-        dosage_per_dose = services.calculate_dosage_per_dose(dosage, frequency_per_day)
 
-        # 2-validação
-        if age_days is not None:
-            if medication.limits_by_age:
-                warning, _ = services.validate_dosage_per_age(
-                    dosage,
-                    age_days,
-                    medication.limits_by_age,
-                    weight,
-                )
-            else:
-                warning, _ = services.validate_dosage(
-                    dosage,
-                    weight,
-                    medication.min_dose_mg_kg,
-                    medication.max_dose_mg_kg,
-                    medication.max_absolute_dose_mg,
-                )
-        else:
-            warning, _ = services.validate_dosage(
-                dosage,
-                weight,
-                medication.min_dose_mg_kg,
-                medication.max_dose_mg_kg,
-                medication.max_absolute_dose_mg,
-            )
-
-        # 3-conversao
-        conc_mg = medication.concentration_mg
-        conc_ml = medication.concentration_ml
-        if conc_mg is not None and conc_ml is not None:
-            volume_ml = services.convert_dosage_to_ml(dosage_per_dose, conc_mg, conc_ml)
-        else:
-            volume_ml = None
+        # avisos: enum legado (para a UI atual) + payload estruturado (futuro)
+        structured_warnings = result["warnings"]
+        legacy_warnings = [w["severity"] for w in structured_warnings]
 
         # Audit log para registro de calculos feitos
         audit_payload = {
             "medication_id": str(medication.pk),
             "weight": str(weight),
-            "warnings": warning,
+            "warnings": legacy_warnings,
         }
         if height is not None:
             audit_payload["height"] = str(height)
@@ -95,11 +66,12 @@ class CalculatorView(AuditableMixin, APIView):
 
         return Response(
             {
-                "dosage_mg": dosage,
-                "dosage_per_dose": dosage_per_dose,
-                "frequency_per_day": frequency_per_day,
-                "volume_ml": volume_ml,
-                "warnings": warning,
+                "dosage_mg": result["dosage_mg"],
+                "dosage_per_dose": result["dosage_per_dose"],
+                "frequency_per_day": result["frequency_per_day"],
+                "volume_ml": result["volume_ml"],
+                "warnings": legacy_warnings,
+                "warnings_detail": structured_warnings,
             },
             status=200,
         )

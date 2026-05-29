@@ -39,3 +39,23 @@ def parse_frequency(freq_str: str) -> dict:
         }
 
     raise ValueError(f"Cannot parse frequency: {freq_str}")
+
+
+def frequency_from_hours(hours) -> dict:
+    """Doses por dia a partir de um intervalo em horas (inteiro).
+
+    Ponte para o catálogo de medicamentos, cujo ``frequency_hours`` é um
+    inteiro (ex: a cada 6h -> 6), sem precisar montar a string de frequência.
+
+    Ex: 6 -> {'interval_hours': 6, 'doses_per_day': Decimal('4')}
+    """
+    interval = Decimal(str(hours))
+    if interval <= 0:
+        raise ValueError("Tempo da prescrição deve ser maior que zero.")
+    interval_hours = (
+        int(interval) if interval == interval.to_integral_value() else interval
+    )
+    return {
+        "interval_hours": interval_hours,
+        "doses_per_day": Decimal("24") / interval,
+    }

@@ -2,7 +2,15 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from .frequency import parse_frequency
+from .bsa import bsa_mosteller
+from .concentration import dose_to_volume_ml
+from .frequency import frequency_from_hours, parse_frequency
+from .limits import (
+    classify_age_band,
+    validate_dose_range,
+    validate_dose_range_by_age,
+)
+from .medication import calculate_medication_dose, calculate_total_dose
 from .models import Dose
 from .pipeline import calculate_dose_pipeline
 from .unit import parse_unit_string
@@ -69,6 +77,135 @@ class FrequencyTest(TestCase):
     def test_continuous(self):
         result = parse_frequency("contínua")
         self.assertEqual(result["doses_per_day"], Decimal("1"))
+
+    def test_frequency_from_hours(self):
+        result = frequency_from_hours(6)
+        self.assertEqual(result["doses_per_day"], Decimal("4"))
+        self.assertEqual(result["interval_hours"], 6)
+
+    def test_frequency_from_hours_invalid(self):
+        with self.assertRaises(ValueError):
+            frequency_from_hours(0)
+
+
+class BsaTests(TestCase):
+    def test_bsa_mosteller(self):
+        # sqrt((100 * 16) / 3600) = sqrt(0.4444...) ~= 0.6667 m²
+        bsa = bsa_mosteller(Decimal("16"), Decimal("100"))
+        self.assertEqual(bsa.quantize(Decimal("0.0001")), Decimal("0.6667"))
+
+    def test_bsa_invalid(self):
+        with self.assertRaises(ValueError):
+            bsa_mosteller(Decimal("0"), Decimal("100"))
+
+
+class ConcentrationTests(TestCase):
+    def test_dose_to_volume_ml(self):
+        # 250 / (125 / 5) = 10 mL
+        result = dose_to_volume_ml(Decimal("250"), Decimal("125"), Decimal("5"))
+        self.assertEqual(result, Decimal("10.00"))
+
+    def test_dose_to_volume_ml_invalid(self):
+        with self.assertRaises(ValueError):
+            dose_to_volume_ml(Decimal("250"), Decimal("0"), Decimal("5"))
+
+
+class LimitsTests(TestCase):
+    def test_classify_age_bands(self):
+        self.assertEqual(classify_age_band(10), "neonatal")
+        self.assertEqual(classify_age_band(60), "lactente")
+        self.assertEqual(classify_age_band(365 * 5), "crianca")
+        self.assertEqual(classify_age_band(365 * 14), "adolescente")
+        self.assertEqual(classify_age_band(365 * 30), "adulto")
+
+    def test_within_limits_no_warning(self):
+        warnings = validate_dose_range(
+            dose_per_kg=Decimal("20"),
+            total_dose_mg=Decimal("300"),
+            min_dose=Decimal("10"),
+            max_dose=Decimal("50"),
+        )
+        self.assertEqual(warnings, [])
+
+    def test_below_minimum(self):
+        warnings = validate_dose_range(
+            dose_per_kg=Decimal("5"),
+            total_dose_mg=Decimal("75"),
+            min_dose=Decimal("10"),
+            max_dose=Decimal("50"),
+        )
+        self.assertEqual([w["severity"] for w in warnings], ["BAIXO"])
+
+    def test_above_max_and_absolute_order(self):
+        # 80 mg/kg > 50 -> ALTO; total 1200 > 1000 -> CRITICO (nessa ordem)
+        warnings = validate_dose_range(
+            dose_per_kg=Decimal("80"),
+            total_dose_mg=Decimal("1200"),
+            min_dose=Decimal("10"),
+            max_dose=Decimal("50"),
+            absolute_max=Decimal("1000"),
+        )
+        self.assertEqual([w["severity"] for w in warnings], ["ALTO", "CRITICO"])
+
+    def test_by_age_above_max(self):
+        warnings = validate_dose_range_by_age(
+            dose_per_kg=Decimal("40"),
+            total_dose_mg=Decimal("200"),
+            age_days=60,
+            limits_by_age={"lactente": {"min": Decimal("10"), "max": Decimal("20")}},
+        )
+        self.assertEqual([w["severity"] for w in warnings], ["ALTO"])
+
+    def test_by_age_unknown_band_raises(self):
+        with self.assertRaises(ValueError):
+            validate_dose_range_by_age(
+                dose_per_kg=Decimal("40"),
+                total_dose_mg=Decimal("200"),
+                age_days=60,
+                limits_by_age={"neonatal": {"min": Decimal("10")}},
+            )
+
+
+class MedicationPipelineTests(TestCase):
+    def test_total_dose_weight_based(self):
+        self.assertEqual(
+            calculate_total_dose(Decimal("10"), Decimal("15")), Decimal("150.00")
+        )
+
+    def test_total_dose_bsa(self):
+        # 100 mg/m² * 0.6667 m² = 66.67 mg
+        self.assertEqual(
+            calculate_total_dose(Decimal("100"), Decimal("16"), Decimal("100")),
+            Decimal("66.67"),
+        )
+
+    def test_full_pipeline_matches_legacy_amoxicilina(self):
+        # 50 mg/kg * 20 kg, q8h, 250 mg / 5 mL, limites 25-90 mg/kg
+        result = calculate_medication_dose(
+            prescription=Decimal("50"),
+            weight=Decimal("20"),
+            frequency_hours=8,
+            min_dose=Decimal("25"),
+            max_dose=Decimal("90"),
+            concentration_mg=Decimal("250"),
+            concentration_ml=Decimal("5"),
+        )
+        self.assertEqual(result["dosage_mg"], Decimal("1000.00"))
+        self.assertEqual(result["frequency_per_day"], 3)
+        self.assertEqual(result["dosage_per_dose"], Decimal("333.33"))
+        self.assertEqual(result["volume_ml"], Decimal("6.67"))
+        self.assertEqual(result["warnings"], [])
+
+    def test_full_pipeline_with_age_band_warning(self):
+        result = calculate_medication_dose(
+            prescription=Decimal("50"),
+            weight=Decimal("5"),
+            frequency_hours=8,
+            age_days=60,
+            limits_by_age={"lactente": {"min": Decimal("10"), "max": Decimal("20")}},
+        )
+        # 50 mg/kg > 20 -> ALTO
+        self.assertEqual([w["severity"] for w in result["warnings"]], ["ALTO"])
 
 
 class PipelineTest(TestCase):
