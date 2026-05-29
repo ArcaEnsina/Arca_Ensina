@@ -34,6 +34,22 @@ class Medication(models.Model):
     # {"neonato": {"min": 10, "max": 20},
     #  "lactente": {"min": 15, "max": 25}}
     limits_by_age = models.JSONField(null=True, blank=True)
+    # apresentações comerciais (forma/via/concentração/gotas)
+    presentations = models.JSONField(null=True, blank=True)
+    # regimes de dosagem (indicação, dose_basis, limites, frequência)
+    regimens = models.JSONField(null=True, blank=True)
+    # contraindicações que bloqueiam o cálculo (idade/peso/via/forma)
+    contraindications = models.JSONField(null=True, blank=True)
+
+    # Campos de monografia (apenas exibição, nunca calculados):
+    # ajustes renal/hepático (orientação textual, sem mg/kg exato)
+    adjustments = models.JSONField(null=True, blank=True)
+    # preparo/administração (diluição, velocidade de infusão, volume IM)
+    administration = models.JSONField(null=True, blank=True)
+    # superdosagem (dose tóxica, sintomas, tratamento)
+    overdose = models.JSONField(null=True, blank=True)
+    # indicações (ANVISA/FDA/off-label)
+    indications = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return self.name
