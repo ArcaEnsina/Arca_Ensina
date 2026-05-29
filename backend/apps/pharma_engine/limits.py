@@ -12,7 +12,15 @@ A ordem dos avisos é sempre BAIXO -> ALTO -> CRITICO, preservando o contrato
 histórico de ``calculator.services.validate_dosage``.
 """
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
+
+# Precisão de exibição da dose por kg nas mensagens (evita dízimas longas).
+_DISPLAY = Decimal("0.0001")
+
+
+def _fmt(value) -> Decimal:
+    return Decimal(str(value)).quantize(_DISPLAY, rounding=ROUND_HALF_UP)
+
 
 # Limiares em dias para as faixas etárias pediátricas.
 _NEONATAL_MAX = 28
@@ -55,12 +63,14 @@ def validate_dose_range(
     max_dose=None,
     absolute_max=None,
     drug="",
+    per_unit_label="mg/kg/dia",
 ) -> list[dict]:
-    """Valida a dose contra min/max (mg/kg/dia) e teto absoluto (mg).
+    """Valida a dose contra min/max e teto absoluto (mg).
 
-    ``dose_per_kg`` é a dose diária convertida para mg/kg/dia
-    (dose total / peso) e é comparada com ``min_dose``/``max_dose``.
-    ``total_dose_mg`` é a dose diária absoluta, comparada com ``absolute_max``.
+    ``dose_per_kg`` é a dose convertida para a unidade comparável
+    (mg/kg ou mg/m², conforme ``per_unit_label``) e comparada com
+    ``min_dose``/``max_dose``. ``total_dose_mg`` é a dose diária absoluta,
+    comparada com ``absolute_max``.
     """
     warnings: list[dict] = []
     dose_per_kg = Decimal(str(dose_per_kg))
@@ -69,17 +79,18 @@ def validate_dose_range(
     if min_dose is not None:
         min_dose = Decimal(str(min_dose))
         if dose_per_kg < min_dose:
+            disp = _fmt(dose_per_kg)
             warnings.append(
                 _warning(
                     "BAIXO",
                     "below_min_recommended",
                     drug,
-                    dose_per_kg,
+                    disp,
                     min_dose,
-                    "mg/kg/dia",
+                    per_unit_label,
                     (
-                        f"Dose ({dose_per_kg} mg/kg/dia) abaixo do mínimo "
-                        f"recomendado ({min_dose} mg/kg/dia)."
+                        f"Dose ({disp} {per_unit_label}) abaixo do mínimo "
+                        f"recomendado ({min_dose} {per_unit_label})."
                     ),
                 )
             )
@@ -87,17 +98,18 @@ def validate_dose_range(
     if max_dose is not None:
         max_dose = Decimal(str(max_dose))
         if dose_per_kg > max_dose:
+            disp = _fmt(dose_per_kg)
             warnings.append(
                 _warning(
                     "ALTO",
                     "above_max_recommended",
                     drug,
-                    dose_per_kg,
+                    disp,
                     max_dose,
-                    "mg/kg/dia",
+                    per_unit_label,
                     (
-                        f"Dose ({dose_per_kg} mg/kg/dia) acima do máximo "
-                        f"recomendado ({max_dose} mg/kg/dia)."
+                        f"Dose ({disp} {per_unit_label}) acima do máximo "
+                        f"recomendado ({max_dose} {per_unit_label})."
                     ),
                 )
             )
@@ -130,6 +142,7 @@ def validate_dose_range_by_age(
     age_days,
     limits_by_age,
     drug="",
+    per_unit_label="mg/kg/dia",
 ) -> list[dict]:
     """Valida a dose contra os limites da faixa etária do paciente.
 
@@ -147,4 +160,5 @@ def validate_dose_range_by_age(
         max_dose=band_limits.get("max"),
         absolute_max=band_limits.get("absolute_max"),
         drug=drug,
+        per_unit_label=per_unit_label,
     )
