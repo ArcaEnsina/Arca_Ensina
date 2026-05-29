@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 
 from apps.audit.mixins import AuditableMixin
 from apps.audit.utils import log_audit
-from apps.pharma_engine import medication as med_engine
 
+from . import services
 from .serializers import CalculatorSerializer
 
 
@@ -23,26 +23,25 @@ class CalculatorView(AuditableMixin, APIView):
         height = serializer.validated_data.get("height")
         age_days = serializer.validated_data.get("age_days")
         medication = serializer.validated_data.get("medication_id")
+        indication = serializer.validated_data.get("indication")
+        route = serializer.validated_data.get("route")
+        presentation_index = serializer.validated_data.get("presentation_index")
 
-        # cálculo completo no motor único (pharma_engine)
-        result = med_engine.calculate_medication_dose(
-            prescription=medication.prescription,
+        # cálculo completo via orquestração (regime + apresentação +
+        # contraindicações) sobre o motor único (pharma_engine).
+        result = services.calculate_for_medication(
+            medication,
             weight=weight,
-            frequency_hours=medication.frequency_hours,
             height=height if height else None,
             age_days=age_days,
-            min_dose=medication.min_dose_mg_kg,
-            max_dose=medication.max_dose_mg_kg,
-            absolute_max=medication.max_absolute_dose_mg,
-            limits_by_age=medication.limits_by_age,
-            concentration_mg=medication.concentration_mg,
-            concentration_ml=medication.concentration_ml,
-            drug=medication.name,
+            indication=indication,
+            route=route,
+            presentation_index=presentation_index,
         )
 
-        # avisos: enum legado (para a UI atual) + payload estruturado (futuro)
-        structured_warnings = result["warnings"]
-        legacy_warnings = [w["severity"] for w in structured_warnings]
+        # avisos: enum legado (para a UI atual) + payload estruturado
+        legacy_warnings = result["warnings"]
+        structured_warnings = result["warnings_detail"]
 
         # Audit log para registro de calculos feitos
         audit_payload = {
@@ -70,6 +69,10 @@ class CalculatorView(AuditableMixin, APIView):
                 "dosage_per_dose": result["dosage_per_dose"],
                 "frequency_per_day": result["frequency_per_day"],
                 "volume_ml": result["volume_ml"],
+                "drops": result["drops"],
+                "units": result["units"],
+                "unit_label": result["unit_label"],
+                "blocked": result["blocked"],
                 "warnings": legacy_warnings,
                 "warnings_detail": structured_warnings,
             },
