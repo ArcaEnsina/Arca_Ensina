@@ -3,7 +3,8 @@ from decimal import Decimal
 from django.test import TestCase
 
 from .bsa import bsa_mosteller
-from .concentration import dose_to_volume_ml
+from .concentration import dose_to_drops, dose_to_presentation, dose_to_volume_ml
+from .contraindications import evaluate_contraindications
 from .frequency import frequency_from_hours, parse_frequency
 from .limits import (
     classify_age_band,
@@ -109,6 +110,80 @@ class ConcentrationTests(TestCase):
         with self.assertRaises(ValueError):
             dose_to_volume_ml(Decimal("250"), Decimal("0"), Decimal("5"))
 
+    def test_dose_to_drops_dipirona(self):
+        # gotas 500 mg/mL, 20 gotas/mL -> 1 gota = 25 mg; 100 mg = 4 gotas
+        drops = dose_to_drops(Decimal("100"), Decimal("500"), Decimal("1"), 20)
+        self.assertEqual(drops, Decimal("4"))
+
+    def test_dose_to_presentation_gotas(self):
+        presentation = {
+            "form": "gotas",
+            "concentration_mg": 500,
+            "concentration_ml": 1,
+            "drops_per_ml": 20,
+        }
+        result = dose_to_presentation(Decimal("100"), presentation)
+        self.assertEqual(result["volume_ml"], Decimal("0.20"))
+        self.assertEqual(result["drops"], Decimal("4"))
+
+    def test_dose_to_presentation_solid_has_no_volume(self):
+        presentation = {
+            "form": "comprimido",
+            "concentration_mg": 500,
+            "concentration_ml": None,
+        }
+        result = dose_to_presentation(Decimal("500"), presentation)
+        self.assertIsNone(result["volume_ml"])
+        self.assertIsNone(result["drops"])
+
+
+class ContraindicationsTests(TestCase):
+    DIPIRONA_RULES = [
+        {"rule": "min_age_days", "value": 90},
+        {"rule": "min_weight_kg", "value": 5},
+        {"rule": "form_min_age_days", "form": "supositorio", "value": 1460},
+        {
+            "rule": "route_forbidden_age_range",
+            "route": "IV",
+            "min_days": 90,
+            "max_days": 365,
+        },
+    ]
+
+    def test_below_min_age_blocks(self):
+        blocks = evaluate_contraindications(
+            rules=self.DIPIRONA_RULES, age_days=30, weight=4
+        )
+        # idade < 90 dias E peso < 5 kg -> dois bloqueios
+        self.assertEqual(len(blocks), 2)
+        self.assertTrue(all(b["severity"] == "CRITICO" for b in blocks))
+        self.assertTrue(all(b["type"] == "contraindicated" for b in blocks))
+
+    def test_iv_forbidden_in_window(self):
+        blocks = evaluate_contraindications(
+            rules=self.DIPIRONA_RULES, age_days=180, weight=8, route="IV"
+        )
+        self.assertEqual([b["rule"] for b in blocks], ["route_forbidden_age_range"])
+
+    def test_iv_allowed_outside_window(self):
+        blocks = evaluate_contraindications(
+            rules=self.DIPIRONA_RULES, age_days=400, weight=8, route="IV"
+        )
+        self.assertEqual(blocks, [])
+
+    def test_suppository_under_4y(self):
+        blocks = evaluate_contraindications(
+            rules=self.DIPIRONA_RULES, age_days=365 * 2, weight=14, form="supositorio"
+        )
+        self.assertEqual([b["rule"] for b in blocks], ["form_min_age_days"])
+
+    def test_no_rules(self):
+        self.assertEqual(evaluate_contraindications(rules=None, age_days=30), [])
+
+    def test_unknown_rule_raises(self):
+        with self.assertRaises(ValueError):
+            evaluate_contraindications(rules=[{"rule": "bogus"}], age_days=100)
+
 
 class LimitsTests(TestCase):
     def test_classify_age_bands(self):
@@ -206,6 +281,112 @@ class MedicationPipelineTests(TestCase):
         )
         # 50 mg/kg > 20 -> ALTO
         self.assertEqual([w["severity"] for w in result["warnings"]], ["ALTO"])
+
+    def test_per_dose_basis_dipirona(self):
+        # Dipirona: 12 mg/kg/dose, 20 kg, q6h (4x/dia)
+        # por dose = 240 mg; total diário = 960 mg
+        result = calculate_medication_dose(
+            prescription=Decimal("12"),
+            weight=Decimal("20"),
+            frequency_hours=6,
+            dose_basis="per_dose",
+            min_dose=Decimal("10"),
+            max_dose=Decimal("15"),
+            daily_max=Decimal("100"),
+            absolute_max=Decimal("4000"),
+        )
+        self.assertEqual(result["dosage_per_dose"], Decimal("240.00"))
+        self.assertEqual(result["dosage_mg"], Decimal("960.00"))
+        self.assertEqual(result["frequency_per_day"], 4)
+        # 12 mg/kg/dose dentro de 10-15; diário 48 mg/kg/dia < 100; < 4000 mg
+        self.assertEqual(result["warnings"], [])
+
+    def test_per_dose_basis_daily_max_exceeded(self):
+        # 15 mg/kg/dose (no limite por dose) mas q4h (6x) -> 90 mg/kg/dia < 100 ok;
+        # forçamos estouro com daily_max baixo para checar o aviso de teto diário
+        result = calculate_medication_dose(
+            prescription=Decimal("15"),
+            weight=Decimal("10"),
+            frequency_hours=4,
+            dose_basis="per_dose",
+            min_dose=Decimal("10"),
+            max_dose=Decimal("15"),
+            daily_max=Decimal("80"),
+        )
+        # por dose 15 mg/kg ok; diário = 15*6 = 90 mg/kg/dia > 80 -> ALTO
+        self.assertEqual([w["type"] for w in result["warnings"]], ["above_daily_max"])
+
+    def test_per_dose_with_presentation_gotas(self):
+        # por dose 240 mg em gotas 500 mg/mL (20 gotas/mL) -> 0,48 mL ~ 10 gotas
+        result = calculate_medication_dose(
+            prescription=Decimal("12"),
+            weight=Decimal("20"),
+            frequency_hours=6,
+            dose_basis="per_dose",
+            presentation={
+                "form": "gotas",
+                "concentration_mg": 500,
+                "concentration_ml": 1,
+                "drops_per_ml": 20,
+            },
+        )
+        self.assertEqual(result["volume_ml"], Decimal("0.48"))
+        self.assertEqual(result["drops"], Decimal("10"))
+
+    def test_invalid_dose_basis_raises(self):
+        with self.assertRaises(ValueError):
+            calculate_medication_dose(
+                prescription=Decimal("10"),
+                weight=Decimal("10"),
+                frequency_hours=6,
+                dose_basis="bogus",
+            )
+
+    def test_mg_kg_ignores_height(self):
+        # mg/kg não deve usar BSA mesmo recebendo altura.
+        result = calculate_medication_dose(
+            prescription=Decimal("15"),
+            weight=Decimal("54"),
+            height=Decimal("160"),
+            frequency_hours=6,
+            dose_basis="per_dose",
+            dose_unit="mg/kg",
+        )
+        self.assertEqual(result["dosage_per_dose"], Decimal("810.00"))
+
+    def test_mg_m2_uses_bsa(self):
+        # 100 mg/m²/dia, peso 16 kg, altura 100 cm -> BSA 0.6667 m²
+        # total = 100 * 0.6667 = 66.67 mg; comparação = 66.67 / 0.6667 ~ 100
+        result = calculate_medication_dose(
+            prescription=Decimal("100"),
+            weight=Decimal("16"),
+            height=Decimal("100"),
+            frequency_hours=6,
+            dose_basis="per_day",
+            dose_unit="mg/m2",
+            min_dose=Decimal("50"),
+            max_dose=Decimal("150"),
+        )
+        self.assertEqual(result["dosage_mg"], Decimal("66.67"))
+        self.assertEqual(result["warnings"], [])
+
+    def test_mg_m2_requires_height(self):
+        with self.assertRaises(ValueError):
+            calculate_medication_dose(
+                prescription=Decimal("100"),
+                weight=Decimal("16"),
+                frequency_hours=6,
+                dose_unit="mg/m2",
+            )
+
+    def test_invalid_dose_unit_raises(self):
+        with self.assertRaises(ValueError):
+            calculate_medication_dose(
+                prescription=Decimal("10"),
+                weight=Decimal("10"),
+                frequency_hours=6,
+                dose_unit="bogus",
+            )
 
 
 class PipelineTest(TestCase):
