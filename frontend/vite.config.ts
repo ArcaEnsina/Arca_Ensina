@@ -13,6 +13,16 @@ export default defineConfig({
       manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Rotas servidas pelo Django (proxy do Caddy) — o service worker NAO
+        // deve responder com o index.html do SPA para elas, senao /admin/ etc.
+        // caem no CatchAll do React Router e redirecionam para /dashboard.
+        navigateFallbackDenylist: [
+          /^\/admin/,
+          /^\/api/,
+          /^\/static/,
+          /^\/schema/,
+          /^\/docs/,
+        ],
         runtimeCaching: [
           {
             urlPattern: /\/_assets\//,
