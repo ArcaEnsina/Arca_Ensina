@@ -26,7 +26,7 @@ class Command(BaseCommand):
             _, was_created = Medication.objects.update_or_create(
                 name=fields["name"],
                 defaults={
-                    "category": fields.get("type", ""),
+                    "category": fields.get("category", fields.get("type", "")),
                     "description": fields.get("description", ""),
                     "prescription": fields["prescription"],
                     "frequency_hours": fields["frequency_hours"],
@@ -36,6 +36,14 @@ class Command(BaseCommand):
                     "concentration_mg": fields.get("concentration_mg"),
                     "concentration_ml": fields.get("concentration_ml"),
                     "limits_by_age": fields.get("limits_by_age"),
+                    # schema rico (opcional)
+                    "presentations": fields.get("presentations"),
+                    "regimens": fields.get("regimens"),
+                    "contraindications": fields.get("contraindications"),
+                    "adjustments": fields.get("adjustments"),
+                    "administration": fields.get("administration"),
+                    "overdose": fields.get("overdose"),
+                    "indications": fields.get("indications"),
                 },
             )
             if was_created:
