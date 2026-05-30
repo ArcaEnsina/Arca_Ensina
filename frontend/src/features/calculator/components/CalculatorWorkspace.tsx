@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, TriangleAlert } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Patient } from "@/features/patient";
 import type {
   Medication,
+  Presentation,
   CalculatorFormData,
   CalculatorFormDisplay,
 } from "../types";
@@ -56,6 +64,14 @@ function derivePatient(patient: Patient, medicationId: number): DerivedPatient {
   };
 }
 
+function presentationLabel(p: Presentation): string {
+  const conc = p.concentration_ml
+    ? `${p.concentration_mg} mg/${p.concentration_ml} mL`
+    : `${p.concentration_mg} mg`;
+  const form = p.form.charAt(0).toUpperCase() + p.form.slice(1);
+  return `${form} · ${conc} · ${p.route}`;
+}
+
 function SummaryTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5 rounded-2xl bg-muted px-3 py-2">
@@ -80,7 +96,6 @@ function CalculatorWorkspace({ medication }: CalculatorWorkspaceProps) {
     result,
     loading,
     error,
-    handleCalculate,
     calculate,
     resetResult,
   } = useCalculatorForm();
@@ -89,6 +104,37 @@ function CalculatorWorkspace({ medication }: CalculatorWorkspaceProps) {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [display, setDisplay] = useState<CalculatorFormDisplay>(EMPTY_DISPLAY);
   const [formKey, setFormKey] = useState("manual");
+
+  // seleções do schema rico (indicação/apresentação).
+  // Defaults via lazy initializer; o estado é reiniciado ao trocar de
+  // medicamento porque a página remonta o workspace com key={medication.id}.
+  const regimens = medication.regimens ?? [];
+  const presentations = medication.presentations ?? [];
+  const [indication, setIndication] = useState<string | null>(
+    () => regimens[0]?.indication ?? null,
+  );
+  const [presentationIndex, setPresentationIndex] = useState<number | null>(
+    () => {
+      const regimen = regimens[0] ?? null;
+      const firstPres = presentations
+        .map((p, idx) => ({ p, idx }))
+        .find(
+          ({ p }) => !regimen?.routes || regimen.routes.includes(p.route),
+        );
+      return firstPres?.idx ?? null;
+    },
+  );
+
+  const selectedRegimen =
+    regimens.find((r) => r.indication === indication) ?? regimens[0] ?? null;
+  // apresentações compatíveis com as vias do regime escolhido (com índice
+  // original, pois o backend seleciona por índice na lista do medicamento)
+  const presentationOptions = presentations
+    .map((p, idx) => ({ p, idx }))
+    .filter(
+      ({ p }) =>
+        !selectedRegimen?.routes || selectedRegimen.routes.includes(p.route),
+    );
 
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -116,13 +162,55 @@ function CalculatorWorkspace({ medication }: CalculatorWorkspaceProps) {
     resetResult();
   }
 
+  // monta os dados (paciente ou manual) com as seleções e recalcula, se houver
+  // peso. Usado tanto na seleção de paciente quanto ao trocar indicação/apres.
+  function runCalc(nextIndication: string | null, nextPresIdx: number | null) {
+    const selections = {
+      indication: nextIndication,
+      presentation_index: nextPresIdx,
+    };
+    if (mode === "patient" && selectedPatient) {
+      const { data } = derivePatient(selectedPatient, medication.id);
+      if (data.weight !== null) calculate({ ...data, ...selections });
+    } else if (mode === "manual" && formData.weight !== null) {
+      calculate({ ...formData, ...selections });
+    }
+  }
+
   function handlePatientSelect(patient: Patient) {
     setSelectedPatient(patient);
     resetResult();
     const { data } = derivePatient(patient, medication.id);
     if (data.weight !== null) {
-      calculate(data);
+      calculate({ ...data, indication, presentation_index: presentationIndex });
     }
+  }
+
+  function handleIndicationChange(value: string) {
+    setIndication(value);
+    // a indicação muda as vias permitidas -> recalcula a apresentação padrão
+    const regimen = regimens.find((r) => r.indication === value) ?? null;
+    const nextPres = presentations
+      .map((p, idx) => ({ p, idx }))
+      .find(({ p }) => !regimen?.routes || regimen.routes.includes(p.route));
+    const nextPresIdx = nextPres?.idx ?? null;
+    setPresentationIndex(nextPresIdx);
+    runCalc(value, nextPresIdx);
+  }
+
+  function handlePresentationChange(value: string) {
+    const idx = Number(value);
+    setPresentationIndex(idx);
+    runCalc(indication, idx);
+  }
+
+  function handleManualSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    calculate({
+      ...formData,
+      indication,
+      presentation_index: presentationIndex,
+    });
   }
 
   const derived = selectedPatient
@@ -140,6 +228,57 @@ function CalculatorWorkspace({ medication }: CalculatorWorkspaceProps) {
           <TabsTrigger value="manual">Manual</TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {(regimens.length > 1 || presentationOptions.length > 0) && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {regimens.length > 1 && (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption font-medium tracking-wide text-muted-foreground uppercase">
+                Indicação
+              </span>
+              <Select
+                value={indication ?? ""}
+                onValueChange={handleIndicationChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione a indicação" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regimens.map((r) => (
+                    <SelectItem key={r.indication} value={r.indication}>
+                      {r.indication}
+                      {r.off_label ? " (off-label)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {presentationOptions.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <span className="text-caption font-medium tracking-wide text-muted-foreground uppercase">
+                Apresentação
+              </span>
+              <Select
+                value={presentationIndex?.toString() ?? ""}
+                onValueChange={handlePresentationChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecione a apresentação" />
+                </SelectTrigger>
+                <SelectContent>
+                  {presentationOptions.map(({ p, idx }) => (
+                    <SelectItem key={idx} value={idx.toString()}>
+                      {presentationLabel(p)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+      )}
 
       {mode === "patient" && (
         <div className="flex flex-col gap-3">
@@ -197,7 +336,7 @@ function CalculatorWorkspace({ medication }: CalculatorWorkspaceProps) {
             key={formKey}
             formData={formData}
             onChange={setFormData}
-            onSubmit={handleCalculate}
+            onSubmit={handleManualSubmit}
             loading={loading}
             initialDisplay={display}
           />

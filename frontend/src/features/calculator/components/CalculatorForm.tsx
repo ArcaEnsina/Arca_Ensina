@@ -60,7 +60,7 @@ function CalculatorForm(props: CalculatorFormProps) {
           }}
         />
         <UnitInput
-          label="Altura (opcional)"
+          label="Altura"
           value={heightValue ?? ''}
           placeholder="Digite a altura"
           onChange={(value) => {

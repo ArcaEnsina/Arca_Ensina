@@ -86,7 +86,7 @@ function CalculatorPage() {
             ) : isLoading ? (
               <WorkspaceSkeleton />
             ) : medication ? (
-              <CalculatorWorkspace medication={medication} />
+              <CalculatorWorkspace key={medication.id} medication={medication} />
             ) : null}
           </main>
         </div>
