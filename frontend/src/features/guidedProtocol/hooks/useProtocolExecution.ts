@@ -23,6 +23,7 @@ function isNotFound(err: unknown): boolean {
 interface UseProtocolExecutionArgs {
   protocolId: number;
   patientName: string;
+  patientId?: number | null;
 }
 
 /**
@@ -36,12 +37,15 @@ interface UseProtocolExecutionArgs {
 export function useProtocolExecution({
   protocolId,
   patientName,
+  patientId,
 }: UseProtocolExecutionArgs) {
   const setExecutionId = useGuidedProtocolStore((s) => s.setExecutionId);
   const setCurrentStepKey = useGuidedProtocolStore((s) => s.setCurrentStepKey);
   const setStatus = useGuidedProtocolStore((s) => s.setStatus);
   const appendHistory = useGuidedProtocolStore((s) => s.appendHistory);
   const ensureClientUuid = useGuidedProtocolStore((s) => s.ensureClientUuid);
+  const reset = useGuidedProtocolStore((s) => s.reset);
+  const setProtocolId = useGuidedProtocolStore((s) => s.setProtocolId);
 
   const [step, setStepState] = useState<Step | null>(null);
   const [gateWarnings, setGateWarnings] = useState<GateWarning[]>([]);
@@ -110,6 +114,19 @@ export function useProtocolExecution({
     if (!patientName || bootstrappedRef.current) return;
     bootstrappedRef.current = true;
 
+    // Clear stale run state so a finished execution (or a switch to a different
+    // protocol) starts fresh instead of idempotently resuming the old, already
+    // "concluído" execution via its retained client_uuid.
+    const stored = useGuidedProtocolStore.getState();
+    const isFinished =
+      stored.status === 'concluido' || stored.status === 'abandonado';
+    const isDifferentProtocol =
+      stored.protocolId != null && stored.protocolId !== protocolId;
+    if (isFinished || isDifferentProtocol) {
+      reset();
+    }
+    setProtocolId(protocolId);
+
     (async () => {
       setBootstrapping(true);
       setError(null);
@@ -123,6 +140,7 @@ export function useProtocolExecution({
               protocolId,
               patientName,
               ensureClientUuid(),
+              patientId,
             );
             applyExecution(exec);
           } catch (startErr) {
@@ -137,7 +155,16 @@ export function useProtocolExecution({
         setBootstrapping(false);
       }
     })();
-  }, [protocolId, patientName, applyStepResponse, applyExecution, ensureClientUuid]);
+  }, [
+    protocolId,
+    patientName,
+    patientId,
+    applyStepResponse,
+    applyExecution,
+    ensureClientUuid,
+    reset,
+    setProtocolId,
+  ]);
 
   /** Answer the current answerable step — exactly one /answer/ call (fix3 #1). */
   const submitAnswer = useCallback(

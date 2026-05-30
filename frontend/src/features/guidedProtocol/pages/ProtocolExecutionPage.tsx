@@ -60,6 +60,7 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
   } = useProtocolExecution({
     protocolId,
     patientName: activePatient.nome,
+    patientId: Number(activePatient.id),
   });
 
   return (

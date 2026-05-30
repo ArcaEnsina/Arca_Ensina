@@ -42,8 +42,8 @@ const base = (pk: number) => `protocols/${pk}/execute/`;
 
 /** API-backed protocol executor. Safety-critical calls do not auto-retry. */
 export const apiExecutor: IProtocolExecutor = {
-  async start(protocolId, patientName, clientUuid) {
-    const body = deepToSnakeCase({ patientName, clientUuid });
+  async start(protocolId, patientName, clientUuid, patientId) {
+    const body = deepToSnakeCase({ patientName, clientUuid, patientId });
     const res = await api.post(`protocols/${protocolId}/execute/`, body);
     return deepToCamelCase(res.data) as Execution;
   },

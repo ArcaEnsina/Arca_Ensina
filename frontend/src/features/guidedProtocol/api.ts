@@ -26,11 +26,13 @@ export function useStartExecution() {
       protocolId,
       patientName,
       clientUuid,
+      patientId,
     }: {
       protocolId: number;
       patientName: string;
       clientUuid: string;
-    }) => apiExecutor.start(protocolId, patientName, clientUuid),
+      patientId?: number | null;
+    }) => apiExecutor.start(protocolId, patientName, clientUuid, patientId),
     retry: 0,
   });
 }

@@ -8,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.permissions import IsAdmin
 from apps.audit.mixins import AuditableMixin
+from apps.pacientes.models import Paciente
 
 from .engine.interpreter import GuidedProtocolInterpreter
 from .models import Protocol, ProtocolExecution, ProtocolVersion
@@ -169,9 +170,20 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
                     status=200,
                 )
 
+        # Vincula ao paciente (cada médico só vê os seus) para o histórico.
+        patient = None
+        patient_id = serializer.validated_data.get("patient_id")
+        if patient_id:
+            patient = Paciente.objects.filter(
+                pk=patient_id, created_by=request.user
+            ).first()
+            if patient is None:
+                raise NotFound("Paciente não encontrado.")
+
         execution = ProtocolExecution.objects.create(
             version=version,
             physician=request.user,
+            patient=patient,
             patient_name=serializer.validated_data["patient_name"],
             client_uuid=client_uuid,
         )

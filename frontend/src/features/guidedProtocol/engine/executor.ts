@@ -13,6 +13,7 @@ export interface IProtocolExecutor {
     protocolId: number,
     patientName: string,
     clientUuid: string,
+    patientId?: number | null,
   ): Promise<Execution>;
   /** Fetch the current step of the active execution. */
   getStep(protocolId: number): Promise<StepResponse>;
