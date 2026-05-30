@@ -42,7 +42,7 @@ class Paciente(models.Model):
     )
     sintomas = models.ManyToManyField(Sintoma, blank=True)
     nome_responsavel = models.CharField(max_length=255, blank=True, null=True)
-    cidade = models.CharField(max_length=100)
+    cidade = models.CharField(max_length=100, blank=True, default="")
     alergias = models.ManyToManyField(Alergia, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
