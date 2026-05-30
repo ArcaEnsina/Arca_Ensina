@@ -3,12 +3,18 @@ import { ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { StepHeading } from '../StepHeading';
 import type { ChecklistStepData } from '../../types';
 
 interface ChecklistStepProps {
   step: ChecklistStepData;
   onAnswer: (values: { checkedItems: string[] }) => void;
   submitting: boolean;
+}
+
+function classificationLabel(title: string): string {
+  const match = title.match(/\(([^)]+)\)/);
+  return match?.[1] ?? 'Critério atingido';
 }
 
 export function ChecklistStep({ step, onAnswer, submitting }: ChecklistStepProps) {
@@ -23,16 +29,16 @@ export function ChecklistStep({ step, onAnswer, submitting }: ChecklistStepProps
     });
   };
 
+  const minChecked = step.rule?.minChecked ?? 1;
+  const checkedCount = checked.size;
+  const met = checkedCount >= minChecked;
+  const label = classificationLabel(step.title);
+
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="flex flex-col gap-3">
-          <h2 className="text-display-sm text-blue-900">{step.title}</h2>
-          {step.description && (
-            <p className="text-body-md whitespace-pre-line text-muted-foreground">
-              {step.description}
-            </p>
-          )}
+        <CardContent>
+          <StepHeading title={step.title} description={step.description} />
         </CardContent>
       </Card>
 
@@ -47,18 +53,18 @@ export function ChecklistStep({ step, onAnswer, submitting }: ChecklistStepProps
               aria-checked={isChecked}
               onClick={() => toggle(item.id)}
               className={cn(
-                'flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200',
+                'flex items-center gap-3 rounded-2xl border-2 p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-arca-blue-200',
                 isChecked
-                  ? 'border-blue-700 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:border-blue-300',
+                  ? 'border-arca-blue-600 bg-arca-blue-50'
+                  : 'border-border bg-card hover:border-arca-blue-300',
               )}
             >
               <span
                 className={cn(
-                  'flex size-6 shrink-0 items-center justify-center rounded-md border-2',
+                  'flex size-6 shrink-0 items-center justify-center rounded-md border-2 transition-colors',
                   isChecked
-                    ? 'border-blue-700 bg-blue-700 text-white'
-                    : 'border-gray-300',
+                    ? 'border-arca-blue-600 bg-arca-blue-600 text-white'
+                    : 'border-neutral-300',
                 )}
                 aria-hidden="true"
               >
@@ -68,6 +74,29 @@ export function ChecklistStep({ step, onAnswer, submitting }: ChecklistStepProps
             </button>
           );
         })}
+      </div>
+
+      <div
+        aria-live="polite"
+        className={cn(
+          'flex flex-col items-center gap-0.5 rounded-2xl px-6 py-4 text-center transition-colors',
+          met ? 'bg-arca-blue-100' : 'bg-muted',
+        )}
+      >
+        <span className="text-caption font-semibold uppercase tracking-wider text-arca-blue-800/70">
+          Classificação atual
+        </span>
+        <span
+          className={cn(
+            'text-display-sm',
+            met ? 'text-arca-blue-900' : 'text-muted-foreground',
+          )}
+        >
+          {met ? label : '—'}
+        </span>
+        <span className="text-caption text-arca-blue-800/60">
+          {checkedCount} de {step.items.length} sinais marcados
+        </span>
       </div>
 
       <Button

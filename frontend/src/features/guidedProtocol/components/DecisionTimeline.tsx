@@ -55,22 +55,22 @@ export function DecisionTimeline() {
           return (
             <li key={`${entry.stepKey}-${idx}`} className="relative flex gap-3 pb-3">
               <div className="flex flex-col items-center">
-                <CheckCircle2 className="size-4 text-blue-700" aria-hidden="true" />
+                <CheckCircle2 className="size-4 text-arca-blue-700" aria-hidden="true" />
                 {idx < history.length - 1 && (
-                  <span className="mt-0.5 w-0.5 flex-1 bg-blue-200" aria-hidden="true" />
+                  <span className="mt-0.5 w-0.5 flex-1 bg-arca-blue-200" aria-hidden="true" />
                 )}
               </div>
               <button
                 type="button"
                 onClick={() => setExpanded(isOpen ? null : entry.stepKey)}
                 className={cn(
-                  'flex-1 rounded-lg px-2 py-1 text-left transition-colors hover:bg-blue-50',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200',
+                  'flex-1 rounded-lg px-2 py-1 text-left transition-colors hover:bg-arca-blue-50',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arca-blue-200',
                 )}
                 aria-expanded={isOpen}
               >
                 <span className="flex items-center justify-between gap-2">
-                  <span className="text-body-sm font-medium text-blue-900">
+                  <span className="text-body-sm font-medium text-arca-blue-900">
                     {entry.title}
                   </span>
                   <span className="shrink-0 text-[10px] text-muted-foreground">

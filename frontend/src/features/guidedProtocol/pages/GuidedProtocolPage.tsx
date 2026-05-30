@@ -22,7 +22,7 @@ export default function GuidedProtocolPage() {
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6 sm:px-6">
       <div className="flex flex-col gap-1">
-        <h1 className="text-display-md text-blue-900">Protocolos Guiados</h1>
+        <h1 className="text-display-md text-arca-blue-900">Protocolos Guiados</h1>
         <p className="text-body-md text-muted-foreground">
           Selecione um protocolo para iniciar a execução interativa.
         </p>
@@ -53,13 +53,13 @@ export default function GuidedProtocolPage() {
           <Card key={protocol.id}>
             <CardContent className="flex items-center gap-4">
               <div
-                className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700"
+                className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-arca-blue-50 text-arca-blue-700"
                 aria-hidden="true"
               >
                 <Stethoscope className="size-6" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-body-lg font-semibold text-blue-900">
+                <p className="truncate text-body-lg font-semibold text-arca-blue-900">
                   {protocol.title}
                 </p>
                 <p className="truncate text-body-sm text-muted-foreground">

@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { StepHeading } from '../StepHeading';
+import { InfoBanner } from '../InfoBanner';
 import { useGuidedProtocolStore } from '../../store';
 import { evalFormula, formatNumber } from '../../engine/formula';
 import type { DerivedCalcStepData } from '../../types';
@@ -35,49 +37,44 @@ export function DerivedCalcStep({
     [step.formulaMax, context],
   );
   const clamped = result != null && max != null ? Math.min(result, max) : result;
+  const wasClamped = max != null && result != null && result !== clamped;
 
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-display-sm text-blue-900">{step.title}</h2>
-            {step.description && (
-              <p className="text-body-md whitespace-pre-line text-muted-foreground">
-                {step.description}
-              </p>
-            )}
-          </div>
+        <CardContent className="flex flex-col gap-5">
+          <StepHeading title={step.title} description={step.description} />
 
+          {/* Dominant result card — mirrors the calculator's hero treatment. */}
           <div
-            className="flex flex-col items-center gap-1 rounded-2xl bg-blue-50 py-8"
+            className="flex flex-col gap-1 rounded-3xl bg-arca-blue-600 p-6 text-white"
             aria-live="polite"
           >
             {step.outputLabel && (
-              <span className="text-body-sm font-medium uppercase tracking-wide text-blue-700">
+              <span className="text-caption font-medium uppercase tracking-wider text-white/70">
                 {step.outputLabel}
               </span>
             )}
-            <span className="text-numeric-hero text-blue-900">
+            <span className="text-numeric-hero font-bold leading-none">
               {clamped != null ? formatNumber(clamped) : '—'}
               {step.outputUnit && (
-                <span className="text-display-sm ml-2 text-blue-700">
+                <span className="text-numeric-md ml-2 font-semibold text-white/80">
                   {step.outputUnit}
                 </span>
               )}
             </span>
-            {max != null && result != null && result !== clamped && (
-              <span className="text-body-sm text-red-700" role="alert">
-                Limitado ao máximo de {formatNumber(max)} {step.outputUnit}
+            {wasClamped && (
+              <span
+                className="mt-1 flex items-center gap-1.5 text-body-sm font-medium text-white/90"
+                role="alert"
+              >
+                <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+                Limitado ao máximo de {formatNumber(max!)} {step.outputUnit}
               </span>
             )}
           </div>
 
-          {step.notes && (
-            <p className="text-body-sm whitespace-pre-line text-muted-foreground">
-              {step.notes}
-            </p>
-          )}
+          {step.notes && <InfoBanner>{step.notes}</InfoBanner>}
         </CardContent>
       </Card>
 

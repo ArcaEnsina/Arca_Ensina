@@ -1,6 +1,8 @@
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { StepHeading } from '../StepHeading';
+import { InfoBanner } from '../InfoBanner';
 import type { InfoStepData } from '../../types';
 
 interface InfoStepProps {
@@ -13,16 +15,9 @@ export function InfoStep({ step, onAdvance, submitting }: InfoStepProps) {
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="flex flex-col gap-3">
-          <h2 className="text-display-sm text-blue-900">{step.title}</h2>
-          {step.description && (
-            <p className="text-body-md whitespace-pre-line text-muted-foreground">
-              {step.description}
-            </p>
-          )}
-          {step.content && (
-            <p className="text-body-md whitespace-pre-line">{step.content}</p>
-          )}
+        <CardContent className="flex flex-col gap-4">
+          <StepHeading title={step.title} description={step.description} />
+          {step.content && <InfoBanner>{step.content}</InfoBanner>}
         </CardContent>
       </Card>
       <Button

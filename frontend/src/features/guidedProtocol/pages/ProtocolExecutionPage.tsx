@@ -11,7 +11,7 @@ import { StepRenderer } from '../components/StepRenderer';
 function LoadingState() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16">
-      <div className="size-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-700" />
+      <div className="size-8 animate-spin rounded-full border-4 border-arca-blue-200 border-t-arca-blue-700" />
       <p className="text-sm text-muted-foreground">Carregando protocolo…</p>
     </div>
   );
@@ -21,10 +21,15 @@ function CompletionView() {
   const navigate = useNavigate();
   return (
     <Card>
-      <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-        <CheckCircle2 className="size-12 text-green-600" aria-hidden="true" />
-        <h2 className="text-display-sm text-blue-900">Protocolo concluído</h2>
-        <p className="text-body-md text-muted-foreground">
+      <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+        <span
+          className="flex size-16 items-center justify-center rounded-full bg-arca-blue-50 text-arca-blue-700"
+          aria-hidden="true"
+        >
+          <CheckCircle2 className="size-9" />
+        </span>
+        <h2 className="text-display-sm text-arca-blue-900">Protocolo concluído</h2>
+        <p className="text-body-md max-w-sm text-muted-foreground">
           A execução foi finalizada. As decisões ficam registradas na linha do
           tempo e no histórico do paciente.
         </p>
@@ -58,7 +63,10 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
   });
 
   return (
-    <ProtocolExecutionShell patient={activePatient}>
+    <ProtocolExecutionShell
+      patient={activePatient}
+      showStepper={!bootstrapping && !completed && !!step}
+    >
       {bootstrapping ? (
         <LoadingState />
       ) : completed || !step ? (

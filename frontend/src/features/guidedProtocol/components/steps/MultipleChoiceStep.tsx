@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { StepHeading } from '../StepHeading';
 import type { MultipleChoiceStepData } from '../../types';
 
 interface MultipleChoiceStepProps {
@@ -17,13 +18,8 @@ export function MultipleChoiceStep({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="flex flex-col gap-3">
-          <h2 className="text-display-sm text-blue-900">{step.title}</h2>
-          {step.description && (
-            <p className="text-body-md whitespace-pre-line text-muted-foreground">
-              {step.description}
-            </p>
-          )}
+        <CardContent>
+          <StepHeading title={step.title} description={step.description} />
         </CardContent>
       </Card>
 
@@ -35,12 +31,12 @@ export function MultipleChoiceStep({
             disabled={submitting}
             onClick={() => onAnswer({ choice: option.id })}
             className={cn(
-              'flex items-center justify-between gap-3 rounded-2xl border-2 border-blue-200 bg-white p-4 text-left font-medium text-blue-900 transition-colors',
-              'hover:border-blue-700 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200 disabled:opacity-50',
+              'flex items-center justify-between gap-3 rounded-2xl border-2 border-arca-blue-200 bg-card p-4 text-left text-body-lg font-medium text-arca-blue-900 transition-colors',
+              'hover:border-arca-blue-600 hover:bg-arca-blue-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-arca-blue-200 disabled:opacity-50',
             )}
           >
             <span>{option.label}</span>
-            <ArrowRight className="size-5 shrink-0 text-blue-700" aria-hidden="true" />
+            <ArrowRight className="size-5 shrink-0 text-arca-blue-700" aria-hidden="true" />
           </button>
         ))}
       </div>

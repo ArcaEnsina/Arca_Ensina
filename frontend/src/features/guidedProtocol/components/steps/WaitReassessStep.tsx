@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { StepHeading } from '../StepHeading';
 import type { Reminder, WaitReassessStepData } from '../../types';
 
 interface WaitReassessStepProps {
@@ -43,24 +45,31 @@ export function WaitReassessStep({
   return (
     <div className="flex flex-col gap-6">
       <Card>
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-display-sm text-blue-900">{step.title}</h2>
-            {step.description && (
-              <p className="text-body-md whitespace-pre-line text-muted-foreground">
-                {step.description}
-              </p>
-            )}
-          </div>
+        <CardContent className="flex flex-col gap-5">
+          <StepHeading title={step.title} description={step.description} />
 
           <div
-            className="flex flex-col items-center gap-1 rounded-2xl bg-blue-50 py-6"
+            className={cn(
+              'flex flex-col items-center gap-1 rounded-3xl py-7 transition-colors',
+              overdue ? 'bg-arca-red-50' : 'bg-arca-blue-50',
+            )}
             aria-live="polite"
           >
-            <Clock className="size-6 text-blue-700" aria-hidden="true" />
+            <Clock
+              className={cn(
+                'size-6',
+                overdue ? 'text-arca-red-600' : 'text-arca-blue-700',
+              )}
+              aria-hidden="true"
+            />
             {remaining != null ? (
               <>
-                <span className="text-numeric-hero text-blue-900">
+                <span
+                  className={cn(
+                    'text-numeric-hero font-bold tabular-nums',
+                    overdue ? 'text-arca-red-700' : 'text-arca-blue-900',
+                  )}
+                >
                   {formatRemaining(remaining)}
                 </span>
                 <span className="text-body-sm text-muted-foreground">
@@ -83,7 +92,7 @@ export function WaitReassessStep({
               {step.reassessFields.map((field) => (
                 <span
                   key={field}
-                  className="rounded-full bg-blue-100 px-3 py-1 text-body-sm font-medium text-blue-800"
+                  className="rounded-full bg-arca-blue-100 px-3 py-1 text-body-sm font-medium text-arca-blue-800"
                 >
                   {field}
                 </span>
@@ -94,8 +103,11 @@ export function WaitReassessStep({
           {step.phases && step.phases.length > 0 && (
             <ul className="flex flex-col gap-2">
               {step.phases.map((phase) => (
-                <li key={phase.phase} className="rounded-lg border border-blue-100 p-3">
-                  <p className="text-body-md font-semibold text-blue-900">
+                <li
+                  key={phase.phase}
+                  className="rounded-2xl border border-arca-blue-100 bg-arca-blue-50/40 p-3"
+                >
+                  <p className="text-body-md font-semibold text-arca-blue-900">
                     {phase.phase}
                   </p>
                   <p className="text-body-sm text-muted-foreground">

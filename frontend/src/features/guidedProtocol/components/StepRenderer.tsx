@@ -37,10 +37,10 @@ function GateWarnings({ warnings }: { warnings: GateWarning[] }) {
           className={cn(
             'flex items-start gap-2 rounded-2xl border-2 p-3 text-body-sm',
             w.level === 'critical'
-              ? 'border-red-300 bg-red-50 text-red-800'
+              ? 'border-arca-red-200 bg-arca-red-50 text-arca-red-700'
               : w.level === 'warning'
-                ? 'border-amber-300 bg-amber-50 text-amber-900'
-                : 'border-blue-200 bg-blue-50 text-blue-900',
+                ? 'border-warning/40 bg-warning/10 text-warning'
+                : 'border-arca-blue-200 bg-arca-blue-50 text-arca-blue-900',
           )}
         >
           <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
