@@ -1,37 +1,9 @@
-import { type ReactNode } from "react";
-import { createBrowserRouter, Navigate, Outlet } from "react-router";
-import { useAuth } from "@/features/auth";
-import { AppShell } from "@/components/shell/AppShell";
-
-function LoadingFallback() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <p className="text-muted-foreground">Carregando...</p>
-    </div>
-  );
-}
-
-function RequireAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return <>{children}</>;
-}
-
-function ShellLayout() {
-  return (
-    <RequireAuth>
-      <AppShell>
-        <Outlet />
-      </AppShell>
-    </RequireAuth>
-  );
-}
+import { createBrowserRouter } from "react-router";
+import {
+  RedirectIfAuthenticated,
+  CatchAll,
+  ShellLayout,
+} from "./guards";
 
 const router = createBrowserRouter([
   {
@@ -39,19 +11,16 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/dashboard",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/Dashboard").then((m) => ({ Component: m.default })),
       },
       {
         path: "/_/design-system",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/DesignSystem").then((m) => ({ Component: m.default })),
       },
       {
         path: "/patients",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/patient/pages/PatientCreatePage").then((m) => ({
             Component: m.default,
@@ -59,15 +28,27 @@ const router = createBrowserRouter([
       },
       {
         path: "/patients/list",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/PatientListPage").then((m) => ({
             Component: m.default,
           })),
       },
       {
+        path: "/patients/:id/history",
+        lazy: () =>
+          import("@/features/patient/pages/PatientHistoryPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
+        path: "/protocols/manual",
+        lazy: () =>
+          import("@/features/protocol/pages/ManualProtocolSelectPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
         path: "/medications",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/calculator/pages/MedicationSelectPage").then(
             (m) => ({ Component: m.default }),
@@ -75,55 +56,64 @@ const router = createBrowserRouter([
       },
       {
         path: "/repositorio",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/pages/Repositorio").then((m) => ({ Component: m.default })),
       },
       {
         path: "/calculator/calculate/:medicationId",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/calculator/pages/CalculatorPage").then((m) => ({
             Component: m.default,
           })),
       },
       {
+        path: "/sedation",
+        lazy: () =>
+          import("@/features/sedacao/pages/SedationPanelPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
         path: "/guided-protocol",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/guidedProtocol/pages/GuidedProtocolPage").then((m) => ({
             Component: m.default,
-        })),
+          })),
       },
       {
         path: "/guided-protocol/:protocolId/step/:stepNumber",
-        HydrateFallback: LoadingFallback,
         lazy: () =>
           import("@/features/guidedProtocol/pages/GuidedProtocolStepRouter").then((m) => ({
             Component: m.default,
-        })),
+          })),
       },
-      ],
+    ],
   },
   {
     path: "/login",
-    HydrateFallback: LoadingFallback,
     lazy: () =>
       import("@/features/auth/pages/LoginPage").then((m) => ({
-        Component: m.default,
+        Component: () => (
+          <RedirectIfAuthenticated>
+            <m.default />
+          </RedirectIfAuthenticated>
+        ),
       })),
   },
   {
     path: "/invite/:token",
-    HydrateFallback: LoadingFallback,
     lazy: () =>
       import("@/features/auth/pages/InvitePage").then((m) => ({
-        Component: m.default,
+        Component: () => (
+          <RedirectIfAuthenticated>
+            <m.default />
+          </RedirectIfAuthenticated>
+        ),
       })),
   },
   {
     path: "*",
-    element: <Navigate to="/login" replace />,
+    Component: CatchAll,
   },
 ]);
 

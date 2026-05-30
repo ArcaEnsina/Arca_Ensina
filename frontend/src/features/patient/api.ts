@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api/client';
 import { toSnakeCase, toCamelCase } from '@/lib/api/case';
 import type { PatientCreateInput } from './schemas';
-import type { Patient, Symptom } from './types';
+import type { Patient, ProtocolHistoryEvent, Symptom } from './types';
 
 export const usePatients = () =>
   useQuery({
@@ -60,4 +60,19 @@ export const useSymptoms = () =>
       }
     },
     staleTime: 5 * 60_000,
+  });
+
+export const usePatientHistory = (patientId: string | number | null) =>
+  useQuery({
+    queryKey: ['patients', 'history', patientId],
+    queryFn: async () => {
+      const res = await api.get<{ events: Record<string, unknown>[] }>(
+        `pacientes/${patientId}/historico/`,
+      );
+      return res.data.events.map(
+        (item) => toCamelCase(item) as unknown as ProtocolHistoryEvent,
+      );
+    },
+    enabled: !!patientId,
+    staleTime: 30_000,
   });

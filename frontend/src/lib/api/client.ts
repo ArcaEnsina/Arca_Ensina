@@ -42,6 +42,11 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as RetriableConfig | undefined
 
+    // Quando offline ou erro de rede, não tenta atualizar o token ou limpar o estado de autenticação
+    if (!navigator.onLine || error.code === 'ERR_NETWORK') {
+      return Promise.reject(error)
+    }
+
     if (
       !originalRequest ||
       error.response?.status !== 401 ||

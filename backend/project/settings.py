@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     "apps.medications",
     "apps.pacientes",
     "apps.protocols",
+    "apps.sedation",
 ]
 
 if DEBUG:

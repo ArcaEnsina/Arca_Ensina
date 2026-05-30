@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -63,8 +63,8 @@ export default function PatientCreateForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
     setError,
+    control,
     formState: { errors },
   } = useForm<PatientCreateInput>({
     resolver: zodResolver(patientCreateSchema),
@@ -85,9 +85,9 @@ export default function PatientCreateForm() {
   const labelClass =
     "text-xs font-bold text-arca-blue-700 uppercase tracking-wider";
   
-  const alergias = watch('alergias');
-  const sintomas = watch('sintomas');
-  const genero = watch('genero');
+  const alergias = useWatch({ name: 'alergias', control });
+  const sintomas = useWatch({ name: 'sintomas', control });
+  const genero = useWatch({ name: 'genero', control });
 
   const onSubmit = (data: PatientCreateInput) => {
     const sanitized = {

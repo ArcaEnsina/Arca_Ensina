@@ -1,6 +1,8 @@
+/// <reference types="vite-plugin-pwa/client" />
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useRegisterSW } from 'virtual:pwa-register/react'
 import App from './App'
 import { AuthProvider } from './features/auth'
 import './index.css'
@@ -10,9 +12,16 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000,
       retry: false,
+      networkMode: 'offlineFirst',
     },
   },
 })
+
+// eslint-disable-next-line react-refresh/only-export-components
+function SWRegistration() {
+  useRegisterSW()
+  return null
+}
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
@@ -22,6 +31,7 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
+      <SWRegistration />
       <AuthProvider>
         <App />
       </AuthProvider>

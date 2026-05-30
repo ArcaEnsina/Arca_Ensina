@@ -67,7 +67,9 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Bold, Italic, Underline } from "lucide-react";
+import { Bold, Italic, Underline, WifiOff } from "lucide-react";
+import { DownloadOfflineButton } from "@/components/offline/DownloadOfflineButton";
+import { CacheStatusIndicator } from "@/components/offline/CacheStatusIndicator";
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
@@ -432,6 +434,55 @@ export default function DesignSystem() {
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
+          </section>
+
+          {/* ── Offline Components ── */}
+          <section>
+            <SectionHeading>Offline Components</SectionHeading>
+            <div className="space-y-6">
+              <div>
+                <p className="text-body-md font-medium mb-2">
+                  Offline Indicator (simulated)
+                </p>
+                <div className="bg-warning/90 text-white px-4 py-2 text-center text-caption font-medium rounded-md">
+                  <span className="inline-flex items-center gap-2">
+                    <WifiOff size={14} />
+                    Você está offline no momento, mas suas informações estão
+                    seguras no aparelho.
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-body-md font-medium mb-2">
+                  Download Offline Button
+                </p>
+                <div className="flex items-center gap-3">
+                  <DownloadOfflineButton
+                    onDownload={() => Promise.resolve()}
+                  />
+                  <span className="text-caption text-muted-foreground">
+                    idle
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-body-md font-medium mb-2">
+                  Cache Status Indicator
+                </p>
+                <div className="flex items-center gap-3">
+                  <CacheStatusIndicator isCached={true} />
+                  <span className="text-caption text-muted-foreground">
+                    cached
+                  </span>
+                  <CacheStatusIndicator isCached={false} />
+                  <span className="text-caption text-muted-foreground">
+                    not cached
+                  </span>
+                </div>
+              </div>
+            </div>
           </section>
 
           {/* ── Color Palette ── */}

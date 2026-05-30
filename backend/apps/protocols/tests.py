@@ -117,16 +117,19 @@ class ProtocolSerializerTest(TestCase):
     def test_version_create_serializer_copies_previous_data(self):
         from .serializers import ProtocolVersionCreateSerializer
 
-        self.version.steps_data = {
-            "steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]
-        }
-        self.version.protocol_type = "guiado"
-        self.version.save()
+        ProtocolVersion.objects.create(
+            protocol=self.protocol,
+            version_number=2,
+            protocol_type="guiado",
+            is_current=False,
+            steps_data={"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]},
+        )
 
         data = {"protocol": self.protocol.pk}
         serializer = ProtocolVersionCreateSerializer(data=data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
         version = serializer.save()
+        self.assertEqual(version.version_number, 3)
         self.assertEqual(
             version.steps_data,
             {"steps": [{"id": "step_0", "type": "info", "title": "Step 0"}]},
@@ -1642,7 +1645,7 @@ class JsonProtocolExecutionServiceTest(TestCase):
     def setUp(self):
         self.protocol = Protocol.objects.create(title="JSON Protocol")
         self.version = self.protocol.versions.first()
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {
                     "id": "intro",
@@ -1744,7 +1747,8 @@ class JsonProtocolExecutionServiceTest(TestCase):
                 },
             ]
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
         self.physician = User.objects.create_user(
             email="json_doctor@test.com",
             password="testpass123",
@@ -1789,7 +1793,7 @@ class JsonProtocolExecutionServiceTest(TestCase):
         self.assertEqual(self.execution.current_step_key, "fim_sim")
 
     def test_start_with_context_evaluates_entry_gates(self):
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {"id": "intro", "type": "info", "title": "Intro", "next_step": None},
             ],
@@ -1800,7 +1804,8 @@ class JsonProtocolExecutionServiceTest(TestCase):
                 },
             ],
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
 
         execution = ProtocolExecution.objects.create(
             version=self.version,
@@ -1815,7 +1820,7 @@ class JsonProtocolExecutionServiceTest(TestCase):
         self.assertTrue(len(state.gate_warnings) > 0)
 
     def test_start_with_step_gate_warning(self):
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {
                     "id": "intro",
@@ -1830,7 +1835,8 @@ class JsonProtocolExecutionServiceTest(TestCase):
                 },
             ],
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
 
         execution = ProtocolExecution.objects.create(
             version=self.version,
@@ -1957,7 +1963,7 @@ class JsonProtocolExecutionApiTest(TestCase):
         self.client = APIClient()
         self.protocol = Protocol.objects.create(title="JSON API Protocol")
         self.version = self.protocol.versions.first()
-        self.version.steps_data = {
+        steps_data = {
             "steps": [
                 {
                     "id": "intro",
@@ -1976,7 +1982,8 @@ class JsonProtocolExecutionApiTest(TestCase):
                 {"id": "fim_nao", "type": "info", "title": "Fim nao"},
             ]
         }
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(steps_data=steps_data)
+        self.version.refresh_from_db()
         self.doctor = User.objects.create_user(
             email="json_api_doctor@test.com",
             password="testpass123",
@@ -2061,8 +2068,10 @@ class ProtocolExecuteApiTest(TestCase):
         self.steps_data = data[1]["fields"]["steps_data"]
         self.protocol = Protocol.objects.create(title="Dengue JSON Runtime")
         self.version = self.protocol.versions.first()
-        self.version.steps_data = self.steps_data
-        self.version.save()
+        ProtocolVersion.objects.filter(pk=self.version.pk).update(
+            steps_data=self.steps_data
+        )
+        self.version.refresh_from_db()
         self.doctor = User.objects.create_user(
             email="exec_doctor@test.com",
             password="testpass123",
@@ -2253,3 +2262,85 @@ class ProtocolExecuteApiTest(TestCase):
         state = execution.states.first()
         self.assertEqual(state.values, {"sintomas": ["febre"]})
         self.assertEqual(state.gate_warnings, [])
+
+
+class ProtocolCatalogFilterTest(TestCase):
+    """Tests for CORE-009 protocol catalog filters."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="catalog_filter@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.client.force_authenticate(user=self.user)
+
+        # Protocol A: Dengue Grave — guiado
+        self.protocol_a = Protocol.objects.create(
+            title="Dengue Grave",
+            tags=["UTIP", "Emergência"],
+            age_range_min=0,
+            age_range_max=216,
+            gender_applicable=None,
+        )
+        # auto-created version is guiado (default) — correct
+
+        # Protocol B: Sedação — painel
+        self.protocol_b = Protocol.objects.create(
+            title="Sedação",
+            tags=["UTIP", "Sedação"],
+            age_range_min=0,
+            age_range_max=300,
+            gender_applicable="M",
+        )
+        ProtocolVersion.objects.filter(
+            protocol=self.protocol_b, is_current=True
+        ).update(protocol_type="painel")
+
+        # Protocol C: Asma Aguda — guiado
+        self.protocol_c = Protocol.objects.create(
+            title="Asma Aguda",
+            tags=["Emergência"],
+            age_range_min=24,
+            age_range_max=180,
+            gender_applicable="F",
+        )
+
+        # Protocol D: Choque Séptico — guiado
+        self.protocol_d = Protocol.objects.create(
+            title="Choque Séptico",
+            tags=["UTIP"],
+            age_range_min=None,
+            age_range_max=None,
+            gender_applicable=None,
+        )
+
+    def test_filter_by_type_guiado(self):
+        response = self.client.get("/api/v1/protocols/", {"type": "guiado"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 3)
+
+    def test_filter_by_type_painel(self):
+        response = self.client.get("/api/v1/protocols/", {"type": "painel"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 1)
+
+    def test_filter_by_age_range(self):
+        response = self.client.get(
+            "/api/v1/protocols/", {"age_min": 10, "age_max": 200}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # A: min=0≤10✓ max=216≥200✓
+        # B: min=0≤10✓ max=300≥200✓
+        # C: min=24>10✗ → excluded
+        # D: null✓ null✓
+        self.assertEqual(response.data["count"], 3)
+
+    def test_filter_by_gender_male(self):
+        response = self.client.get("/api/v1/protocols/", {"gender": "M"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # A: gender=None → match (applies to all)
+        # B: gender=M → match
+        # D: gender=None → match (applies to all)
+        self.assertEqual(response.data["count"], 3)
