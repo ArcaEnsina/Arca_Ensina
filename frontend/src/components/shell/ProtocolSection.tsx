@@ -1,7 +1,5 @@
 function ProtocolSection(){
-    return (
-        
-    );
+    return null;
 }
 
 export default ProtocolSection;

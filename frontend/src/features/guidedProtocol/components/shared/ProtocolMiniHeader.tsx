@@ -1,11 +1,11 @@
 import type { Patient } from "@/features/patient";
-import type { Protocol } from "../types";
+import type { Protocol } from "../../types";
 import { Badge } from "@/components/ui/badge";
 
 function getInitials(nome: string) {
   const parts = nome.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  if (parts.length === 1) return parts[0]?.[0]?.toUpperCase() ?? '';
+  return ((parts[0]?.[0] ?? '') + (parts[parts.length - 1]?.[0] ?? '')).toUpperCase();
 }
 
 function calcAge(dataNascimento: string) {
@@ -34,7 +34,7 @@ export function ProtocolMiniHeader({ patient, protocol }: ProtocolMiniHeaderProp
       {/* Patient mini card */}
       <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-3 py-2 shadow-sm">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-arca-blue-600 text-xs font-bold text-white">
-          {getInitials(patient.nome)}
+          {getInitials(patient.nome ?? '')}
         </div>
         <div>
           <p className="text-body-md font-semibold text-foreground leading-tight">{patient.nome}</p>

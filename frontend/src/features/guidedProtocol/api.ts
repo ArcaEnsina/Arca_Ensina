@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api/client';
 import { toCamelCase } from '@/lib/api/case';
-import type { Protocol, ProtocolExecution, ProtocolVersion } from './types';
+import type { Protocol, ProtocolExecution, ProtocolStep, ProtocolVersion } from './types';
 import type { Patient } from '@/features/patient/types';
 import { useMutation } from '@tanstack/react-query';
 

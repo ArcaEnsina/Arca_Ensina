@@ -61,7 +61,10 @@ class PacienteSerializer(serializers.ModelSerializer):
         ret = {}
         for field in self._readable_fields:
             attribute = field.get_attribute(instance)
-            ret[field.field_name] = field.to_representation(attribute)
+            if attribute is None:
+                ret[field.field_name] = None
+            else:
+                ret[field.field_name] = field.to_representation(attribute)
 
         # Sobrescrever os campos M2M: retorna lista de strings
         ret["alergias"] = list(instance.alergias.values_list("descricao", flat=True))

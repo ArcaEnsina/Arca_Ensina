@@ -12,7 +12,7 @@ export function useProtocolData(protocolId: string) {
         //converter objeto recebido em array em ordem dos passos:
         return Object.entries(protocolVersion.stepsData)
             .sort(([a], [b]) => parseInt(a) - parseInt(b))
-            .map(([_, stepData]) => stepData);
+            .map(([, stepData]) => stepData);
     }, [protocolVersion]);
 
     return{

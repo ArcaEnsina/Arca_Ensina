@@ -18,7 +18,7 @@ import GuidedProtocolStep6Page from "./GuidedProtocolStep6Page";
  * - step 6 → GuidedProtocolStep6Page
  */
 export default function GuidedProtocolStepRouter() {
-  const { protocolId, stepNumber } = useParams<{ protocolId: string; stepNumber: string }>();
+  const { stepNumber } = useParams<{ stepNumber: string }>();
 
   const step = parseInt(stepNumber || "0", 10);
 
