@@ -60,6 +60,7 @@ def divide_per_dose(total_dose_mg, doses_per_day) -> Decimal:
         raise ValueError("Dosagem e frequência por dia devem ser maiores que zero.")
     return (total / doses).quantize(_CENT, rounding=ROUND_HALF_UP)
 
+
 # Aqui fica tudo que tem a ver com o pipeline de medicamentos
 # TODO: Tem muita variavel solta, precisamos compactar essas variaveis
 # (ou não só temos 2 semanas)

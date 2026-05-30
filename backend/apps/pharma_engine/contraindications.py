@@ -80,8 +80,7 @@ def evaluate_contraindications(
             ):
                 blocks.append(
                     _block(
-                        f"Contraindicado: peso abaixo do mínimo "
-                        f"({rule['value']} kg).",
+                        f"Contraindicado: peso abaixo do mínimo ({rule['value']} kg).",
                         drug=drug,
                         rule=rtype,
                     )

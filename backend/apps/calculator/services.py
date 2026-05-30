@@ -69,7 +69,9 @@ def validate_dosage_per_age(total_dosage_mg, age_days, limits, weight):
 def convert_dosage_to_ml(validated_dosage_mg, concentration_mg, concentration_ml):
     return dose_to_volume_ml(validated_dosage_mg, concentration_mg, concentration_ml)
 
+
 # 4 - seleciona regime/apresentação, avalia contraindicações e chama o motor único.
+
 
 def _select_regimen(regimens, indication):
     if indication:
@@ -102,7 +104,7 @@ _FORM_LABELS = {
 
 def _unit_label(presentation):
     if not presentation:
-        return None # liquidos
+        return None  # liquidos
     return _FORM_LABELS.get(presentation.get("form"))
 
 
@@ -122,6 +124,7 @@ def _empty_result(blocks, regimen, presentation):
         "regimen": regimen,
         "presentation": presentation,
     }
+
 
 # TODO: atualmente ele calcula tanto o caminho legado quanto o novo (regimens) é preciso
 # converter todos os medicamentos para regimens para refatorar a função
@@ -193,9 +196,7 @@ def calculate_for_medication(
                     "current_dose": "",
                     "max_allowed": "",
                     "unit": "",
-                    "message": (
-                        f"Contraindicado para a faixa etária '{band}'."
-                    ),
+                    "message": (f"Contraindicado para a faixa etária '{band}'."),
                 }
             )
 
