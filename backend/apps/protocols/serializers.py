@@ -220,6 +220,7 @@ class ProtocolExecutionStartSerializer(serializers.Serializer):
     """serializer para iniciar uma execução."""
 
     patient_name = serializers.CharField(max_length=255)
+    patient_id = serializers.IntegerField(required=False, allow_null=True)
     client_uuid = serializers.UUIDField(required=False)
     context = serializers.JSONField(required=False, default=dict)
 

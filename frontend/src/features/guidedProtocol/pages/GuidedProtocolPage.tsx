@@ -1,83 +1,83 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ProtocolStepper } from "@/features/guidedProtocol/components/shared/ProtocolStepper";
-import { ProtocolInfoBanner } from "@/features/guidedProtocol/components/shared/ProtocolInfoBanner";
-import ProtocolMainHeader from "@/features/guidedProtocol/components/layout/ProtocolMainHeader";
-import ProtocolSelectionSection from "@/features/guidedProtocol/components/layout/ProtocolSelectionSection";
-import { useProtocolSelection } from "@/features/guidedProtocol/hooks/useProtocolSelection";
-import { usePatient } from "@/features/guidedProtocol/api";
-import type { Protocol } from "@/features/guidedProtocol/types";
-
-const TOTAL_STEPS = 6;
-
-const MOCK_PROTOCOL: Protocol = {
-  id: 'dengue',
-  name: 'Protocolo de Dengue',
-  subtitle: 'Manejo clínico conforme diretrizes vigentes',
-  group: 'Doenças Infecciosas',
-  isActive: true,
-};
+import { useNavigate } from 'react-router';
+import { ArrowRight, Stethoscope } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGuidedProtocols } from '../api';
+import { useGuidedProtocolStore } from '../store';
 
 export default function GuidedProtocolPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [currentStep] = useState(1);
-  const { selectedProtocol, selectedPatient, setSelectedPatient, setSelectedProtocol } = useProtocolSelection();
+  const { data: protocols = [], isLoading, isError } = useGuidedProtocols();
+  const reset = useGuidedProtocolStore((s) => s.reset);
+  const setProtocolId = useGuidedProtocolStore((s) => s.setProtocolId);
 
-  const protocolId = searchParams.get('protocolId');
-  const patientId = searchParams.get('patientId');
-  const { data: patient } = usePatient(patientId ?? undefined);
-
-  useEffect(() => {
-    if (protocolId && !selectedProtocol) {
-      setSelectedProtocol(MOCK_PROTOCOL);
-    }
-  }, [protocolId, selectedProtocol, setSelectedProtocol]);
-
-  useEffect(() => {
-    if (patient && !selectedPatient) {
-      setSelectedPatient(patient);
-    }
-  }, [patient, selectedPatient, setSelectedPatient]);
-
-  function handleSwapProtocol() {
-    setSelectedProtocol(null);
-  }
-
-  function handleStart() {
-    if (!selectedProtocol) return;
-    navigate(`/guided-protocol/${selectedProtocol.id}/step/${currentStep + 1}?patientId=${selectedPatient?.id}`);
+  function start(id: number) {
+    // Fresh execution state for the picked protocol.
+    reset();
+    setProtocolId(id);
+    navigate(`/guided-protocol/${id}`);
   }
 
   return (
-    <div className="relative mx-auto flex min-h-[calc(100vh-7rem)] max-w-lg flex-col items-center gap-6 overflow-hidden px-4 py-6">
+    <div className="mx-auto flex max-w-lg flex-col gap-6 px-4 py-6 sm:px-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-display-md text-arca-blue-900">Protocolos Guiados</h1>
+        <p className="text-body-md text-muted-foreground">
+          Selecione um protocolo para iniciar a execução interativa.
+        </p>
+      </div>
 
-      <ProtocolMainHeader />
+      {isLoading && (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+          ))}
+        </div>
+      )}
 
-      <ProtocolStepper
-        currentStep={currentStep}
-        totalSteps={TOTAL_STEPS}
-      />
+      {isError && (
+        <p className="text-body-md text-muted-foreground">
+          Não foi possível carregar os protocolos. Tente novamente.
+        </p>
+      )}
 
-      <ProtocolSelectionSection
-        selectedProtocol={selectedProtocol}
-        selectedPatient={selectedPatient}
-        onSwapProtocol={handleSwapProtocol}
-      />
+      {!isLoading && !isError && protocols.length === 0 && (
+        <p className="text-body-md text-muted-foreground">
+          Nenhum protocolo guiado disponível.
+        </p>
+      )}
 
-      <ProtocolInfoBanner message="Indicado para pacientes com sinais de alarme e/ou critérios de gravidade" />
-
-      <Button
-        size="xl"
-        className="w-full gap-3 rounded-2xl tracking-widest"
-        onClick={handleStart}
-        disabled={!selectedProtocol || !selectedPatient}
-      >
-        INICIAR PROTOCOLO
-        <ArrowRight className="h-5 w-5" />
-      </Button>
+      <div className="flex flex-col gap-3">
+        {protocols.map((protocol) => (
+          <Card key={protocol.id}>
+            <CardContent className="flex items-center gap-4">
+              <div
+                className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-arca-blue-50 text-arca-blue-700"
+                aria-hidden="true"
+              >
+                <Stethoscope className="size-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-body-lg font-semibold text-arca-blue-900">
+                  {protocol.title}
+                </p>
+                <p className="truncate text-body-sm text-muted-foreground">
+                  {protocol.specialty ?? protocol.cid ?? 'Protocolo guiado'}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                className="shrink-0 gap-1.5 rounded-2xl"
+                onClick={() => start(protocol.id)}
+              >
+                Iniciar
+                <ArrowRight className="size-4" />
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
