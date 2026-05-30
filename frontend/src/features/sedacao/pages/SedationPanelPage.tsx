@@ -2,12 +2,15 @@ import { usePatientStore } from '@/features/patient/store';
 import PatientSelector from '@/features/calculator/components/PatientSelector';
 import { useSedationPanel } from '../hooks/useSedationPanel';
 import { SedationErrorBoundary } from '../components/SedationErrorBoundary';
-import { StepIndicator } from '../components/StepIndicator';
+import { ProtocolStepper } from '@/components/ProtocolStepper';
 import { PatientInfoCard } from '../components/PatientInfoCard';
 import { DrugSelectionStep } from '../components/DrugSelectionStep';
 import { CalculationResultStep } from '../components/CalculationResultStep';
 import { TaperingStep } from '../components/TaperingStep';
 import { ReviewStep } from '../components/ReviewStep';
+import type { SedationPhase } from '../types';
+
+const phaseOrder: SedationPhase[] = ['select', 'convert', 'taper', 'review'];
 
 function SedationPanelContent() {
   const activePatient = usePatientStore((s) => s.activePatient);
@@ -51,7 +54,7 @@ function SedationPanelContent() {
       <PatientInfoCard patient={activePatient} />
 
       {/* Step indicator */}
-      <StepIndicator currentPhase={phase} />
+      <ProtocolStepper completedCount={Math.max(0, phaseOrder.indexOf(phase))} />
 
       {/* Step content */}
       {phase === 'select' && (

@@ -4,7 +4,7 @@ import type { Patient } from '@/features/patient/types';
 import { useGuidedProtocolStore } from '../store';
 import { ExecutionErrorBoundary } from './ExecutionErrorBoundary';
 import { DecisionTimeline } from './DecisionTimeline';
-import { ProtocolStepper } from './ProtocolStepper';
+import { ProtocolStepper } from '@/components/ProtocolStepper';
 
 interface ProtocolExecutionShellProps {
   patient: Patient;
