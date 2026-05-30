@@ -81,9 +81,9 @@ const router = createBrowserRouter([
           })),
       },
       {
-        path: "/guided-protocol/:protocolId/step/:stepNumber",
+        path: "/guided-protocol/:protocolId",
         lazy: () =>
-          import("@/features/guidedProtocol/pages/GuidedProtocolStepRouter").then((m) => ({
+          import("@/features/guidedProtocol/pages/ProtocolExecutionPage").then((m) => ({
             Component: m.default,
           })),
       },

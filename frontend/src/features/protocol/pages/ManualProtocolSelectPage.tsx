@@ -97,7 +97,7 @@ export default function ManualProtocolSelectPage() {
       if (protocol.current_version_type === 'painel') {
         navigate('/sedation')
       } else {
-        navigate(`/protocols/${protocol.id}/execute`)
+        navigate(`/guided-protocol/${protocol.id}`)
       }
     },
     [navigate]
