@@ -64,6 +64,11 @@ export const apiExecutor: IProtocolExecutor = {
     return deepToCamelCase(res.data) as StepResponse;
   },
 
+  async back(protocolId) {
+    const res = await api.post(`${base(protocolId)}back/`, {});
+    return deepToCamelCase(res.data) as StepResponse;
+  },
+
   async getReminders(protocolId) {
     const res = await api.get(`${base(protocolId)}reminders/`);
     const data = deepToCamelCase(res.data) as { reminders?: Reminder[] };

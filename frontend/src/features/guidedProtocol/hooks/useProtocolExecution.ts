@@ -6,6 +6,7 @@ import { apiExecutor } from '../engine/apiExecutor';
 import {
   useAdvanceStep,
   useExecutionReminders,
+  useGoBack,
   useSubmitAnswer,
 } from '../api';
 import type {
@@ -43,6 +44,8 @@ export function useProtocolExecution({
   const setCurrentStepKey = useGuidedProtocolStore((s) => s.setCurrentStepKey);
   const setStatus = useGuidedProtocolStore((s) => s.setStatus);
   const appendHistory = useGuidedProtocolStore((s) => s.appendHistory);
+  const removeHistory = useGuidedProtocolStore((s) => s.removeHistory);
+  const canGoBack = useGuidedProtocolStore((s) => s.history.length > 0);
   const ensureClientUuid = useGuidedProtocolStore((s) => s.ensureClientUuid);
   const reset = useGuidedProtocolStore((s) => s.reset);
   const setProtocolId = useGuidedProtocolStore((s) => s.setProtocolId);
@@ -59,6 +62,7 @@ export function useProtocolExecution({
 
   const answerMutation = useSubmitAnswer();
   const advanceMutation = useAdvanceStep();
+  const backMutation = useGoBack();
   const reminders = useExecutionReminders(protocolId, !completed);
 
   /** Set the active step, tracking titration loop iterations. */
@@ -213,6 +217,20 @@ export function useProtocolExecution({
     }
   }, [step, protocolId, advanceMutation, appendHistory, applyStepResponse]);
 
+  /** Revert to the previous visited step so a past decision can be redone. */
+  const goBack = useCallback(async () => {
+    if (!canGoBack) return;
+    try {
+      const res = await backMutation.mutateAsync({ protocolId });
+      // The step we return to is reopened for a fresh answer, so drop its
+      // recorded decision from the timeline to keep it in sync with the engine.
+      if (res.step) removeHistory(res.step.id);
+      applyStepResponse(res);
+    } catch {
+      toast.error('Erro ao voltar. Tente novamente.');
+    }
+  }, [canGoBack, protocolId, backMutation, removeHistory, applyStepResponse]);
+
   return {
     step,
     gateWarnings,
@@ -220,9 +238,14 @@ export function useProtocolExecution({
     bootstrapping,
     error,
     currentIteration,
-    submitting: answerMutation.isPending || advanceMutation.isPending,
+    canGoBack,
+    submitting:
+      answerMutation.isPending ||
+      advanceMutation.isPending ||
+      backMutation.isPending,
     reminders: reminders.data ?? [],
     submitAnswer,
     advance,
+    goBack,
   };
 }

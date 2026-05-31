@@ -295,6 +295,43 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
             }
         )
 
+    @action(detail=True, methods=["post"], url_path="execute/back")
+    def execute_back(self, request, pk=None, **kwargs):
+        protocol = self.get_object()
+        execution = self._get_active_execution(protocol, request.user)
+        if not execution:
+            raise NotFound("Nenhuma execução ativa para este protocolo.")
+
+        engine = ProtocolExecutionEngine()
+        engine.voltar_step(execution)
+        execution.refresh_from_db()
+
+        interpreter = GuidedProtocolInterpreter(execution.version.steps_data)
+        step = (
+            interpreter.get_step(execution.current_step_key)
+            if execution.current_step_key
+            else None
+        )
+        history = [
+            {"step_key": s.step_key, "values": s.values}
+            for s in execution.states.filter(step_key__isnull=False).order_by(
+                "answered_at"
+            )
+        ]
+        context = interpreter.build_context(history)
+        warnings = (
+            interpreter.evaluate_step_gates(execution.current_step_key, context)
+            if execution.current_step_key
+            else []
+        )
+
+        return Response(
+            {
+                "step": step,
+                "gate_warnings": warnings,
+            }
+        )
+
     @action(detail=True, methods=["get"], url_path="execute/reminders")
     def execute_reminders(self, request, pk=None, **kwargs):
         protocol = self.get_object()

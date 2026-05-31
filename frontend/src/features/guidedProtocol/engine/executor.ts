@@ -21,6 +21,8 @@ export interface IProtocolExecutor {
   answer(protocolId: number, values: AnswerValues): Promise<Execution>;
   /** Advance past a display-only step. Returns the next step. */
   advance(protocolId: number): Promise<StepResponse>;
+  /** Revert to the previously visited step so the decision can be redone. */
+  back(protocolId: number): Promise<StepResponse>;
   /** Fetch in-execution reminders (wait_reassess countdowns). */
   getReminders(protocolId: number): Promise<Reminder[]>;
 }
