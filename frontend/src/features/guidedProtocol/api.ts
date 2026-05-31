@@ -60,6 +60,15 @@ export function useAdvanceStep() {
   });
 }
 
+/** Revert to the previous step to redo a decision. Safety-critical: retry 0. */
+export function useGoBack() {
+  return useMutation({
+    mutationFn: ({ protocolId }: { protocolId: number }) =>
+      apiExecutor.back(protocolId),
+    retry: 0,
+  });
+}
+
 /** Poll in-execution reminders for the live wait_reassess countdown. */
 export function useExecutionReminders(protocolId: number | null, enabled = true) {
   return useQuery<Reminder[]>({

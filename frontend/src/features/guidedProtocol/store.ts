@@ -14,6 +14,8 @@ interface GuidedProtocolState {
   setCurrentStepKey: (key: string | null) => void;
   setStatus: (status: ExecutionStatus | null) => void;
   appendHistory: (entry: HistoryEntry) => void;
+  /** Drop a step's decision from the timeline (e.g. when going back to redo it). */
+  removeHistory: (stepKey: string) => void;
   ensureClientUuid: () => string;
   /** Reset all execution state (e.g. when switching protocols). */
   reset: () => void;
@@ -36,6 +38,10 @@ export const useGuidedProtocolStore = create<GuidedProtocolState>((set, get) => 
       const filtered = state.history.filter((h) => h.stepKey !== entry.stepKey);
       return { history: [...filtered, entry] };
     }),
+  removeHistory: (stepKey) =>
+    set((state) => ({
+      history: state.history.filter((h) => h.stepKey !== stepKey),
+    })),
   ensureClientUuid: () => {
     const existing = get().clientUuid;
     if (existing) return existing;

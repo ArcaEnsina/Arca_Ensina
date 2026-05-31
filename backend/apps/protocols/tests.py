@@ -349,6 +349,90 @@ class ProtocolVersionViewSetTest(TestCase):
         self.assertEqual(response.data["current_step"]["id"], self.passo2.id)
 
 
+class ProtocolExecuteBackTest(TestCase):
+    """Navegação de volta (execute/back) em modo JSON declarativo."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.doctor = User.objects.create_user(
+            email="back@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.protocol = Protocol.objects.create(title="Protocolo Back")
+        self.version = ProtocolVersion.objects.create(
+            protocol=self.protocol,
+            version_number=2,
+            protocol_type=ProtocolVersion.ProtocolType.GUIADO,
+            is_current=True,
+            steps_data={
+                "steps": [
+                    {"id": "s1", "type": "info", "title": "Intro", "next_step": "s2"},
+                    {
+                        "id": "s2",
+                        "type": "yes_no",
+                        "title": "Confirma?",
+                        "true_next": "s3",
+                        "false_next": "s3",
+                    },
+                    {"id": "s3", "type": "info", "title": "Fim", "next_step": None},
+                ]
+            },
+        )
+        self.client.force_authenticate(user=self.doctor)
+
+    def _start(self):
+        return self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/",
+            {"patient_name": "Paciente Back"},
+            format="json",
+        )
+
+    def test_back_reverts_to_previous_step_and_drops_its_state(self):
+        self._start()
+        # s1 (info) -> s2 via /next/
+        self.client.post(f"/api/v1/protocols/{self.protocol.pk}/execute/next/")
+        # s2 (yes_no) -> s3 via /answer/
+        self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/answer/",
+            {"values": {"answer": True}},
+            format="json",
+        )
+
+        execution = ProtocolExecution.objects.get(version=self.version)
+        self.assertEqual(execution.current_step_key, "s3")
+
+        # Volta para s2; o estado de s2 é removido para refazer a decisão.
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/back/"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["step"]["id"], "s2")
+        execution.refresh_from_db()
+        self.assertEqual(execution.current_step_key, "s2")
+        self.assertFalse(
+            ProtocolExecutionState.objects.filter(
+                execution=execution, step_key="s2"
+            ).exists()
+        )
+
+        # Volta para s1 (primeiro step).
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/back/"
+        )
+        self.assertEqual(response.data["step"]["id"], "s1")
+
+    def test_back_at_first_step_is_a_noop(self):
+        self._start()
+        response = self.client.post(
+            f"/api/v1/protocols/{self.protocol.pk}/execute/back/"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["step"]["id"], "s1")
+        execution = ProtocolExecution.objects.get(version=self.version)
+        self.assertEqual(execution.current_step_key, "s1")
+
+
 class FixtureLoadTest(TestCase):
     def test_dengue_fixture_structure(self):
         import json

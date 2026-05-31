@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Decimal from 'decimal.js';
 import { toast } from 'sonner';
 import { useSedationStore } from '../store';
@@ -23,41 +23,63 @@ export function useSedationPanel() {
     ? getTaperSchedule(sourceDrugId)
     : null;
 
+  // Runs the conversion calculation. `advance` controls whether we move the
+  // wizard forward to the convert phase (user action) or just recompute the
+  // result in place (silent recovery after a remount).
+  const runCalculation = useCallback(
+    (advance: boolean) => {
+      if (!sourceDrugId || !targetDrugId || !activePatient?.peso) return;
+
+      const dose = useSedationStore.getState().currentDose;
+      if (!dose) return;
+
+      // Validate Decimal values before sending
+      try {
+        new Decimal(dose);
+        new Decimal(activePatient.peso);
+      } catch {
+        return;
+      }
+
+      calculateMutation.mutate(
+        {
+          panelId: DEFAULT_PANEL_ID,
+          origem: sourceDrugId,
+          destino: targetDrugId,
+          dose,
+          pesoKg: activePatient.peso,
+        },
+        {
+          onSuccess: (data) => {
+            setResult(data);
+            if (advance) {
+              setSelectedDose('calculated');
+              setPhase('convert');
+            }
+          },
+          onError: () => {
+            setResult(null);
+          },
+        },
+      );
+    },
+    [calculateMutation, sourceDrugId, targetDrugId, activePatient, setPhase],
+  );
+
   // User-triggered calculation
-  const calculate = useCallback(() => {
-    if (!sourceDrugId || !targetDrugId || !activePatient?.peso) return;
+  const calculate = useCallback(() => runCalculation(true), [runCalculation]);
 
-    const dose = useSedationStore.getState().currentDose;
-    if (!dose) return;
-
-    // Validate Decimal values before sending
-    try {
-      new Decimal(dose);
-      new Decimal(activePatient.peso);
-    } catch {
-      return;
-    }
-
-    calculateMutation.mutate(
-      {
-        panelId: DEFAULT_PANEL_ID,
-        origem: sourceDrugId,
-        destino: targetDrugId,
-        dose,
-        pesoKg: activePatient.peso,
-      },
-      {
-        onSuccess: (data) => {
-          setResult(data);
-          setSelectedDose('calculated');
-          setPhase('convert');
-        },
-        onError: () => {
-          setResult(null);
-        },
-      },
-    );
-  }, [calculateMutation, sourceDrugId, targetDrugId, activePatient, setPhase]);
+  // Recover a lost calculation after a remount (e.g. returning from the
+  // dashboard mid-flow): the wizard phase persists in the store but `result`
+  // lives in local state, so we silently recompute it from the persisted
+  // inputs instead of dropping the user on a blank step. One-shot per mount.
+  const recoveredRef = useRef(false);
+  useEffect(() => {
+    if (recoveredRef.current) return;
+    if (phase === 'select' || result) return;
+    recoveredRef.current = true;
+    runCalculation(false);
+  }, [phase, result, runCalculation]);
 
   const onPrescribe = useCallback(() => {
     if (!result || !sourceDrugId || !targetDrugId) return;

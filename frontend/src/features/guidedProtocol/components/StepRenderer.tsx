@@ -1,4 +1,5 @@
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type {
   AnswerValues,
@@ -22,8 +23,10 @@ interface StepRendererProps {
   reminders: Reminder[];
   currentIteration: number;
   submitting: boolean;
+  canGoBack: boolean;
   onAnswer: (values: AnswerValues) => void;
   onAdvance: () => void;
+  onBack: () => void;
 }
 
 function GateWarnings({ warnings }: { warnings: GateWarning[] }) {
@@ -57,8 +60,10 @@ export function StepRenderer({
   reminders,
   currentIteration,
   submitting,
+  canGoBack,
   onAnswer,
   onAdvance,
+  onBack,
 }: StepRendererProps) {
   function renderStep() {
     switch (step.type) {
@@ -118,6 +123,18 @@ export function StepRenderer({
 
   return (
     <div className="flex flex-col gap-4">
+      {canGoBack && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onBack}
+          disabled={submitting}
+          className="-ml-2 self-start gap-1 text-muted-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Voltar
+        </Button>
+      )}
       <GateWarnings warnings={gateWarnings} />
       {renderStep()}
     </div>

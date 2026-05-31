@@ -55,8 +55,10 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
     completed,
     bootstrapping,
     submitting,
+    canGoBack,
     submitAnswer,
     advance,
+    goBack,
   } = useProtocolExecution({
     protocolId,
     patientName: activePatient.nome,
@@ -79,8 +81,10 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
           reminders={reminders}
           currentIteration={currentIteration}
           submitting={submitting}
+          canGoBack={canGoBack}
           onAnswer={submitAnswer}
           onAdvance={advance}
+          onBack={goBack}
         />
       )}
     </ProtocolExecutionShell>

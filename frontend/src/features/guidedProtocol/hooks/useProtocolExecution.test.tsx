@@ -18,6 +18,7 @@ const mockGetStep = vi.fn();
 const mockStart = vi.fn();
 const mockAnswer = vi.fn();
 const mockAdvance = vi.fn();
+const mockBack = vi.fn();
 
 vi.mock('../engine/apiExecutor', () => ({
   apiExecutor: {
@@ -29,6 +30,7 @@ vi.mock('../engine/apiExecutor', () => ({
 vi.mock('../api', () => ({
   useSubmitAnswer: () => ({ mutateAsync: mockAnswer, isPending: false }),
   useAdvanceStep: () => ({ mutateAsync: mockAdvance, isPending: false }),
+  useGoBack: () => ({ mutateAsync: mockBack, isPending: false }),
   useExecutionReminders: () => ({ data: [] }),
 }));
 
@@ -112,5 +114,43 @@ describe('useProtocolExecution', () => {
 
     expect(result.current.completed).toBe(true);
     expect(result.current.step).toBeNull();
+  });
+
+  it('goBack reverts to the previous step and trims the timeline', async () => {
+    mockGetStep.mockResolvedValue({ step: yesNoStep, gateWarnings: [] });
+    mockAnswer.mockResolvedValue({
+      id: 7,
+      patientName: 'Maria',
+      status: 'em_andamento',
+      currentStepKey: 'step_c_manutencao',
+      currentStepData: {
+        id: 'step_c_manutencao',
+        type: 'info',
+        title: 'Manutenção',
+      },
+      gateWarnings: [],
+    } satisfies Execution);
+    mockBack.mockResolvedValue({ step: yesNoStep, gateWarnings: [] });
+
+    const { result } = renderHook(
+      () => useProtocolExecution({ protocolId: 1, patientName: 'Maria' }),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.bootstrapping).toBe(false));
+    expect(result.current.canGoBack).toBe(false);
+
+    await act(async () => {
+      await result.current.submitAnswer({ answer: true });
+    });
+    expect(result.current.canGoBack).toBe(true);
+    expect(result.current.step?.id).toBe('step_c_manutencao');
+
+    await act(async () => {
+      await result.current.goBack();
+    });
+
+    expect(mockBack).toHaveBeenCalledWith({ protocolId: 1 });
+    expect(result.current.step?.id).toBe('step_c_avaliacao1');
+    expect(result.current.canGoBack).toBe(false);
   });
 });
