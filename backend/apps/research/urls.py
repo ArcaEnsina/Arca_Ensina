@@ -1,8 +1,10 @@
 from rest_framework.routers import DefaultRouter
 
-from .views import ResearchDataPointViewSet
+from .views import ResearchResponseViewSet
 
 router = DefaultRouter()
-router.register(r"research/data", ResearchDataPointViewSet, basename="research-data")
+router.register(
+    r"research/responses", ResearchResponseViewSet, basename="research-response"
+)
 
 urlpatterns = router.urls
