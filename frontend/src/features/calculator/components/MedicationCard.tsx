@@ -53,7 +53,11 @@ interface MedicationCardProps {
   style?: React.CSSProperties
 }
 
-function MedicationCard({ medication, onSelect, style }: MedicationCardProps) {
+function MedicationCard({
+  medication,
+  onSelect,
+  style,
+}: MedicationCardProps) {
   return (
     <button
       type="button"

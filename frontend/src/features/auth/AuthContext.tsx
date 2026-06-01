@@ -34,11 +34,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
       const { data } = await api.get<User>('auth/user/')
+      localStorage.setItem('cached_user', JSON.stringify(data))
       setUser(data)
     } catch {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      setUser(null)
+      // Quando offline, usa os dados do cache e não tenta atualizar o token
+      if (!navigator.onLine) {
+        const cached = localStorage.getItem('cached_user')
+        if (cached) {
+          setUser(JSON.parse(cached) as User)
+        } else {
+          setUser(null)
+        }
+      } else {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('cached_user')
+        setUser(null)
+      }
     } finally {
       setLoading(false)
     }
@@ -55,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('refresh_token', data.refresh)
     try {
       const { data: userData } = await api.get<User>('auth/user/')
+      localStorage.setItem('cached_user', JSON.stringify(userData))
       setUser(userData)
     } catch {
       // Backend /auth/user/ unavailable — keep tokens, leave user empty until next fetch.
@@ -75,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('refresh_token', result.refresh)
       try {
         const { data: userData } = await api.get<User>('auth/user/')
+        localStorage.setItem('cached_user', JSON.stringify(userData))
         setUser(userData)
       } catch {
         // Same fallback as login: registration succeeded but profile fetch failed.
@@ -93,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
+    localStorage.removeItem('cached_user')
     setUser(null)
   }
 

@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Medication
-from .serializers import MedicationSerializer
+from .serializers import MedicationDetailSerializer, MedicationSerializer
 
 
 class MedicationListView(APIView):
@@ -33,5 +33,5 @@ class MedicationDetailView(APIView):
                 {"error": "Medicamento não encontrado."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        serializer = MedicationSerializer(medication)
+        serializer = MedicationDetailSerializer(medication)
         return Response(serializer.data, status=200)

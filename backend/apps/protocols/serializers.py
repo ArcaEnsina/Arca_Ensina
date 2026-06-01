@@ -136,6 +136,8 @@ class ProtocolListSerializer(BaseSerializer):
             "author",
             "tags",
             "gender_applicable",
+            "age_range_min",
+            "age_range_max",
             "is_active",
             "current_version_type",
             "created_at",
@@ -182,6 +184,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
             "id",
             "version",
             "physician",
+            "patient",
             "patient_name",
             "client_uuid",
             "status",
@@ -192,7 +195,7 @@ class ProtocolExecutionSerializer(serializers.ModelSerializer):
             "started_at",
             "finished_at",
         ]
-        read_only_fields = ["id", "physician", "started_at", "version"]
+        read_only_fields = ["id", "physician", "patient", "started_at", "version"]
 
     def get_current_step_data(self, obj):
         if not obj.current_step_key:
@@ -217,6 +220,7 @@ class ProtocolExecutionStartSerializer(serializers.Serializer):
     """serializer para iniciar uma execução."""
 
     patient_name = serializers.CharField(max_length=255)
+    patient_id = serializers.IntegerField(required=False, allow_null=True)
     client_uuid = serializers.UUIDField(required=False)
     context = serializers.JSONField(required=False, default=dict)
 

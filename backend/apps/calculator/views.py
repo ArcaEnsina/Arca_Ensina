@@ -23,61 +23,31 @@ class CalculatorView(AuditableMixin, APIView):
         height = serializer.validated_data.get("height")
         age_days = serializer.validated_data.get("age_days")
         medication = serializer.validated_data.get("medication_id")
+        indication = serializer.validated_data.get("indication")
+        route = serializer.validated_data.get("route")
+        presentation_index = serializer.validated_data.get("presentation_index")
 
-        # Lógica para criar um novo cálculo de dose
-
-        # 1-calculo
-        if height:
-            dosage = services.calculate_dosage_mg(
-                medication.prescription, weight, height
-            )
-        else:
-            dosage = services.calculate_dosage_mg(medication.prescription, weight)
-
-        frequency_per_day = services.prescription_to_frequency(
-            medication.frequency_hours
+        # cálculo completo via orquestração (regime + apresentação +
+        # contraindicações) sobre o motor único (pharma_engine).
+        result = services.calculate_for_medication(
+            medication,
+            weight=weight,
+            height=height if height else None,
+            age_days=age_days,
+            indication=indication,
+            route=route,
+            presentation_index=presentation_index,
         )
-        dosage_per_dose = services.calculate_dosage_per_dose(dosage, frequency_per_day)
 
-        # 2-validação
-        if age_days is not None:
-            if medication.limits_by_age:
-                warning, _ = services.validate_dosage_per_age(
-                    dosage,
-                    age_days,
-                    medication.limits_by_age,
-                    weight,
-                )
-            else:
-                warning, _ = services.validate_dosage(
-                    dosage,
-                    weight,
-                    medication.min_dose_mg_kg,
-                    medication.max_dose_mg_kg,
-                    medication.max_absolute_dose_mg,
-                )
-        else:
-            warning, _ = services.validate_dosage(
-                dosage,
-                weight,
-                medication.min_dose_mg_kg,
-                medication.max_dose_mg_kg,
-                medication.max_absolute_dose_mg,
-            )
-
-        # 3-conversao
-        conc_mg = medication.concentration_mg
-        conc_ml = medication.concentration_ml
-        if conc_mg is not None and conc_ml is not None:
-            volume_ml = services.convert_dosage_to_ml(dosage_per_dose, conc_mg, conc_ml)
-        else:
-            volume_ml = None
+        # avisos: enum legado (para a UI atual) + payload estruturado
+        legacy_warnings = result["warnings"]
+        structured_warnings = result["warnings_detail"]
 
         # Audit log para registro de calculos feitos
         audit_payload = {
             "medication_id": str(medication.pk),
             "weight": str(weight),
-            "warnings": warning,
+            "warnings": legacy_warnings,
         }
         if height is not None:
             audit_payload["height"] = str(height)
@@ -95,11 +65,16 @@ class CalculatorView(AuditableMixin, APIView):
 
         return Response(
             {
-                "dosage_mg": dosage,
-                "dosage_per_dose": dosage_per_dose,
-                "frequency_per_day": frequency_per_day,
-                "volume_ml": volume_ml,
-                "warnings": warning,
+                "dosage_mg": result["dosage_mg"],
+                "dosage_per_dose": result["dosage_per_dose"],
+                "frequency_per_day": result["frequency_per_day"],
+                "volume_ml": result["volume_ml"],
+                "drops": result["drops"],
+                "units": result["units"],
+                "unit_label": result["unit_label"],
+                "blocked": result["blocked"],
+                "warnings": legacy_warnings,
+                "warnings_detail": structured_warnings,
             },
             status=200,
         )

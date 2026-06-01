@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { PackageOpen, Search, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ function CategoryChip({
       size="sm"
       variant={active ? "default" : "outline"}
       onClick={onClick}
+      aria-pressed={active}
       className="shrink-0"
     >
       {label}
@@ -46,6 +47,46 @@ function MedicationCatalog() {
 
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string>(ALL);
+
+  const chipsRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef({ down: false, moved: false, startX: 0, startScroll: 0 });
+
+  function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== "mouse") return;
+    const el = chipsRef.current;
+    if (!el) return;
+    dragState.current = {
+      down: true,
+      moved: false,
+      startX: e.clientX,
+      startScroll: el.scrollLeft,
+    };
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    const el = chipsRef.current;
+    const s = dragState.current;
+    if (!el || !s.down) return;
+    const dx = e.clientX - s.startX;
+    if (Math.abs(dx) > 4) {
+      if (!s.moved) {
+        s.moved = true;
+        el.setPointerCapture(e.pointerId);
+      }
+      el.scrollLeft = s.startScroll - dx;
+    }
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+    const el = chipsRef.current;
+    if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    dragState.current.down = false;
+  }
+
+  function handleChipClick(cat: string) {
+    if (dragState.current.moved) return;
+    setCategory(cat);
+  }
 
   const categories = useMemo(() => {
     const unique = [...new Set(medications.map((m) => m.category))].sort(
@@ -124,13 +165,20 @@ function MedicationCatalog() {
       </div>
 
       {/* Chips de categoria */}
-      <div className="-mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar:none [&::-webkit-scrollbar]:hidden">
+      <div
+        ref={chipsRef}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        className="-mx-1 mt-4 flex cursor-grab gap-2 overflow-x-auto px-1 pb-1 select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
         {categories.map((cat) => (
           <CategoryChip
             key={cat}
             label={cat}
             active={category === cat}
-            onClick={() => setCategory(cat)}
+            onClick={() => handleChipClick(cat)}
           />
         ))}
       </div>

@@ -1,0 +1,203 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://arca-ensina/docs/medication.schema.json",
+  "title": "Medication",
+  "description": "Canonical pediatric medication entry. Reference only: NOT enforced in CI, because the catalog is migrated gradually and many drugs stay incomplete. Use it as the target shape per drug. See docs/medication-schema.md for the prose spec.",
+  "type": "object",
+  "required": ["name", "category"],
+  "additionalProperties": true,
+  "properties": {
+    "name": { "type": "string" },
+    "category": { "type": "string" },
+    "description": { "type": "string" },
+
+    "presentations": {
+      "description": "Commercial forms. Engine uses these to convert dose -> volume/gotas.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["form", "route", "concentration_mg"],
+        "additionalProperties": false,
+        "properties": {
+          "form": { "enum": ["comprimido", "gotas", "xarope", "solucao", "ampola", "supositorio"] },
+          "route": { "enum": ["VO", "IV", "IM", "retal", "SC"] },
+          "concentration_mg": { "type": "number", "exclusiveMinimum": 0 },
+          "concentration_ml": {
+            "description": "Volume the concentration_mg is dissolved in. null for solid forms (comprimido/supositorio).",
+            "type": ["number", "null"], "exclusiveMinimum": 0
+          },
+          "drops_per_ml": {
+            "description": "Only for form 'gotas'. mg per drop = concentration_mg / (concentration_ml * drops_per_ml).",
+            "type": ["number", "null"], "exclusiveMinimum": 0
+          },
+          "package": { "type": ["string", "null"], "description": "Display-only label, e.g. 'frasco 10 mL'." }
+        }
+      }
+    },
+
+    "regimens": {
+      "description": "Dosing rules. Pediatric, weight-based. No adult regimen; the adult ceiling lives only as absolute_max_mg.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["indication", "dose_basis"],
+        "additionalProperties": false,
+        "properties": {
+          "indication": { "type": "string" },
+          "off_label": { "type": "boolean", "default": false },
+          "dose_basis": {
+            "description": "per_dose: dose is per administration. per_day: dose is the daily total.",
+            "enum": ["per_dose", "per_day"]
+          },
+          "dose_unit": {
+            "description": "Body-size basis. mg/kg (default) = by weight, height ignored. mg/m2 = by body-surface-area (BSA Mosteller), requires patient height.",
+            "enum": ["mg/kg", "mg/m2"],
+            "default": "mg/kg"
+          },
+          "routes": {
+            "type": "array",
+            "items": { "enum": ["VO", "IV", "IM", "retal", "SC"] }
+          },
+          "frequency_hours": { "type": "integer", "exclusiveMinimum": 0 },
+          "frequency_hours_range": {
+            "type": "array",
+            "items": { "type": "integer", "exclusiveMinimum": 0 },
+            "minItems": 2, "maxItems": 2
+          },
+          "dose_mg_kg": {
+            "description": "Valor pontual usado pela calculadora (dentro de min/max), na unidade do dose_basis.",
+            "type": ["number", "null"], "exclusiveMinimum": 0
+          },
+          "min_dose_mg_kg": { "type": ["number", "null"], "minimum": 0 },
+          "max_dose_mg_kg": { "type": ["number", "null"], "minimum": 0 },
+          "daily_max_mg_kg": {
+            "description": "Ceiling for the summed daily total, in mg/kg/day. Checked when dose_basis is per_dose.",
+            "type": ["number", "null"], "minimum": 0
+          },
+          "absolute_max_mg": {
+            "description": "Hard daily ceiling in mg. Doubles as the adult cap for heavy adolescents.",
+            "type": ["number", "null"], "minimum": 0
+          },
+          "limits_by_age": {
+            "description": "Optional per-band override of the mg/kg limits. A null band means CONTRAINDICATED (engine blocks), not 'unknown'.",
+            "type": "object",
+            "additionalProperties": {
+              "type": ["object", "null"],
+              "additionalProperties": false,
+              "properties": {
+                "min": { "type": ["number", "null"] },
+                "max": { "type": ["number", "null"] },
+                "absolute_max": { "type": ["number", "null"] }
+              }
+            },
+            "propertyNames": { "enum": ["neonatal", "lactente", "crianca", "adolescente"] }
+          },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    },
+
+    "contraindications": {
+      "description": "Hard blocks evaluated before any calculation.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule"],
+        "oneOf": [
+          {
+            "properties": { "rule": { "const": "min_age_days" }, "value": { "type": "integer", "minimum": 0 } },
+            "required": ["value"]
+          },
+          {
+            "properties": { "rule": { "const": "min_weight_kg" }, "value": { "type": "number", "exclusiveMinimum": 0 } },
+            "required": ["value"]
+          },
+          {
+            "properties": {
+              "rule": { "const": "form_min_age_days" },
+              "form": { "enum": ["comprimido", "gotas", "xarope", "solucao", "ampola", "supositorio"] },
+              "value": { "type": "integer", "minimum": 0 }
+            },
+            "required": ["form", "value"]
+          },
+          {
+            "properties": {
+              "rule": { "const": "route_min_age_days" },
+              "route": { "enum": ["VO", "IV", "IM", "retal", "SC"] },
+              "value": { "type": "integer", "minimum": 0 }
+            },
+            "required": ["route", "value"]
+          },
+          {
+            "properties": {
+              "rule": { "const": "route_forbidden_age_range" },
+              "route": { "enum": ["VO", "IV", "IM", "retal", "SC"] },
+              "min_days": { "type": "integer", "minimum": 0 },
+              "max_days": { "type": "integer", "minimum": 0 }
+            },
+            "required": ["route", "min_days", "max_days"]
+          }
+        ]
+      }
+    },
+
+    "adjustments": {
+      "description": "Display only. Renal/hepatic guidance has no exact mg/kg, so it is never computed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "renal": { "$ref": "#/$defs/guidanceList" },
+        "hepatic": { "$ref": "#/$defs/guidanceList" }
+      }
+    },
+
+    "administration": {
+      "description": "Display only.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dilution": { "type": "string" },
+        "max_infusion_rate": { "type": "string" },
+        "im_max_volume_ml": { "type": "number" },
+        "compatibility": { "type": "string" }
+      }
+    },
+
+    "overdose": {
+      "description": "Display only.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "toxic_dose": { "type": "string" },
+        "symptoms": { "type": "string" },
+        "treatment": { "type": "string" }
+      }
+    },
+
+    "indications": {
+      "description": "Display only.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "anvisa": { "type": "array", "items": { "type": "string" } },
+        "fda": { "type": "string" },
+        "off_label": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+
+  "$defs": {
+    "guidanceList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["condition", "guidance"],
+        "additionalProperties": false,
+        "properties": {
+          "condition": { "type": "string" },
+          "guidance": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,8 +1,10 @@
 import { useNavigate, Link } from 'react-router'
-import { Bell, LogOut, Plus, ArrowRight } from 'lucide-react'
+import { Bell, LogOut, Plus, ArrowRight, History, BookOpen } from 'lucide-react'
 import { useAuth } from '@/features/auth'
 import { usePatients } from '@/features/patient/api'
+import { usePatientStore } from '@/features/patient/store'
 import PatientPill from '@/features/patient/components/PatientPill'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = [
@@ -45,10 +47,29 @@ function getDisplayName(user: { first_name: string; last_name: string; gender: s
   return firstName
 }
 
+const GENDER_LABELS: Record<string, string> = { M: 'Masculino', F: 'Feminino', O: 'Outro' }
+
+function formatAge(dataNascimento: string): string {
+  const birth = new Date(dataNascimento)
+  const now = new Date()
+  const years = Math.floor(
+    (now.getTime() - birth.getTime()) / (365.25 * 24 * 60 * 60 * 1000),
+  )
+  if (years < 1) {
+    const months = Math.floor(
+      (now.getTime() - birth.getTime()) / (30.44 * 24 * 60 * 60 * 1000),
+    )
+    return `${months} ${months === 1 ? 'mês' : 'meses'}`
+  }
+  return `${years} ${years === 1 ? 'ano' : 'anos'}`
+}
+
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { data: patients = [], isLoading } = usePatients()
+  const setActivePatient = usePatientStore((s) => s.setActivePatient)
+  const activePatient = usePatientStore((s) => s.activePatient)
 
   const now = new Date()
   const weekday = WEEKDAYS[now.getDay()]
@@ -84,7 +105,7 @@ export default function Dashboard() {
         <div className="flex shrink-0 items-center gap-2 pt-4 tablet:gap-3 tablet:pt-6">
           <button
             type="button"
-            className="flex size-11 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted tablet:size-12"
+            className="flex size-11 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 tablet:size-12"
             aria-label="Notificações"
           >
             <Bell size={20} className="text-foreground" />
@@ -92,7 +113,7 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex size-11 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted tablet:size-12"
+            className="flex size-11 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 tablet:size-12"
             aria-label="Sair"
           >
             <LogOut size={18} className="text-muted-foreground" />
@@ -149,13 +170,102 @@ export default function Dashboard() {
             : patients.map((patient) => (
                 <div key={patient.id} className="shrink-0">
                   <div className="tablet:hidden">
-                    <PatientPill patient={patient} />
+                    <PatientPill
+                      patient={patient}
+                      active={patient.id === activePatient?.id}
+                      onClick={() => {
+                        setActivePatient(patient);
+                      }}
+                    />
                   </div>
                   <div className="hidden tablet:block">
-                    <PatientPill patient={patient} size="lg" />
+                    <PatientPill
+                      patient={patient}
+                      size="lg"
+                      active={patient.id === activePatient?.id}
+                      onClick={() => {
+                        setActivePatient(patient);
+                      }}
+                    />
                   </div>
                 </div>
               ))}
+        </div>
+      </section>
+
+      {/* ── Selected patient ── */}
+      <section>
+        <div className="mb-3 flex items-center justify-between tablet:mb-5">
+          <span className="text-caption font-medium tracking-widest text-muted-foreground tablet:text-body-md">
+            PACIENTE SELECIONADO
+          </span>
+          <Link
+            to="/patients"
+            className="inline-flex items-center gap-1 text-body-md font-medium text-primary transition-colors hover:text-primary/80 tablet:text-body-lg"
+          >
+            Editar Dados
+            <ArrowRight size={14} className="tablet:size-4" />
+          </Link>
+        </div>
+
+        {activePatient ? (
+          <div className="bg-card border border-border rounded-2xl shadow-sm p-5 tablet:p-6">
+            <h2 className="text-heading-lg font-semibold text-foreground">
+              {activePatient.nome}
+            </h2>
+            <p className="text-body-md text-muted-foreground mt-1">
+              {formatAge(activePatient.dataNascimento)}
+              <span className="mx-1.5">•</span>
+              {GENDER_LABELS[activePatient.genero] ?? activePatient.genero}
+              <span className="mx-1.5">•</span>
+              {activePatient.peso} kg
+            </p>
+            <div className="my-4 border-t border-border tablet:my-5" />
+            <Button variant="outline" size="lg" className="w-full rounded-full" asChild>
+              <Link to={`/patients/${activePatient.id}/history`} className="inline-flex items-center justify-center gap-2">
+                <History size={18} />
+                Ver histórico de protocolos
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <div className="bg-card border border-border rounded-2xl shadow-sm p-5 tablet:p-6 flex flex-col items-center justify-center gap-2 py-8 text-center">
+            <p className="text-body-lg text-muted-foreground">
+              Nenhum paciente selecionado
+            </p>
+            <p className="text-body-md text-muted-foreground/70">
+              Toque em um paciente acima para selecionar
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* ── Protocol suggestion ── */}
+      <section className="mt-6 tablet:mt-8">
+        <div className="mb-3 tablet:mb-5">
+          <span className="text-caption font-medium tracking-widest text-muted-foreground tablet:text-body-md">
+            PROTOCOLO RECOMENDADO
+          </span>
+        </div>
+
+        <div className="bg-neutral-900 rounded-2xl shadow-md p-5 tablet:p-6 text-white">
+          <span className="text-caption font-medium tracking-widest text-neutral-400 uppercase">
+            SUGESTÃO BASEADA EM SINTOMAS
+          </span>
+          <h2 className="text-heading-lg font-semibold text-white mt-2">
+            Sugestão automática em desenvolvimento
+          </h2>
+          <p className="text-body-md text-neutral-400 mt-2">
+            O algoritmo de sugestão de protocolo ainda não está pronto. Selecione um protocolo manualmente no catálogo.
+          </p>
+          <div className="mt-5 flex">
+            <Button variant="default" size="lg" className="w-full bg-white text-neutral-900 hover:bg-neutral-100 rounded-full" asChild>
+              <Link to="/protocols/manual" className="inline-flex items-center justify-center gap-2">
+                <BookOpen size={18} />
+                Selecionar protocolo manualmente
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     </div>

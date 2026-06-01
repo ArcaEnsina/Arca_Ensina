@@ -1,9 +1,34 @@
-// dados recebidos da lista de medicamentos
+// apresentação comercial (schema rico)
+export interface Presentation {
+  form: string
+  route: string
+  concentration_mg: number
+  concentration_ml: number | null
+  drops_per_ml: number | null
+  package?: string | null
+}
+
+// regime de dosagem (schema rico)
+export interface Regimen {
+  indication: string
+  off_label?: boolean
+  dose_basis: 'per_dose' | 'per_day'
+  dose_unit?: 'mg/kg' | 'mg/m2'
+  routes?: string[]
+  frequency_hours: number
+  dose_mg_kg?: number | null
+  notes?: string | null
+}
+
+// dados recebidos da lista de medicamentos (+ campos ricos no detalhe)
 export interface Medication {
   id: number
   name: string
   category: string
   description: string
+  // presentes apenas no endpoint de detalhe e quando o med foi migrado
+  presentations?: Presentation[] | null
+  regimens?: Regimen[] | null
 }
 
 // dados enviados no formulário de cálculo
@@ -12,6 +37,10 @@ export interface CalculatorFormData {
   height: number | null
   age_days: number | null
   medication_id: number | null
+  // seleções do schema rico (opcionais)
+  indication?: string | null
+  route?: string | null
+  presentation_index?: number | null
 }
 
 // valores de exibição do formulário (strings dos inputs + unidades)
@@ -36,11 +65,24 @@ export const EMPTY_DISPLAY: CalculatorFormDisplay = {
 // níveis de warning
 export type WarningLevel = 'BAIXO' | 'ALTO' | 'CRITICO'
 
+// aviso estruturado do motor (mensagem rica)
+export interface WarningDetail {
+  type: string
+  severity: WarningLevel
+  drug: string
+  message: string
+}
+
 // dados que o backend retorna após o cálculo
 export interface CalculationResult {
-  dosage_mg: number
-  dosage_per_dose: number
-  frequency_per_day: number
+  dosage_mg: number | null
+  dosage_per_dose: number | null
+  frequency_per_day: number | null
   volume_ml: number | null // null se o medicamento não tem concentração
+  drops: number | null // gotas por dose (apresentação em gotas)
+  units: number | null // nº de unidades por dose (formas sólidas)
+  unit_label: string | null // rótulo da unidade sólida (ex: "comprimidos")
+  blocked: boolean // true se contraindicado (sem dose)
   warnings: WarningLevel[]
+  warnings_detail: WarningDetail[]
 }

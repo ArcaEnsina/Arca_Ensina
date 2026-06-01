@@ -1,30 +1,9 @@
-import { type ReactNode } from "react";
-import { createBrowserRouter, Navigate, Outlet } from "react-router";
-import { useAuth } from "@/features/auth";
-import { AppShell } from "@/components/shell/AppShell";
-
-function RequireAuth({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <p className="text-center mt-20">Carregando...</p>;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  return <>{children}</>;
-}
-
-/** Layout das rotas autenticadas: exige sessão e envolve tudo no AppShell. */
-function ShellLayout() {
-  return (
-    <RequireAuth>
-      <AppShell>
-        <Outlet />
-      </AppShell>
-    </RequireAuth>
-  );
-}
+import { createBrowserRouter } from "react-router";
+import {
+  RedirectIfAuthenticated,
+  CatchAll,
+  ShellLayout,
+} from "./guards";
 
 const router = createBrowserRouter([
   {
@@ -55,6 +34,20 @@ const router = createBrowserRouter([
           })),
       },
       {
+        path: "/patients/:id/history",
+        lazy: () =>
+          import("@/features/patient/pages/PatientHistoryPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
+        path: "/protocols/manual",
+        lazy: () =>
+          import("@/features/protocol/pages/ManualProtocolSelectPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
         path: "/medications",
         lazy: () =>
           import("@/features/calculator/pages/MedicationSelectPage").then(
@@ -73,25 +66,54 @@ const router = createBrowserRouter([
             Component: m.default,
           })),
       },
+      {
+        path: "/sedation",
+        lazy: () =>
+          import("@/features/sedacao/pages/SedationPanelPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
+        path: "/guided-protocol",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/GuidedProtocolPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
+      {
+        path: "/guided-protocol/:protocolId",
+        lazy: () =>
+          import("@/features/guidedProtocol/pages/ProtocolExecutionPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
     ],
   },
   {
     path: "/login",
     lazy: () =>
       import("@/features/auth/pages/LoginPage").then((m) => ({
-        Component: m.default,
+        Component: () => (
+          <RedirectIfAuthenticated>
+            <m.default />
+          </RedirectIfAuthenticated>
+        ),
       })),
   },
   {
     path: "/invite/:token",
     lazy: () =>
       import("@/features/auth/pages/InvitePage").then((m) => ({
-        Component: m.default,
+        Component: () => (
+          <RedirectIfAuthenticated>
+            <m.default />
+          </RedirectIfAuthenticated>
+        ),
       })),
   },
   {
     path: "*",
-    element: <Navigate to="/login" replace />,
+    Component: CatchAll,
   },
 ]);
 

@@ -8,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from apps.accounts.permissions import IsAdmin
 from apps.audit.mixins import AuditableMixin
+from apps.pacientes.models import Paciente
 
 from .engine.interpreter import GuidedProtocolInterpreter
 from .models import Protocol, ProtocolExecution, ProtocolVersion
@@ -24,7 +25,12 @@ from .services import ProtocolExecutionEngine
 
 
 class ProtocolFilter(django_filters.FilterSet):
-    gender_applicable = django_filters.CharFilter(method="filter_gender")
+    gender = django_filters.CharFilter(method="filter_gender")
+    search = django_filters.CharFilter(method="filter_search")
+    type = django_filters.CharFilter(method="filter_type")
+    tag = django_filters.CharFilter(method="filter_tag")
+    age_min = django_filters.NumberFilter(method="filter_age_min")
+    age_max = django_filters.NumberFilter(method="filter_age_max")
 
     class Meta:
         model = Protocol
@@ -35,6 +41,44 @@ class ProtocolFilter(django_filters.FilterSet):
             return queryset
         return queryset.filter(
             Q(gender_applicable=value) | Q(gender_applicable__isnull=True)
+        )
+
+    def filter_search(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(title__icontains=value)
+            | Q(specialty__icontains=value)
+            | Q(cid__icontains=value)
+            | Q(author__icontains=value)
+            | Q(tags__contains=[value])
+        )
+
+    def filter_type(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(
+            versions__is_current=True,
+            versions__protocol_type=value,
+        ).distinct()
+
+    def filter_tag(self, queryset, name, value):
+        if not value:
+            return queryset
+        return queryset.filter(tags__contains=[value])
+
+    def filter_age_min(self, queryset, name, value):
+        if value is None:
+            return queryset
+        return queryset.filter(
+            Q(age_range_min__lte=value) | Q(age_range_min__isnull=True)
+        )
+
+    def filter_age_max(self, queryset, name, value):
+        if value is None:
+            return queryset
+        return queryset.filter(
+            Q(age_range_max__gte=value) | Q(age_range_max__isnull=True)
         )
 
 
@@ -126,9 +170,20 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
                     status=200,
                 )
 
+        # Vincula ao paciente (cada médico só vê os seus) para o histórico.
+        patient = None
+        patient_id = serializer.validated_data.get("patient_id")
+        if patient_id:
+            patient = Paciente.objects.filter(
+                pk=patient_id, created_by=request.user
+            ).first()
+            if patient is None:
+                raise NotFound("Paciente não encontrado.")
+
         execution = ProtocolExecution.objects.create(
             version=version,
             physician=request.user,
+            patient=patient,
             patient_name=serializer.validated_data["patient_name"],
             client_uuid=client_uuid,
         )
@@ -240,6 +295,43 @@ class ProtocolViewSet(AuditableMixin, ModelViewSet):
             }
         )
 
+    @action(detail=True, methods=["post"], url_path="execute/back")
+    def execute_back(self, request, pk=None, **kwargs):
+        protocol = self.get_object()
+        execution = self._get_active_execution(protocol, request.user)
+        if not execution:
+            raise NotFound("Nenhuma execução ativa para este protocolo.")
+
+        engine = ProtocolExecutionEngine()
+        engine.voltar_step(execution)
+        execution.refresh_from_db()
+
+        interpreter = GuidedProtocolInterpreter(execution.version.steps_data)
+        step = (
+            interpreter.get_step(execution.current_step_key)
+            if execution.current_step_key
+            else None
+        )
+        history = [
+            {"step_key": s.step_key, "values": s.values}
+            for s in execution.states.filter(step_key__isnull=False).order_by(
+                "answered_at"
+            )
+        ]
+        context = interpreter.build_context(history)
+        warnings = (
+            interpreter.evaluate_step_gates(execution.current_step_key, context)
+            if execution.current_step_key
+            else []
+        )
+
+        return Response(
+            {
+                "step": step,
+                "gate_warnings": warnings,
+            }
+        )
+
     @action(detail=True, methods=["get"], url_path="execute/reminders")
     def execute_reminders(self, request, pk=None, **kwargs):
         protocol = self.get_object()
@@ -289,8 +381,11 @@ class ProtocolVersionViewSet(AuditableMixin, ModelViewSet):
     def set_current(self, request, pk=None, **kwargs):
         """Marca esta versão como atual."""
         version = self.get_object()
-        version.is_current = True
-        version.save()
+        ProtocolVersion.objects.filter(
+            protocol=version.protocol, is_current=True
+        ).exclude(pk=version.pk).update(is_current=False)
+        ProtocolVersion.objects.filter(pk=version.pk).update(is_current=True)
+        version.refresh_from_db()
         return Response(ProtocolVersionSerializer(version).data)
 
 

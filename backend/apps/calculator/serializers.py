@@ -32,6 +32,18 @@ class CalculatorSerializer(serializers.Serializer):
     # id do medicamento, para buscar a concentração e unidade
     medication_id = serializers.IntegerField(required=True)
 
+    # seleções do schema rico (opcionais; ignoradas por meds não migrados)
+    # indicação clínica -> escolhe o regime de dosagem
+    indication = serializers.CharField(
+        required=False, allow_null=True, allow_blank=True
+    )
+    # via de administração -> contraindicações por via
+    route = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    # índice da apresentação escolhida (na lista do medicamento)
+    presentation_index = serializers.IntegerField(
+        required=False, allow_null=True, min_value=0
+    )
+
     # validar se o medicamento existe no banco de dados
     def validate_medication_id(self, value):
         from apps.medications.models import Medication

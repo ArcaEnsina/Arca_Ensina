@@ -277,6 +277,15 @@ class ProtocolExecutionEngine:
         if not current_step:
             raise ValueError("Step atual não encontrado.")
 
+        # Registra a visita ao step de exibição para que ele apareça no
+        # histórico e seja possível voltar atrás (preserva valores já
+        # existentes, se houver).
+        ProtocolExecutionState.objects.update_or_create(
+            execution=execution,
+            step_key=execution.current_step_key,
+            defaults={},
+        )
+
         next_step_key = current_step.get("next_step")
 
         if next_step_key is None:
@@ -297,6 +306,46 @@ class ProtocolExecutionEngine:
             execution.current_step = None
             execution.save(update_fields=["current_step_key", "current_step"])
 
+        return execution
+
+    def voltar_step(self, execution):
+        """Reverte para o último step visitado, permitindo refazer a decisão.
+
+        Suportado apenas em modo JSON (steps_data declarativo). Remove o estado
+        do step de destino para que ele seja reapresentado em branco e
+        reposiciona ``current_step_key``. Se a execução já estava concluída,
+        ela volta a ``em_andamento``.
+        """
+        if not execution.version.steps_data.get("steps"):
+            return execution
+
+        states = list(
+            execution.states.filter(step_key__isnull=False).order_by(
+                "answered_at", "id"
+            )
+        )
+        # O step atual (ainda não respondido) não conta como histórico; o
+        # step inicial recém-criado em comecar() coincide com o atual.
+        answered = [s for s in states if s.step_key != execution.current_step_key]
+        if not answered:
+            return execution
+
+        target = answered[-1]
+
+        execution.current_step_key = target.step_key
+        execution.current_step = None
+        if execution.status != execution.Status.EM_ANDAMENTO:
+            execution.status = execution.Status.EM_ANDAMENTO
+            execution.finished_at = None
+        execution.save(
+            update_fields=[
+                "current_step_key",
+                "current_step",
+                "status",
+                "finished_at",
+            ]
+        )
+        target.delete()
         return execution
 
     def get_reminders(self, execution):
