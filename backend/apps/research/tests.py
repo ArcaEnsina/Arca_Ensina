@@ -10,12 +10,12 @@ from apps.audit.models import AuditLog
 from apps.protocols.models import (
     Protocol,
     ProtocolExecution,
-    ProtocolExecutionState,
     ProtocolVersion,
 )
-from apps.research.models import ResearchDataPoint
+from apps.research.models import ResearchResponse
 from apps.research.services import (
-    finalizar_protocolo_com_pesquisa,
+    coletar_pesquisa_execucao,
+    pode_coletar_pesquisa,
     taxa_preenchimento_pesquisa,
 )
 
@@ -31,134 +31,104 @@ def make_user(profile="medico"):
     )
 
 
-def make_execution_state(user):
+def make_execution(user):
     protocol, _ = Protocol.objects.get_or_create(title="__test_protocol__")
     version = ProtocolVersion.objects.create(
         protocol=protocol,
         version_number=next(_version_seq),
         steps_data={"steps": []},
     )
-    execution = ProtocolExecution.objects.create(version=version, physician=user)
-    return ProtocolExecutionState.objects.create(
-        execution=execution,
-        step_key="passo_1",
+    return ProtocolExecution.objects.create(
+        version=version,
+        physician=user,
+        patient_name="Paciente Teste",
     )
 
 
-def make_audit_log(user, state):
-    return AuditLog.objects.create(
-        user=user,
-        action="FINALIZAR_PROTOCOLO",
-        resource_type="protocol_execution_state",
-        resource_id=str(state.id),
-        ip="127.0.0.1",
-        payload={},
-    )
-
-
-class ResearchDataPointModelTest(TestCase):
+class ResearchResponseModelTest(TestCase):
     def setUp(self):
         self.user = make_user()
-        self.state = make_execution_state(self.user)
-
-    def test_ajuste_sem_justificativa_levanta_validation_error(self):
-        log = make_audit_log(self.user, self.state)
-        ponto = ResearchDataPoint(
-            audit_log=log,
-            execution_state=self.state,
-            ajustou_dose_sugerida=True,
-            motivo_ajuste="",
+        self.execution = make_execution(self.user)
+        self.log = AuditLog.objects.create(
+            user=self.user,
+            action="create.research_response",
+            resource_type="protocol_execution",
+            resource_id=str(self.execution.id),
         )
-        with self.assertRaises(ValidationError) as ctx:
-            ponto.full_clean()
-        self.assertIn("motivo_ajuste", ctx.exception.message_dict)
-
-    def test_ajuste_com_justificativa_salva_sem_erro(self):
-        log = make_audit_log(self.user, self.state)
-        ponto = ResearchDataPoint(
-            audit_log=log,
-            execution_state=self.state,
-            ajustou_dose_sugerida=True,
-            motivo_ajuste="Paciente apresentou intolerância gástrica.",
-        )
-        ponto.full_clean()
-
-    def test_sem_ajuste_nao_exige_motivo(self):
-        log = make_audit_log(self.user, self.state)
-        ponto = ResearchDataPoint(
-            audit_log=log,
-            execution_state=self.state,
-            ajustou_dose_sugerida=False,
-        )
-        ponto.full_clean()
 
     def test_campos_opcionais_aceitam_null(self):
-        log = make_audit_log(self.user, self.state)
-        ponto = ResearchDataPoint.objects.create(
-            audit_log=log,
-            execution_state=self.state,
+        ponto = ResearchResponse.objects.create(
+            audit_log=self.log,
+            execution=self.execution,
         )
         self.assertIsNone(ponto.condicao_tratada_cid)
         self.assertIsNone(ponto.seguiu_protocolo_integralmente)
-        self.assertIsNone(ponto.indicacao_clinica)
+        self.assertIsNone(ponto.desfecho_esperado)
+
+    def test_vinculado_a_execucao_inteira(self):
+        ponto = ResearchResponse.objects.create(
+            audit_log=self.log,
+            execution=self.execution,
+        )
+        self.assertEqual(ponto.execution, self.execution)
+        self.assertEqual(self.execution.research_response, ponto)
+
+    def test_imutavel_nao_permite_update(self):
+        ponto = ResearchResponse.objects.create(
+            audit_log=self.log,
+            execution=self.execution,
+            condicao_tratada_cid="J45.9",
+        )
+        ponto.condicao_tratada_cid = "J20.9"
+        with self.assertRaises(ValidationError):
+            ponto.save()
+        ponto.refresh_from_db()
+        self.assertEqual(ponto.condicao_tratada_cid, "J45.9")
 
 
-class FinalizarProtocoloServiceTest(TestCase):
+class ColetaServiceTest(TestCase):
     def setUp(self):
         self.user = make_user()
-        self.state = make_execution_state(self.user)
+        self.execution = make_execution(self.user)
 
-    def test_retorna_audit_log(self):
-        log = finalizar_protocolo_com_pesquisa(
+    def test_cria_audit_log_e_research_response(self):
+        ponto = coletar_pesquisa_execucao(
             self.user,
-            self.state,
-            {"condicao_tratada_cid": "J45.9", "ajustou_dose_sugerida": False},
+            self.execution,
+            {"condicao_tratada_cid": "J45.9", "seguiu_protocolo_integralmente": True},
         )
-        self.assertIsInstance(log, AuditLog)
+        self.assertIsInstance(ponto, ResearchResponse)
+        self.assertIsInstance(ponto.audit_log, AuditLog)
+        self.assertEqual(ponto.audit_log.user, self.user)
+        self.assertEqual(ponto.execution, self.execution)
 
-    def test_cria_research_data_point_vinculado(self):
-        log = finalizar_protocolo_com_pesquisa(
+    def test_dados_persistidos_corretamente(self):
+        ponto = coletar_pesquisa_execucao(
             self.user,
-            self.state,
-            {
-                "condicao_tratada_cid": "J45.9",
-                "ajustou_dose_sugerida": True,
-                "motivo_ajuste": "Intolerância gástrica.",
-            },
-        )
-        self.assertTrue(ResearchDataPoint.objects.filter(audit_log=log).exists())
-
-    def test_dados_pesquisa_persistidos_corretamente(self):
-        log = finalizar_protocolo_com_pesquisa(
-            self.user,
-            self.state,
+            self.execution,
             {
                 "condicao_tratada_cid": "J45.9",
                 "seguiu_protocolo_integralmente": False,
-                "ajustou_dose_sugerida": True,
-                "motivo_ajuste": "Peso acima da faixa do protocolo.",
+                "desfecho_esperado": "Melhora em 48h",
             },
         )
-        ponto = ResearchDataPoint.objects.get(audit_log=log)
         self.assertEqual(ponto.condicao_tratada_cid, "J45.9")
         self.assertFalse(ponto.seguiu_protocolo_integralmente)
-        self.assertEqual(ponto.motivo_ajuste, "Peso acima da faixa do protocolo.")
+        self.assertEqual(ponto.desfecho_esperado, "Melhora em 48h")
 
-    def test_falha_sem_motivo_nao_persiste_nada(self):
-        before_logs = AuditLog.objects.count()
-        with self.assertRaises(ValidationError):
-            finalizar_protocolo_com_pesquisa(
-                self.user,
-                self.state,
-                {"ajustou_dose_sugerida": True, "motivo_ajuste": ""},
-            )
-        self.assertEqual(AuditLog.objects.count(), before_logs)
-
-    def test_log_vinculado_ao_usuario_correto(self):
-        log = finalizar_protocolo_com_pesquisa(
-            self.user, self.state, {"ajustou_dose_sugerida": False}
+    def test_idempotente_por_client_uuid(self):
+        cu = uuid.uuid4()
+        primeiro = coletar_pesquisa_execucao(
+            self.user, self.execution, {"condicao_tratada_cid": "J45.9"}, client_uuid=cu
         )
-        self.assertEqual(log.user, self.user)
+        segundo = coletar_pesquisa_execucao(
+            self.user, self.execution, {"condicao_tratada_cid": "J45.9"}, client_uuid=cu
+        )
+        self.assertEqual(primeiro.id, segundo.id)
+        self.assertEqual(ResearchResponse.objects.count(), 1)
+
+    def test_seam_de_consentimento_permite_por_padrao(self):
+        self.assertTrue(pode_coletar_pesquisa(self.user))
 
 
 class TaxaPreenchimentoTest(TestCase):
@@ -172,28 +142,27 @@ class TaxaPreenchimentoTest(TestCase):
 
     def test_calcula_percentual_corretamente(self):
         for i in range(4):
-            state = make_execution_state(self.user)
+            execution = make_execution(self.user)
             cid = "J45.9" if i < 3 else None
-            finalizar_protocolo_com_pesquisa(
-                self.user,
-                state,
-                {"condicao_tratada_cid": cid, "ajustou_dose_sugerida": False},
+            coletar_pesquisa_execucao(
+                self.user, execution, {"condicao_tratada_cid": cid}
             )
         resultado = taxa_preenchimento_pesquisa()
         self.assertEqual(resultado["total"], 4)
         self.assertEqual(resultado["campos"]["condicao_tratada_cid"], 75.0)
 
 
-class ResearchDataPointAPITest(TestCase):
+class ResearchResponseAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.researcher = make_user(profile="pesquisador")
         self.doctor = make_user(profile="medico")
-        self.state = make_execution_state(self.researcher)
-        finalizar_protocolo_com_pesquisa(
-            self.researcher,
-            self.state,
-            {"condicao_tratada_cid": "J45.9", "ajustou_dose_sugerida": False},
+        self.execution = make_execution(self.doctor)
+        # Um registro pré-existente para os testes de leitura.
+        coletar_pesquisa_execucao(
+            self.doctor,
+            make_execution(self.doctor),
+            {"condicao_tratada_cid": "J45.9"},
         )
 
     def _auth(self, user):
@@ -204,75 +173,73 @@ class ResearchDataPointAPITest(TestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {resp.data['access']}")
 
     def test_sem_autenticacao_retorna_401(self):
-        resp = self.client.get("/api/v1/research/data/")
+        resp = self.client.get("/api/v1/research/responses/")
         self.assertEqual(resp.status_code, 401)
 
     def test_medico_nao_pode_listar(self):
         self._auth(self.doctor)
-        resp = self.client.get("/api/v1/research/data/")
+        resp = self.client.get("/api/v1/research/responses/")
         self.assertEqual(resp.status_code, 403)
 
     def test_pesquisador_pode_listar(self):
         self._auth(self.researcher)
-        resp = self.client.get("/api/v1/research/data/")
+        resp = self.client.get("/api/v1/research/responses/")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("results", resp.data)
 
-    def test_endpoint_taxa_retorna_percentuais(self):
+    def test_aggregate_retorna_percentuais(self):
         self._auth(self.researcher)
-        resp = self.client.get("/api/v1/research/data/taxa/")
+        resp = self.client.get("/api/v1/research/responses/aggregate/")
         self.assertEqual(resp.status_code, 200)
         self.assertIn("total", resp.data)
         self.assertIn("campos", resp.data)
 
-    def test_filtro_por_ajuste_de_dose(self):
-        self._auth(self.researcher)
-        resp = self.client.get("/api/v1/research/data/?ajustou_dose_sugerida=false")
-        self.assertEqual(resp.status_code, 200)
-        for item in resp.data["results"]:
-            self.assertFalse(item["ajustou_dose_sugerida"])
-
-
-class TaxaServicoIsoladoTest(TestCase):
-    def setUp(self):
-        self.user = make_user(profile="pesquisador")
-
-    def test_taxa_sem_dados(self):
-        resultado = taxa_preenchimento_pesquisa()
-        self.assertEqual(resultado["total"], 0)
-
-    def test_taxa_com_dados(self):
-        state = make_execution_state(self.user)
-        finalizar_protocolo_com_pesquisa(
-            self.user,
-            state,
-            {"condicao_tratada_cid": "J45.9", "ajustou_dose_sugerida": False},
+    def test_medico_pode_coletar(self):
+        self._auth(self.doctor)
+        resp = self.client.post(
+            "/api/v1/research/responses/",
+            {
+                "execution": self.execution.id,
+                "condicao_tratada_cid": "J45.9",
+                "seguiu_protocolo_integralmente": True,
+            },
+            format="json",
         )
-        resultado = taxa_preenchimento_pesquisa()
-        self.assertGreater(resultado["total"], 0)
-        self.assertIn("condicao_tratada_cid", resultado["campos"])
+        self.assertEqual(resp.status_code, 201)
+        self.assertTrue(
+            ResearchResponse.objects.filter(execution=self.execution).exists()
+        )
 
-    def test_view_taxa_invocada_diretamente(self):
-        import traceback as tb
+    def test_pesquisador_nao_pode_coletar(self):
+        self._auth(self.researcher)
+        resp = self.client.post(
+            "/api/v1/research/responses/",
+            {"execution": self.execution.id},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 403)
 
-        from django.test import RequestFactory
-        from rest_framework_simplejwt.tokens import AccessToken
+    def test_nao_pode_coletar_execucao_de_outro(self):
+        outro_medico = make_user(profile="medico")
+        self._auth(outro_medico)
+        resp = self.client.post(
+            "/api/v1/research/responses/",
+            {"execution": self.execution.id},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 403)
 
-        from apps.research.views import ResearchDataPointViewSet
-
-        factory = RequestFactory()
-        request = factory.get("/api/v1/research/data/taxa/")
-        token = AccessToken.for_user(self.user)
-        request.META["HTTP_AUTHORIZATION"] = f"Bearer {str(token)}"
-
-        request.user = self.user
-
-        view = ResearchDataPointViewSet.as_view({"get": "taxa"})
-        try:
-            response = view(request)
-            print("\n=== VIEW STATUS:", response.status_code)
-            print("=== VIEW DATA:", response.data)
-        except Exception as e:
-            print("\n=== EXCEPTION:", type(e).__name__, str(e))
-            tb.print_exc()
-            raise
+    def test_coleta_idempotente_via_client_uuid(self):
+        self._auth(self.doctor)
+        cu = str(uuid.uuid4())
+        payload = {
+            "execution": self.execution.id,
+            "condicao_tratada_cid": "J45.9",
+            "client_uuid": cu,
+        }
+        first = self.client.post("/api/v1/research/responses/", payload, format="json")
+        second = self.client.post("/api/v1/research/responses/", payload, format="json")
+        self.assertEqual(first.status_code, 201)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(first.data["id"], second.data["id"])
+        self.assertEqual(ResearchResponse.objects.filter(client_uuid=cu).count(), 1)

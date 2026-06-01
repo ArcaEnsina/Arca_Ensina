@@ -26,3 +26,19 @@ class IsAdmin(IsProfile):
 
 class IsResearcher(IsProfile):
     profile = User.Profile.PESQUISADOR
+
+
+class IsClinico(BasePermission):
+    """Permite médicos e administradores (perfil clínico)."""
+
+    message = "Você não tem o perfil necessário para esta ação."
+
+    def has_permission(self, request, view):
+        if not request.user.is_authenticated:
+            return False
+        user = cast(User, request.user)
+        return (
+            user.is_superuser
+            or user.profile == User.Profile.MEDICO
+            or user.profile == User.Profile.ADMIN
+        )
