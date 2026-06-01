@@ -1,48 +1,62 @@
 from django.db import transaction
 
 from apps.audit.models import AuditLog
-from apps.research.models import ResearchDataPoint
+from apps.research.models import ResearchResponse
 
 
-def finalizar_protocolo_com_pesquisa(
+def pode_coletar_pesquisa(user) -> bool:
+    """TODO: consultar ``ConsentLog`` do usuário.
+    Stub sem implementação. Retorna True.
+    """
+    return True
+
+
+def coletar_pesquisa_execucao(
     user,
-    execution_state,
+    execution,
     dados_pesquisa: dict,
+    client_uuid=None,
     ip: str = "",
-) -> AuditLog:
+) -> ResearchResponse:
+    """Cria o ``AuditLog`` e o ``ResearchResponse``
+    de uma execução por ``client_uuid``.
+    """
+    if client_uuid:
+        existente = ResearchResponse.objects.filter(client_uuid=client_uuid).first()
+        if existente is not None:
+            return existente
+
     with transaction.atomic():
         log = AuditLog.objects.create(
             user=user,
-            action="FINALIZAR_PROTOCOLO",
-            resource_type="protocol_execution_state",
-            resource_id=str(execution_state.id),
+            action="create.research_response",
+            resource_type="protocol_execution",
+            resource_id=str(execution.id),
             ip=ip or "",
             payload={
-                "step_key": execution_state.step_key,
-                "ajustou_dose": dados_pesquisa.get("ajustou_dose_sugerida", False),
+                "seguiu_protocolo_integralmente": dados_pesquisa.get(
+                    "seguiu_protocolo_integralmente"
+                ),
             },
         )
 
-        ResearchDataPoint.objects.create(
+        return ResearchResponse.objects.create(
             audit_log=log,
-            execution_state=execution_state,
+            execution=execution,
+            client_uuid=client_uuid,
             **dados_pesquisa,
         )
-
-        return log
 
 
 _TEXT_FIELDS = {
     "condicao_tratada_cid",
     "desfecho_esperado",
-    "indicacao_clinica",
-    "motivo_ajuste",
 }
 _BOOL_FIELDS = {"seguiu_protocolo_integralmente"}
 
 
 def taxa_preenchimento_pesquisa() -> dict:
-    qs = ResearchDataPoint.objects.all()
+    qs = ResearchResponse.objects.all()
     total = qs.count()
 
     if total == 0:
