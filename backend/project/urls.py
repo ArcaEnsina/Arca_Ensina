@@ -45,5 +45,6 @@ urlpatterns = [
     path(f"{V}/", include("apps.pacientes.urls")),
     path(f"{V}/", include("apps.protocols.urls")),
     path(f"{V}/medications/", include("apps.medications.urls")),
+    path(f"{V}/", include("apps.research.urls")),
     path(f"{V}/", include("apps.sedation.urls")),
 ]
