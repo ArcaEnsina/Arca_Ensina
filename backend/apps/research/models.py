@@ -4,18 +4,24 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 
-class ResearchDataPoint(models.Model):
+class ResearchResponse(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     audit_log = models.OneToOneField(
         "audit.AuditLog",
         on_delete=models.CASCADE,
-        related_name="research_data",
+        related_name="research_response",
     )
-    execution_state = models.OneToOneField(
-        "protocols.ProtocolExecutionState",
+    execution = models.OneToOneField(
+        "protocols.ProtocolExecution",
         on_delete=models.CASCADE,
-        related_name="research_data",
+        related_name="research_response",
+    )
+    client_uuid = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="UUID do cliente para idempotência de envios offline.",
     )
 
     condicao_tratada_cid = models.CharField(
@@ -36,40 +42,27 @@ class ResearchDataPoint(models.Model):
         help_text="Desfecho clínico esperado informado pelo profissional.",
     )
 
-    indicacao_clinica = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Indicação clínica livre descrita ao usar a calculadora.",
-    )
-    ajustou_dose_sugerida = models.BooleanField(
-        default=False,
-        help_text="Profissional alterou a dose calculada pelo sistema.",
-    )
-    motivo_ajuste = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Obrigatório quando ajustou_dose_sugerida=True.",
-    )
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["client_uuid"],
+                condition=models.Q(client_uuid__isnull=False),
+                name="unique_research_response_client_uuid",
+            )
+        ]
 
     def __str__(self) -> str:
         user = getattr(getattr(self, "audit_log", None), "user", None)
-        return f"ResearchDataPoint({self.id}) — {user}"
-
-    def clean(self) -> None:
-        if self.ajustou_dose_sugerida and not self.motivo_ajuste:
-            raise ValidationError(
-                {
-                    "motivo_ajuste": (
-                        "Justificativa obrigatória quando a dose foi ajustada."
-                    )
-                }
-            )
+        return f"ResearchResponse({self.id}) — {user}"
 
     def save(self, *args, **kwargs) -> None:
+        # bloqueia qualquer UPDATE de um registro já existente
+        if self.pk and ResearchResponse.objects.filter(pk=self.pk).exists():
+            raise ValidationError(
+                "ResearchResponse é imutável e não pode ser alterado."
+            )
         self.full_clean()
         super().save(*args, **kwargs)
