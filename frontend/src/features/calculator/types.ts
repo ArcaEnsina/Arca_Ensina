@@ -15,7 +15,7 @@ export interface Regimen {
   dose_basis: 'per_dose' | 'per_day'
   dose_unit?: 'mg/kg' | 'mg/m2'
   routes?: string[]
-  frequency_hours: number
+  frequency_hours: number | null
   dose_mg_kg?: number | null
   notes?: string | null
 }
