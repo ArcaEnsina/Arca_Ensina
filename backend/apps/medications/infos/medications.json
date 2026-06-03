@@ -5,35 +5,180 @@
         "fields": {
             "name": "Amoxicilina",
             "category": "Antibiótico",
-            "description": "Antibiótico de amplo espectro indicado para infecções bacterianas como otite, pneumonia e infecções do trato urinário em crianças.",
-            "prescription": 50,
-            "frequency_hours": 8,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
-            "max_absolute_dose_mg": 3000,
-            "concentration_mg": 250,
-            "concentration_ml": 5,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 25.0,
-                    "max": 100.0,
-                    "absolute_max": 500.0
+            "description": "Antibiótico betalactâmico (aminopenicilina) de amplo espectro, indicado para infecções bacterianas pediátricas como otite média aguda, pneumonia adquirida na comunidade, faringite estreptocócica, sinusite bacteriana e infecções de pele e do trato urinário.",
+            "presentations": [
+              {
+                "form": "xarope",
+                "route": "VO",
+                "concentration_mg": 250,
+                "concentration_ml": 5,
+                "drops_per_ml": null,
+                "package": "pó para suspensão oral 250 mg/5 mL"
+              },
+              {
+                "form": "xarope",
+                "route": "VO",
+                "concentration_mg": 500,
+                "concentration_ml": 5,
+                "drops_per_ml": null,
+                "package": "pó para suspensão oral 500 mg/5 mL"
+              },
+              {
+                "form": "comprimido",
+                "route": "VO",
+                "concentration_mg": 500,
+                "concentration_ml": null,
+                "drops_per_ml": null,
+                "package": "comprimido 500 mg (uso em >= 40 kg / adolescentes)"
+              }
+            ],
+            "regimens": [
+              {
+                "indication": "Otite média aguda / Pneumonia (PAC) / Sinusite bacteriana (dose alta)",
+                "off_label": false,
+                "dose_basis": "per_dose",
+                "routes": [
+                  "VO"
+                ],
+                "frequency_hours": 12,
+                "dose_mg_kg": 45,
+                "min_dose_mg_kg": 40,
+                "max_dose_mg_kg": 45,
+                "daily_max_mg_kg": 90,
+                "absolute_max_mg": 4000,
+                "limits_by_age": {
+                  "neonatal": {
+                    "min": 15,
+                    "max": 15,
+                    "absolute_max": 500
+                  }
                 },
-                "lactente": {
-                    "min": 25.0,
-                    "max": 90.0,
-                    "absolute_max": 1500.0
+                "notes": "Esquema de dose alta (total 80–90 mg/kg/dia) para superar resistência intermediária de S. pneumoniae. Máx 4 g/dia. Não usar dose alta em < 3 meses: limitar a 15 mg/kg/dose 12/12h (imaturidade da excreção renal)."
+              },
+              {
+                "indication": "Faringite/amigdalite estreptocócica",
+                "off_label": false,
+                "dose_basis": "per_dose",
+                "routes": [
+                  "VO"
+                ],
+                "frequency_hours": 12,
+                "dose_mg_kg": 25,
+                "min_dose_mg_kg": 25,
+                "max_dose_mg_kg": 25,
+                "daily_max_mg_kg": 50,
+                "absolute_max_mg": 1000,
+                "limits_by_age": {
+                  "neonatal": {
+                    "min": 15,
+                    "max": 15,
+                    "absolute_max": 500
+                  }
                 },
-                "crianca": {
-                    "min": 25.0,
-                    "max": 90.0,
-                    "absolute_max": 3000.0
+                "notes": "Duração 10 dias. Máx 1 g/dia. Alternativa: 50 mg/kg/dose VO 24/24h (dose única diária). < 3 meses: limitar a 15 mg/kg/dose 12/12h."
+              },
+              {
+                "indication": "Infecção leve (pele/partes moles, ITU)",
+                "off_label": false,
+                "dose_basis": "per_dose",
+                "routes": [
+                  "VO"
+                ],
+                "frequency_hours": 12,
+                "dose_mg_kg": 25,
+                "min_dose_mg_kg": 20,
+                "max_dose_mg_kg": 25,
+                "daily_max_mg_kg": 50,
+                "absolute_max_mg": 1500,
+                "limits_by_age": {
+                  "neonatal": {
+                    "min": 15,
+                    "max": 15,
+                    "absolute_max": 500
+                  }
                 },
-                "adolescente": {
-                    "min": 25.0,
-                    "max": 90.0,
-                    "absolute_max": 3000.0
+                "notes": "Dose padrão (total 40–50 mg/kg/dia). Alternativa: 13,3–16,6 mg/kg/dose VO 8/8h. < 3 meses: limitar a 15 mg/kg/dose 12/12h."
+              },
+              {
+                "indication": "Profilaxia de endocardite infecciosa",
+                "off_label": false,
+                "dose_basis": "per_dose",
+                "routes": [
+                  "VO"
+                ],
+                "dose_mg_kg": 50,
+                "min_dose_mg_kg": 50,
+                "max_dose_mg_kg": 50,
+                "absolute_max_mg": 2000,
+                "limits_by_age": null,
+                "notes": "Dose única VO 30–60 min antes do procedimento. Máx 2 g. Sem frequência: administração única."
+              },
+              {
+                "indication": "Erradicação de H. pylori",
+                "off_label": true,
+                "dose_basis": "per_dose",
+                "routes": [
+                  "VO"
+                ],
+                "frequency_hours": 12,
+                "dose_mg_kg": 25,
+                "min_dose_mg_kg": 25,
+                "max_dose_mg_kg": 25,
+                "daily_max_mg_kg": 50,
+                "absolute_max_mg": 2000,
+                "limits_by_age": null,
+                "notes": "Off-label em pediatria. Em esquema tríplice com IBP + claritromicina, por 14 dias. Máx 2 g/dia."
+              }
+            ],
+            "contraindications": [
+              {
+                "rule": "form_min_age_days",
+                "form": "comprimido",
+                "value": 2190
+              }
+            ],
+            "adjustments": {
+              "renal": [
+                {
+                  "condition": "ClCr > 30 mL/min",
+                  "guidance": "Não requer ajuste."
+                },
+                {
+                  "condition": "ClCr 10–30 mL/min",
+                  "guidance": "250–500 mg VO 12/12h. Não usar a apresentação de 875 mg."
+                },
+                {
+                  "condition": "ClCr < 10 mL/min",
+                  "guidance": "250–500 mg VO 24/24h."
+                },
+                {
+                  "condition": "Hemodiálise",
+                  "guidance": "250–500 mg VO 24/24h; administrar dose adicional durante e ao fim da sessão de diálise."
                 }
+              ],
+              "hepatic": [
+                {
+                  "condition": "Insuficiência hepática",
+                  "guidance": "Não requer ajuste de dose."
+                }
+              ]
+            },
+            "administration": {
+              "dilution": "Pó para suspensão: reconstituir adicionando água filtrada aos poucos até a marca do rótulo; agitar vigorosamente antes de cada dose. Pode ser administrada com ou sem alimentos. Usar seringa dosadora."
+            },
+            "indications": {
+              "anvisa": [
+                "Otite média aguda",
+                "Pneumonia adquirida na comunidade",
+                "Faringite/amigdalite estreptocócica",
+                "Sinusite bacteriana aguda",
+                "Infecções de pele e partes moles",
+                "Infecções do trato urinário"
+              ],
+              "fda": "Aprovado para infecções por organismos sensíveis (incluindo uso pediátrico).",
+              "off_label": [
+                "Erradicação de H. pylori em pediatria (esquema combinado)"
+              ]
             }
         }
     },
