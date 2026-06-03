@@ -3,9 +3,13 @@ from django.db import models
 
 class Medication(models.Model):
     name = models.CharField(max_length=255)
-    prescription = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
+    prescription = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True
+    )
     category = models.CharField(default="Outro", max_length=100)
-    description = models.TextField(default="Nenhuma descrição disponível.", blank=True)
+    description = models.TextField(
+        default="Nenhuma descrição disponível.", blank=True
+    )
     frequency_hours = models.IntegerField(null=True, blank=True)
     # dose mínima segura em mg/kg/dia
     min_dose_mg_kg = models.DecimalField(
