@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.audit.mixins import AuditableMixin
+from apps.audit.models import AuditLog
 from apps.audit.utils import log_audit
 
 from . import services
@@ -26,6 +27,7 @@ class CalculatorView(AuditableMixin, APIView):
         indication = serializer.validated_data.get("indication")
         route = serializer.validated_data.get("route")
         presentation_index = serializer.validated_data.get("presentation_index")
+        client_uuid = serializer.validated_data.get("client_uuid")
 
         # cálculo completo via orquestração (regime + apresentação +
         # contraindicações) sobre o motor único (pharma_engine).
@@ -53,15 +55,28 @@ class CalculatorView(AuditableMixin, APIView):
             audit_payload["height"] = str(height)
         if age_days is not None:
             audit_payload["age_days"] = str(age_days)
+        if client_uuid is not None:
+            audit_payload["client_uuid"] = str(client_uuid)
 
-        log_audit(
-            user=request.user if request.user.is_authenticated else None,
-            action="calculate",
-            resource_type="calculator",
-            resource_id="",
-            ip=self.get_client_ip(request),
-            payload=audit_payload,
-        )
+        # Idempotência: se já existe audit log com mesmo client_uuid, pular log
+        should_log = True
+        if client_uuid is not None:
+            if AuditLog.objects.filter(
+                action="calculate",
+                resource_type="calculator",
+                payload__client_uuid=str(client_uuid),
+            ).exists():
+                should_log = False
+
+        if should_log:
+            log_audit(
+                user=request.user if request.user.is_authenticated else None,
+                action="calculate",
+                resource_type="calculator",
+                resource_id="",
+                ip=self.get_client_ip(request),
+                payload=audit_payload,
+            )
 
         return Response(
             {
@@ -75,6 +90,8 @@ class CalculatorView(AuditableMixin, APIView):
                 "blocked": result["blocked"],
                 "warnings": legacy_warnings,
                 "warnings_detail": structured_warnings,
+                "regimen": result["regimen"],
+                "presentation": result["presentation"],
             },
             status=200,
         )
