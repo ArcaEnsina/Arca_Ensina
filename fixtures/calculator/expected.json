@@ -1,0 +1,1153 @@
+[
+  {
+    "name": "legacy: weight-based per_day with concentration",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "250.00",
+      "frequency_per_day": 3,
+      "volume_ml": "5.00",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "legacy: weight-based per_day with limits_by_age",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "250.00",
+      "frequency_per_day": 3,
+      "volume_ml": "5.00",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "legacy: no concentration (volume/drops/units null)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "250.00",
+      "frequency_per_day": 3,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "rich: basic regimen per_day mg/kg",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "250.00",
+      "frequency_per_day": 3,
+      "volume_ml": "5.00",
+      "drops": "100",
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Infecções bacterianas",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO",
+          "gotas"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 50,
+        "min_dose_mg_kg": 25,
+        "max_dose_mg_kg": 90,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 3000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "gotas",
+        "concentration_mg": 250,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "rich: per_dose basis mg/kg",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "800.00",
+      "dosage_per_dose": "200.00",
+      "frequency_per_day": 4,
+      "volume_ml": "2.00",
+      "drops": "40",
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Dor e febre",
+        "dose_basis": "per_dose",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO",
+          "gotas"
+        ],
+        "frequency_hours": 6,
+        "dose_mg_kg": 10,
+        "min_dose_mg_kg": 8,
+        "max_dose_mg_kg": 15,
+        "daily_max_mg_kg": 60,
+        "absolute_max_mg": 4000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "gotas",
+        "concentration_mg": 500,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "rich: mg/m2 dose_unit with height (BSA)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "66.67",
+      "dosage_per_dose": "66.67",
+      "frequency_per_day": 1,
+      "volume_ml": "2.67",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Oncologia",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/m2",
+        "routes": [
+          "VO",
+          "IV"
+        ],
+        "frequency_hours": 24,
+        "dose_mg_kg": 100,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": 100,
+        "absolute_max_mg": 200,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "solucao",
+        "route": "VO",
+        "concentration_mg": 50,
+        "concentration_ml": 2,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "rich: drops form presentation",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "600.00",
+      "dosage_per_dose": "150.00",
+      "frequency_per_day": 4,
+      "volume_ml": "0.75",
+      "drops": "15",
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Dor e febre",
+        "dose_basis": "per_dose",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO",
+          "gotas"
+        ],
+        "frequency_hours": 6,
+        "dose_mg_kg": 15,
+        "min_dose_mg_kg": 10,
+        "max_dose_mg_kg": 20,
+        "daily_max_mg_kg": 60,
+        "absolute_max_mg": 4000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "gotas",
+        "concentration_mg": 200,
+        "concentration_ml": 1,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "rich: solid form (comprimido, concentration_ml null)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "450.00",
+      "dosage_per_dose": "150.00",
+      "frequency_per_day": 3,
+      "volume_ml": null,
+      "drops": null,
+      "units": "0.75",
+      "unit_label": "comprimidos",
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Anti-inflamatório",
+        "dose_basis": "per_dose",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 10,
+        "min_dose_mg_kg": 5,
+        "max_dose_mg_kg": 12,
+        "daily_max_mg_kg": 40,
+        "absolute_max_mg": 2400,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "comprimido",
+        "route": "VO",
+        "concentration_mg": 200,
+        "concentration_ml": null,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "contraindication: min_age_days",
+    "result": {
+      "blocked": true,
+      "dosage_mg": null,
+      "dosage_per_dose": null,
+      "frequency_per_day": null,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "contraindicated",
+          "severity": "CRITICO",
+          "drug": "Azitromicina",
+          "rule": "min_age_days",
+          "current_dose": "",
+          "max_allowed": "",
+          "unit": "",
+          "message": "Contraindicado: idade abaixo do mínimo (30 dias)."
+        }
+      ],
+      "regimen": {
+        "indication": "Infecções",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 24,
+        "dose_mg_kg": 10,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 500,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 200,
+        "concentration_ml": 5,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "contraindication: min_weight_kg",
+    "result": {
+      "blocked": true,
+      "dosage_mg": null,
+      "dosage_per_dose": null,
+      "frequency_per_day": null,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "contraindicated",
+          "severity": "CRITICO",
+          "drug": "Vancomicina",
+          "rule": "min_weight_kg",
+          "current_dose": "",
+          "max_allowed": "",
+          "unit": "",
+          "message": "Contraindicado: peso abaixo do mínimo (3 kg)."
+        }
+      ],
+      "regimen": {
+        "indication": "Infecções graves",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "IV"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 40,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 2000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "solucao",
+        "route": "IV",
+        "concentration_mg": 500,
+        "concentration_ml": 10,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "contraindication: form_min_age_days",
+    "result": {
+      "blocked": true,
+      "dosage_mg": null,
+      "dosage_per_dose": null,
+      "frequency_per_day": null,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "contraindicated",
+          "severity": "CRITICO",
+          "drug": "Dipirona Sup",
+          "rule": "form_min_age_days",
+          "current_dose": "",
+          "max_allowed": "",
+          "unit": "",
+          "message": "Contraindicado: forma 'supositorio' abaixo da idade mínima (120 dias)."
+        }
+      ],
+      "regimen": {
+        "indication": "Dor e febre",
+        "dose_basis": "per_dose",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO",
+          "supositorio"
+        ],
+        "frequency_hours": 6,
+        "dose_mg_kg": 10,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 4000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "supositorio",
+        "route": "supositorio",
+        "concentration_mg": 300,
+        "concentration_ml": null,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "contraindication: route_min_age_days",
+    "result": {
+      "blocked": true,
+      "dosage_mg": null,
+      "dosage_per_dose": null,
+      "frequency_per_day": null,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "contraindicated",
+          "severity": "CRITICO",
+          "drug": "Gentamicina",
+          "rule": "route_min_age_days",
+          "current_dose": "",
+          "max_allowed": "",
+          "unit": "",
+          "message": "Contraindicado: via 'IV' abaixo da idade mínima (30 dias)."
+        }
+      ],
+      "regimen": {
+        "indication": "Infecções graves",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "IV",
+          "IM"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 5,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 500,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "solucao",
+        "route": "IV",
+        "concentration_mg": 40,
+        "concentration_ml": 2,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "contraindication: route_forbidden_age_range",
+    "result": {
+      "blocked": true,
+      "dosage_mg": null,
+      "dosage_per_dose": null,
+      "frequency_per_day": null,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "contraindicated",
+          "severity": "CRITICO",
+          "drug": "Aspirina",
+          "rule": "route_forbidden_age_range",
+          "current_dose": "",
+          "max_allowed": "",
+          "unit": "",
+          "message": "Contraindicado: via 'VO' nesta faixa etária (180-1825 dias)."
+        }
+      ],
+      "regimen": {
+        "indication": "Anti-inflamatório",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 10,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 4000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "comprimido",
+        "route": "VO",
+        "concentration_mg": 500,
+        "concentration_ml": null,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "special block: age_band_null",
+    "result": {
+      "blocked": true,
+      "dosage_mg": null,
+      "dosage_per_dose": null,
+      "frequency_per_day": null,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "contraindicated",
+          "severity": "CRITICO",
+          "drug": "Teste Band Null",
+          "rule": "age_band_null",
+          "current_dose": "",
+          "max_allowed": "",
+          "unit": "",
+          "message": "Contraindicado para a faixa etária 'neonatal'."
+        }
+      ],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 50,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 3000,
+        "limits_by_age": {
+          "neonatal": null,
+          "lactente": {
+            "min": 25,
+            "max": 50
+          },
+          "crianca": {
+            "min": 30,
+            "max": 60
+          },
+          "adolescente": {
+            "min": 35,
+            "max": 70
+          },
+          "adulto": {
+            "min": 25,
+            "max": 90
+          }
+        }
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 250,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "special block: height_required for mg/m2",
+    "result": {
+      "blocked": true,
+      "dosage_mg": null,
+      "dosage_per_dose": null,
+      "frequency_per_day": null,
+      "volume_ml": null,
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "missing_data",
+          "severity": "CRITICO",
+          "drug": "Teste BSA Sem Altura",
+          "rule": "height_required",
+          "current_dose": "",
+          "max_allowed": "",
+          "unit": "",
+          "message": "Esta indicação é dosada por superfície corporal (mg/m²) e exige a altura do paciente."
+        }
+      ],
+      "regimen": {
+        "indication": "Oncologia",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/m2",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 24,
+        "dose_mg_kg": 100,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 200,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "solucao",
+        "route": "VO",
+        "concentration_mg": 50,
+        "concentration_ml": 2,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "warning: below_min_recommended",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "225.00",
+      "dosage_per_dose": "75.00",
+      "frequency_per_day": 3,
+      "volume_ml": "1.50",
+      "drops": "30",
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "BAIXO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "below_min_recommended",
+          "severity": "BAIXO",
+          "drug": "Teste Dose Baixa",
+          "current_dose": "15.0000",
+          "max_allowed": "20",
+          "unit": "mg/kg/dia",
+          "message": "Dose (15.0000 mg/kg/dia) abaixo do mínimo recomendado (20 mg/kg/dia)."
+        }
+      ],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 15,
+        "min_dose_mg_kg": 20,
+        "max_dose_mg_kg": 90,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 3000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 250,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "warning: above_max_recommended",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "1425.00",
+      "dosage_per_dose": "475.00",
+      "frequency_per_day": 3,
+      "volume_ml": "9.50",
+      "drops": "190",
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "ALTO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "above_max_recommended",
+          "severity": "ALTO",
+          "drug": "Teste Dose Alta",
+          "current_dose": "95.0000",
+          "max_allowed": "90",
+          "unit": "mg/kg/dia",
+          "message": "Dose (95.0000 mg/kg/dia) acima do máximo recomendado (90 mg/kg/dia)."
+        }
+      ],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 95,
+        "min_dose_mg_kg": 25,
+        "max_dose_mg_kg": 90,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 3000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 250,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "warning: above_absolute_max",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "3000.00",
+      "dosage_per_dose": "1000.00",
+      "frequency_per_day": 3,
+      "volume_ml": "20.00",
+      "drops": "400",
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "ALTO",
+        "CRITICO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "above_max_recommended",
+          "severity": "ALTO",
+          "drug": "Teste Teto Absoluto",
+          "current_dose": "200.0000",
+          "max_allowed": "90",
+          "unit": "mg/kg/dia",
+          "message": "Dose (200.0000 mg/kg/dia) acima do máximo recomendado (90 mg/kg/dia)."
+        },
+        {
+          "type": "above_absolute_max",
+          "severity": "CRITICO",
+          "drug": "Teste Teto Absoluto",
+          "current_dose": "3000.00",
+          "max_allowed": "2000",
+          "unit": "mg",
+          "message": "Dose total (3000.00 mg) acima do teto absoluto (2000 mg)."
+        }
+      ],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 200,
+        "min_dose_mg_kg": 25,
+        "max_dose_mg_kg": 90,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 2000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 250,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "warning: above_daily_max",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "600.00",
+      "dosage_per_dose": "150.00",
+      "frequency_per_day": 4,
+      "volume_ml": "1.50",
+      "drops": "30",
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "ALTO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "above_daily_max",
+          "severity": "ALTO",
+          "drug": "Teste Teto Diário",
+          "current_dose": "60.00",
+          "max_allowed": "50",
+          "unit": "mg/kg/dia",
+          "message": "Total diário (60.00 mg/kg/dia) acima do teto diário recomendado (50 mg/kg/dia)."
+        }
+      ],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_dose",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 6,
+        "dose_mg_kg": 15,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": 50,
+        "absolute_max_mg": 5000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 500,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "no warnings: dose within all limits",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "500.00",
+      "dosage_per_dose": "166.67",
+      "frequency_per_day": 3,
+      "volume_ml": "3.33",
+      "drops": "67",
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 50,
+        "min_dose_mg_kg": 25,
+        "max_dose_mg_kg": 90,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 3000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 250,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  },
+  {
+    "name": "boundary age: 27 days (neonatal)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "200.00",
+      "dosage_per_dose": "66.67",
+      "frequency_per_day": 3,
+      "volume_ml": "1.33",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [
+        "ALTO"
+      ],
+      "warnings_detail": [
+        {
+          "type": "above_max_recommended",
+          "severity": "ALTO",
+          "drug": "Teste Neonatal",
+          "current_dose": "50.0000",
+          "max_allowed": "35",
+          "unit": "mg/kg/dia",
+          "message": "Dose (50.0000 mg/kg/dia) acima do máximo recomendado (35 mg/kg/dia)."
+        }
+      ],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "boundary age: 28 days (lactente)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "250.00",
+      "dosage_per_dose": "83.33",
+      "frequency_per_day": 3,
+      "volume_ml": "1.67",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "boundary age: 364 days (lactente end)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "450.00",
+      "dosage_per_dose": "150.00",
+      "frequency_per_day": 3,
+      "volume_ml": "3.00",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "boundary age: 365 days (crianca)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "500.00",
+      "dosage_per_dose": "166.67",
+      "frequency_per_day": 3,
+      "volume_ml": "3.33",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "boundary age: 4379 days (crianca end)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "1750.00",
+      "dosage_per_dose": "583.33",
+      "frequency_per_day": 3,
+      "volume_ml": "11.67",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "boundary age: 4380 days (adolescente)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "2500.00",
+      "dosage_per_dose": "833.33",
+      "frequency_per_day": 3,
+      "volume_ml": "16.67",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "BSA precision guard: sqrt non-terminating",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "66.67",
+      "dosage_per_dose": "66.67",
+      "frequency_per_day": 1,
+      "volume_ml": "2.67",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Teste BSA",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/m2",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 24,
+        "dose_mg_kg": 100,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": null,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "solucao",
+        "route": "VO",
+        "concentration_mg": 50,
+        "concentration_ml": 2,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "frequency edge: 7 hours (non-terminating 24/7)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "250.00",
+      "frequency_per_day": 3,
+      "volume_ml": "5.00",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "frequency edge: 6 hours (clean integer 4)",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "187.50",
+      "frequency_per_day": 4,
+      "volume_ml": "3.75",
+      "drops": null,
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": null,
+      "presentation": null
+    }
+  },
+  {
+    "name": "presentation selection: explicit index",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "250.00",
+      "frequency_per_day": 3,
+      "volume_ml": null,
+      "drops": null,
+      "units": "0.50",
+      "unit_label": "comprimidos",
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO",
+          "gotas"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 50,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 3000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "comprimido",
+        "route": "VO",
+        "concentration_mg": 500,
+        "concentration_ml": null,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "presentation selection: auto-select by route",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "750.00",
+      "dosage_per_dose": "250.00",
+      "frequency_per_day": 3,
+      "volume_ml": null,
+      "drops": null,
+      "units": "0.50",
+      "unit_label": "comprimidos",
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Teste",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO",
+          "gotas"
+        ],
+        "frequency_hours": 8,
+        "dose_mg_kg": 50,
+        "min_dose_mg_kg": null,
+        "max_dose_mg_kg": null,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 3000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "comprimido",
+        "route": "VO",
+        "concentration_mg": 500,
+        "concentration_ml": null,
+        "drops_per_ml": null
+      }
+    }
+  },
+  {
+    "name": "indication selection: specific indication chosen",
+    "result": {
+      "blocked": false,
+      "dosage_mg": "375.00",
+      "dosage_per_dose": "187.50",
+      "frequency_per_day": 2,
+      "volume_ml": "3.75",
+      "drops": "75",
+      "units": null,
+      "unit_label": null,
+      "warnings": [],
+      "warnings_detail": [],
+      "regimen": {
+        "indication": "Otitis media",
+        "dose_basis": "per_day",
+        "dose_unit": "mg/kg",
+        "routes": [
+          "VO"
+        ],
+        "frequency_hours": 12,
+        "dose_mg_kg": 15,
+        "min_dose_mg_kg": 10,
+        "max_dose_mg_kg": 20,
+        "daily_max_mg_kg": null,
+        "absolute_max_mg": 1000,
+        "limits_by_age": null
+      },
+      "presentation": {
+        "form": "gotas",
+        "route": "VO",
+        "concentration_mg": 250,
+        "concentration_ml": 5,
+        "drops_per_ml": 20
+      }
+    }
+  }
+]
