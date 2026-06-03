@@ -29,6 +29,20 @@ export interface Medication {
   // presentes apenas no endpoint de detalhe e quando o med foi migrado
   presentations?: Presentation[] | null
   regimens?: Regimen[] | null
+  // campos legados (endpoint de detalhe, med não migrado)
+  prescription?: number | null
+  frequency_hours?: number | null
+  min_dose_mg_kg?: number | null
+  max_dose_mg_kg?: number | null
+  max_absolute_dose_mg?: number | null
+  concentration_mg?: number | null
+  concentration_ml?: number | null
+  limits_by_age?: Record<string, { min?: number; max?: number; absolute_max?: number }> | null
+  contraindications?: any[] | null
+  adjustments?: any | null
+  administration?: any | null
+  overdose?: any | null
+  indications?: any | null
 }
 
 // dados enviados no formulário de cálculo
@@ -41,6 +55,7 @@ export interface CalculatorFormData {
   indication?: string | null
   route?: string | null
   presentation_index?: number | null
+  client_uuid?: string
 }
 
 // valores de exibição do formulário (strings dos inputs + unidades)
@@ -71,6 +86,10 @@ export interface WarningDetail {
   severity: WarningLevel
   drug: string
   message: string
+  current_dose: string
+  max_allowed: string
+  unit: string
+  rule?: string
 }
 
 // dados que o backend retorna após o cálculo
@@ -85,4 +104,7 @@ export interface CalculationResult {
   blocked: boolean // true se contraindicado (sem dose)
   warnings: WarningLevel[]
   warnings_detail: WarningDetail[]
+  regimen: Regimen | null
+  presentation: Presentation | null
+  computedOffline?: boolean
 }
