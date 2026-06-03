@@ -106,6 +106,7 @@
                 "routes": [
                   "VO"
                 ],
+                "frequency_hours": null,
                 "dose_mg_kg": 50,
                 "min_dose_mg_kg": 50,
                 "max_dose_mg_kg": 50,

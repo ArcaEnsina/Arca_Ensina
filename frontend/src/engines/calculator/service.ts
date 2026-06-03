@@ -25,7 +25,7 @@ interface Regimen {
   dose_basis: 'per_dose' | 'per_day'
   dose_unit?: 'mg/kg' | 'mg/m2'
   routes?: string[]
-  frequency_hours: number
+  frequency_hours: number | null
   dose_mg_kg?: number | null
   notes?: string | null
   min_dose_mg_kg?: number | null
@@ -212,10 +212,12 @@ export function calculateForMedication(
     drug: medication.name,
   })
 
+  // Banda ausente do dicionário = "use os limites padrão", não bloqueio.
+  // Bloqueio só quando a banda está EXPLICITAMENTE null no regime.
   const limitsByAge = regimen.limits_by_age
-  if (limitsByAge && ageDays != null) {
-    const band = classifyAgeBand(ageDays)
-    if (limitsByAge[band] == null) {
+  const band = ageDays != null ? classifyAgeBand(ageDays) : null
+  if (limitsByAge && band != null) {
+    if (band in limitsByAge && limitsByAge[band] == null) {
       blocks.push({
         type: 'contraindicated',
         severity: 'CRITICO',
@@ -248,10 +250,18 @@ export function calculateForMedication(
     return _emptyResult(blocks, regimen, presentation)
   }
 
+  // Passa limits ao motor só quando a faixa tem limites específicos;
+  // caso contrário o motor usa min/max/absolute_max do regime.
+  const effectiveLimitsByAge =
+    limitsByAge != null && band != null && band in limitsByAge && limitsByAge[band] != null
+      ? limitsByAge
+      : undefined
+
   const result = medEngine.calculateMedicationDose({
     prescription: regimen.dose_mg_kg!,
     weight,
-    frequencyHours: regimen.frequency_hours,
+    // Regimes de dose única (ex: profilaxia) omitem frequency_hours; trata como 1 dose.
+    frequencyHours: regimen.frequency_hours ?? 24,
     height: doseUnit === 'mg/m2' ? height : null,
     ageDays,
     doseBasis: regimen.dose_basis ?? 'per_day',
@@ -260,7 +270,7 @@ export function calculateForMedication(
     maxDose: regimen.max_dose_mg_kg,
     dailyMax: regimen.daily_max_mg_kg,
     absoluteMax: regimen.absolute_max_mg,
-    limitsByAge,
+    limitsByAge: effectiveLimitsByAge,
     presentation,
     drug: medication.name,
   })

@@ -182,11 +182,12 @@ def calculate_for_medication(
         drug=medication.name,
     )
 
-    # Faixa etária explicitamente contraindicada no regime (banda null).
+    # Faixa etária contraindicada quando a banda está EXPLICITAMENTE null no regime.
+    # Banda ausente do dicionário = "use os limites padrão do regime", não bloqueio.
     limits_by_age = regimen.get("limits_by_age")
-    if limits_by_age and age_days is not None:
-        band = classify_age_band(age_days)
-        if limits_by_age.get(band) is None:
+    band = classify_age_band(age_days) if age_days is not None else None
+    if limits_by_age and band is not None:
+        if band in limits_by_age and limits_by_age[band] is None:
             blocks.append(
                 {
                     "type": "contraindicated",
@@ -222,10 +223,19 @@ def calculate_for_medication(
     if blocks:
         return _empty_result(blocks, regimen, presentation)
 
+    # Passa limits_by_age ao motor apenas quando a faixa do paciente tem limites
+    # específicos; caso contrário usa min/max/absolute_max do regime.
+    effective_limits_by_age = None
+    if limits_by_age and band is not None:
+        if band in limits_by_age and limits_by_age[band] is not None:
+            effective_limits_by_age = limits_by_age
+
     result = med_engine.calculate_medication_dose(
         prescription=regimen["dose_mg_kg"],
         weight=weight,
-        frequency_hours=regimen["frequency_hours"],
+        # Regimes de dose única (ex: profilaxia) podem omitir frequency_hours;
+        # tratamos como 1 dose (24 h) para o cálculo.
+        frequency_hours=regimen.get("frequency_hours") or 24,
         # altura só entra no cálculo para regimes mg/m²
         height=height if dose_unit == "mg/m2" else None,
         age_days=age_days,
@@ -235,7 +245,7 @@ def calculate_for_medication(
         max_dose=regimen.get("max_dose_mg_kg"),
         daily_max=regimen.get("daily_max_mg_kg"),
         absolute_max=regimen.get("absolute_max_mg"),
-        limits_by_age=limits_by_age,
+        limits_by_age=effective_limits_by_age,
         presentation=presentation,
         drug=medication.name,
     )
