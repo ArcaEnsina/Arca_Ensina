@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api/client'
 import { medicationCache, medicationDetailCache, executionQueue, isOffline } from '@/lib/offline'
 import { calculateForMedication } from '@/engines/calculator'
-import type { Medication, CalculatorFormData, CalculationResult } from './types'
+import type { Medication, CalculatorFormData, CalculationResult, WarningLevel } from './types'
 
 export const useMedications = () =>
   useQuery({
@@ -90,7 +90,12 @@ export const useCalculateDose = () =>
 
           await executionQueue.enqueue('calculator.calculate', payload)
 
-          return { ...result, computedOffline: true }
+          return {
+            ...result,
+            warnings: result.warnings as WarningLevel[],
+            warnings_detail: result.warnings_detail as CalculationResult['warnings_detail'],
+            computedOffline: true,
+          }
         }
         throw err
       }

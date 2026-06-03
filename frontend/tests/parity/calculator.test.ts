@@ -1,9 +1,22 @@
 import { describe, it, expect } from 'vitest'
 import { calculateForMedication } from '@/engines/calculator'
+import type { CalculationResult } from '@/engines/calculator'
 import cases from '../../../fixtures/calculator/cases.json'
 import expected from '../../../fixtures/calculator/expected.json'
 
-function normalize(result: any) {
+interface TestCase {
+  medication: Parameters<typeof calculateForMedication>[0]
+  input: {
+    weight: number
+    height?: number | null
+    age_days?: number | null
+    indication?: string | null
+    route?: string | null
+    presentation_index?: number | null
+  }
+}
+
+function normalize(result: CalculationResult) {
   const fmt = (v: number | null, places: number): string | null =>
     v == null ? null : v.toFixed(places)
 
@@ -17,7 +30,7 @@ function normalize(result: any) {
     units: fmt(result.units, 2),
     unit_label: result.unit_label,
     warnings: result.warnings,
-    warnings_detail: result.warnings_detail.map((w: any) => ({
+    warnings_detail: result.warnings_detail.map((w) => ({
       type: w.type,
       severity: w.severity,
       drug: w.drug,
@@ -35,8 +48,8 @@ function normalize(result: any) {
 describe('Calculator Parity (EXP-002)', () => {
   it('matches Python expected.json for all cases', () => {
     for (let i = 0; i < cases.length; i++) {
-      const case_ = (cases as any[])[i]
-      const exp = (expected as any[])[i]
+      const case_ = (cases as TestCase[])[i]
+      const exp = (expected as { result: ReturnType<typeof normalize> }[])[i]
 
       const result = calculateForMedication(case_.medication, {
         weight: case_.input.weight,

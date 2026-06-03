@@ -8,5 +8,6 @@ export async function putDetail(med: Medication & { updatedAt?: number }): Promi
 
 export async function getDetail(id: number): Promise<(Medication & { updatedAt?: number }) | undefined> {
   const db = await getDB()
-  return db.get('medicationDetails', id)
+  const result = await db.get('medicationDetails', id)
+  return result as (Medication & { updatedAt?: number }) | undefined
 }

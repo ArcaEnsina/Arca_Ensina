@@ -20,6 +20,8 @@ export interface Regimen {
   notes?: string | null
 }
 
+import type { ContraindicationRule } from '@/engines/calculator/contraindications'
+
 // dados recebidos da lista de medicamentos (+ campos ricos no detalhe)
 export interface Medication {
   id: number
@@ -38,11 +40,11 @@ export interface Medication {
   concentration_mg?: number | null
   concentration_ml?: number | null
   limits_by_age?: Record<string, { min?: number; max?: number; absolute_max?: number }> | null
-  contraindications?: any[] | null
-  adjustments?: any | null
-  administration?: any | null
-  overdose?: any | null
-  indications?: any | null
+  contraindications?: ContraindicationRule[] | null
+  adjustments?: unknown
+  administration?: unknown
+  overdose?: unknown
+  indications?: unknown
 }
 
 // dados enviados no formulário de cálculo
