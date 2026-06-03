@@ -44,6 +44,9 @@ class CalculatorSerializer(serializers.Serializer):
         required=False, allow_null=True, min_value=0
     )
 
+    # uuid do cliente para idempotência do audit log (offline sync)
+    client_uuid = serializers.UUIDField(required=False, allow_null=True)
+
     # validar se o medicamento existe no banco de dados
     def validate_medication_id(self, value):
         from apps.medications.models import Medication

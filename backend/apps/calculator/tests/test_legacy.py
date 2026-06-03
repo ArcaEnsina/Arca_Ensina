@@ -1,9 +1,11 @@
+import uuid
 from decimal import Decimal
 
 from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User
+from apps.audit.models import AuditLog
 from apps.calculator import services
 from apps.medications.models import Medication
 
@@ -252,7 +254,7 @@ class CalculatorValidationTests(TestCase):
         weight = 15  # kg
         age_days = 200  # dias
         limits = {
-            "neonatal": {"min": 20, "max": 40, "absolute_max": 1000},
+            "neonato": {"min": 20, "max": 40, "absolute_max": 1000},
             "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
             "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
             "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
@@ -263,3 +265,66 @@ class CalculatorValidationTests(TestCase):
             dosage, age_days, limits, weight
         )
         self.assertIn("ALTO", warning)
+
+
+class CalculatorIdempotencyTests(TestCase):
+    """EXP-002: client_uuid deve garantir audit log idempotente."""
+
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User.objects.create_user(
+            email="doctor@test.com",
+            password="strongpass123",
+            profile="medico",
+        )
+
+        login = self.client.post(
+            "/api/v1/auth/login/",
+            {"email": "doctor@test.com", "password": "strongpass123"},
+        )
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")
+
+        self.medication = Medication.objects.create(
+            name="Amoxicilina",
+            prescription=50,
+            frequency_hours=8,
+            min_dose_mg_kg=25,
+            max_dose_mg_kg=90,
+            max_absolute_dose_mg=3000,
+            concentration_mg=250,
+            concentration_ml=5,
+            limits_by_age=None,
+        )
+
+    def test_client_uuid_idempotency(self):
+        client_uuid = str(uuid.uuid4())
+        payload = {
+            "weight": 15,
+            "age_days": 365,
+            "medication_id": self.medication.id,
+            "client_uuid": client_uuid,
+        }
+
+        # primeira chamada
+        response_1 = self.client.post(
+            "/api/v1/calculator/calculate/", payload, format="json"
+        )
+        self.assertEqual(response_1.status_code, 200)
+
+        # segunda chamada (mesmo client_uuid)
+        response_2 = self.client.post(
+            "/api/v1/calculator/calculate/", payload, format="json"
+        )
+        self.assertEqual(response_2.status_code, 200)
+
+        # resultados idênticos
+        self.assertEqual(response_1.data, response_2.data)
+
+        # apenas UM audit log para esse client_uuid
+        log_count = AuditLog.objects.filter(
+            action="calculate",
+            resource_type="calculator",
+            payload__client_uuid=client_uuid,
+        ).count()
+        self.assertEqual(log_count, 1)
