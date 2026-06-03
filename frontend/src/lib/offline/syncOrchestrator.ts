@@ -1,4 +1,5 @@
 import { listPending, markDone, markError } from './executionQueue'
+import api from '@/lib/api/client'
 
 let onlineHandler: (() => void) | null = null
 let isProcessing = false
@@ -15,8 +16,11 @@ async function processPendingQueue(): Promise<void> {
     for (const entry of pending) {
       if (entry.id == null) continue
       try {
-        // TODO: implementar dispatch real na story 3.5
-        console.log(`[sync] processando ${entry.type}:`, entry.payload)
+        if (entry.type === 'calculator.calculate') {
+          await api.post('calculator/calculate/', entry.payload)
+        } else {
+          console.log(`[sync] tipo desconhecido ${entry.type}, ignorando`)
+        }
         await markDone(entry.id)
       } catch {
         await markError(entry.id)

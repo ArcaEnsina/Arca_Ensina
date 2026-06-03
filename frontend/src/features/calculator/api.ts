@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api/client'
-import { medicationCache, isOffline } from '@/lib/offline'
+import { medicationCache, medicationDetailCache, executionQueue, isOffline } from '@/lib/offline'
+import { calculateForMedication } from '@/engines/calculator'
 import type { Medication, CalculatorFormData, CalculationResult } from './types'
 
 export const useMedications = () =>
@@ -34,11 +35,14 @@ export const useMedication = (id: number | null) =>
       try {
         const res = await api.get<Medication>(`medications/${id}`)
         medicationCache.putMedication({ ...res.data, updatedAt: Date.now() })
+        medicationDetailCache.putDetail(res.data)
         return res.data
       } catch (err) {
         if (isOffline()) {
-          const cached = await medicationCache.getMedication(id)
+          const cached = await medicationDetailCache.getDetail(id)
           if (cached) return cached
+          const fallback = await medicationCache.getMedication(id)
+          if (fallback) return fallback
         }
         throw err
       }
@@ -59,9 +63,41 @@ export const useDownloadMedication = () =>
 
 export const useCalculateDose = () =>
   useMutation({
-    mutationFn: async (data: CalculatorFormData) => {
-      const res = await api.post<CalculationResult>('calculator/calculate/', data)
-      return res.data
+    mutationFn: async (data: CalculatorFormData): Promise<CalculationResult> => {
+      if (data.weight == null) {
+        throw new Error('Peso é obrigatório para o cálculo.')
+      }
+
+      const clientUuid = data.client_uuid ?? crypto.randomUUID()
+      const payload = { ...data, client_uuid: clientUuid }
+
+      try {
+        const res = await api.post<CalculationResult>('calculator/calculate/', payload)
+        return res.data
+      } catch (err) {
+        if (isOffline() && data.medication_id != null) {
+          const cached = await medicationDetailCache.getDetail(data.medication_id)
+          if (!cached) throw err
+
+          const result = calculateForMedication(cached, {
+            weight: data.weight,
+            height: data.height ?? null,
+            ageDays: data.age_days ?? null,
+            indication: data.indication ?? null,
+            route: data.route ?? null,
+            presentationIndex: data.presentation_index ?? null,
+          })
+
+          await executionQueue.enqueue('calculator.calculate', payload)
+
+          return { ...result, computedOffline: true }
+        }
+        throw err
+      }
     },
     retry: 0, // safety-critical: no automatic retry
+    // 'online' (default) pausa a mutation quando offline e nunca roda a
+    // mutationFn — o fallback no catch jamais executaria. 'offlineFirst' roda
+    // a função uma vez; o POST falha e o catch dispara o motor JS local.
+    networkMode: 'offlineFirst',
   })
