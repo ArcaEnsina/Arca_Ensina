@@ -3,10 +3,12 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
+from project.drf_fields import CommaDecimalField
+
 
 class CalculatorSerializer(serializers.Serializer):
     # peso em kg
-    weight = serializers.DecimalField(
+    weight = CommaDecimalField(
         required=True,
         max_digits=12,
         decimal_places=4,
@@ -14,7 +16,7 @@ class CalculatorSerializer(serializers.Serializer):
         max_value=Decimal("500.0"),
     )
     # altura em cm, opcional
-    height = serializers.DecimalField(
+    height = CommaDecimalField(
         required=False,
         max_digits=12,
         decimal_places=4,

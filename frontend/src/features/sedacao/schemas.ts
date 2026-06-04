@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import Decimal from 'decimal.js';
+import { normalizeDecimalInput } from '@/lib/decimal';
 
 const positiveDecimal = (label: string) =>
   z
@@ -8,7 +9,7 @@ const positiveDecimal = (label: string) =>
     .refine(
       (v) => {
         try {
-          return new Decimal(v).gt(0);
+          return new Decimal(String(normalizeDecimalInput(v))).gt(0);
         } catch {
           return false;
         }
