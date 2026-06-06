@@ -23,12 +23,12 @@ export function OfflineIndicator() {
       role="status"
       aria-live="polite"
       className={cn(
-        'fixed top-0 left-0 right-0 z-50',
+        'sticky top-0 z-50',
         'bg-warning/90 text-neutral-950',
         'px-4 py-2 text-center',
         'text-caption font-medium',
         'backdrop-blur-sm',
-        'animate-in slide-in-from-top duration-300',
+        'animate-in fade-in duration-300',
       )}
     >
       <span className="inline-flex items-center gap-2">
