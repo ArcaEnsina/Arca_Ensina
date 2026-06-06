@@ -5,7 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import App from './App'
 import { AuthProvider } from './features/auth'
+import { startSyncListener } from './lib/offline'
 import './index.css'
+
+startSyncListener()
 
 const queryClient = new QueryClient({
   defaultOptions: {
