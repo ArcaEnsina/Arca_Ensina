@@ -47,4 +47,5 @@ urlpatterns = [
     path(f"{V}/medications/", include("apps.medications.urls")),
     path(f"{V}/", include("apps.research.urls")),
     path(f"{V}/", include("apps.sedation.urls")),
+    path(f"{V}/", include("apps.notifications.urls")),
 ]
