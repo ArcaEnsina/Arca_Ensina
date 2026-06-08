@@ -7,179 +7,179 @@
             "category": "Antibiótico",
             "description": "Antibiótico betalactâmico (aminopenicilina) de amplo espectro, indicado para infecções bacterianas pediátricas como otite média aguda, pneumonia adquirida na comunidade, faringite estreptocócica, sinusite bacteriana e infecções de pele e do trato urinário.",
             "presentations": [
-              {
-                "form": "xarope",
-                "route": "VO",
-                "concentration_mg": 250,
-                "concentration_ml": 5,
-                "drops_per_ml": null,
-                "package": "pó para suspensão oral 250 mg/5 mL"
-              },
-              {
-                "form": "xarope",
-                "route": "VO",
-                "concentration_mg": 500,
-                "concentration_ml": 5,
-                "drops_per_ml": null,
-                "package": "pó para suspensão oral 500 mg/5 mL"
-              },
-              {
-                "form": "comprimido",
-                "route": "VO",
-                "concentration_mg": 500,
-                "concentration_ml": null,
-                "drops_per_ml": null,
-                "package": "comprimido 500 mg (uso em >= 40 kg / adolescentes)"
-              }
+                {
+                    "form": "xarope",
+                    "route": "VO",
+                    "concentration_mg": 250,
+                    "concentration_ml": 5,
+                    "drops_per_ml": null,
+                    "package": "pó para suspensão oral 250 mg/5 mL"
+                },
+                {
+                    "form": "xarope",
+                    "route": "VO",
+                    "concentration_mg": 500,
+                    "concentration_ml": 5,
+                    "drops_per_ml": null,
+                    "package": "pó para suspensão oral 500 mg/5 mL"
+                },
+                {
+                    "form": "comprimido",
+                    "route": "VO",
+                    "concentration_mg": 500,
+                    "concentration_ml": null,
+                    "drops_per_ml": null,
+                    "package": "comprimido 500 mg (uso em >= 40 kg / adolescentes)"
+                }
             ],
             "regimens": [
-              {
-                "indication": "Otite média aguda / Pneumonia (PAC) / Sinusite bacteriana (dose alta)",
-                "off_label": false,
-                "dose_basis": "per_dose",
-                "routes": [
-                  "VO"
-                ],
-                "frequency_hours": 12,
-                "dose_mg_kg": 45,
-                "min_dose_mg_kg": 40,
-                "max_dose_mg_kg": 45,
-                "daily_max_mg_kg": 90,
-                "absolute_max_mg": 4000,
-                "limits_by_age": {
-                  "neonatal": {
-                    "min": 15,
-                    "max": 15,
-                    "absolute_max": 500
-                  }
+                {
+                    "indication": "Otite média aguda / Pneumonia (PAC) / Sinusite bacteriana (dose alta)",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "routes": [
+                        "VO"
+                    ],
+                    "frequency_hours": 12,
+                    "dose_mg_kg": 45,
+                    "min_dose_mg_kg": 40,
+                    "max_dose_mg_kg": 45,
+                    "daily_max_mg_kg": 90,
+                    "absolute_max_mg": 4000,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 15,
+                            "max": 15,
+                            "absolute_max": 500
+                        }
+                    },
+                    "notes": "Esquema de dose alta (total 80–90 mg/kg/dia) para superar resistência intermediária de S. pneumoniae. Máx 4 g/dia. Não usar dose alta em < 3 meses: limitar a 15 mg/kg/dose 12/12h (imaturidade da excreção renal)."
                 },
-                "notes": "Esquema de dose alta (total 80–90 mg/kg/dia) para superar resistência intermediária de S. pneumoniae. Máx 4 g/dia. Não usar dose alta em < 3 meses: limitar a 15 mg/kg/dose 12/12h (imaturidade da excreção renal)."
-              },
-              {
-                "indication": "Faringite/amigdalite estreptocócica",
-                "off_label": false,
-                "dose_basis": "per_dose",
-                "routes": [
-                  "VO"
-                ],
-                "frequency_hours": 12,
-                "dose_mg_kg": 25,
-                "min_dose_mg_kg": 25,
-                "max_dose_mg_kg": 25,
-                "daily_max_mg_kg": 50,
-                "absolute_max_mg": 1000,
-                "limits_by_age": {
-                  "neonatal": {
-                    "min": 15,
-                    "max": 15,
-                    "absolute_max": 500
-                  }
+                {
+                    "indication": "Faringite/amigdalite estreptocócica",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "routes": [
+                        "VO"
+                    ],
+                    "frequency_hours": 12,
+                    "dose_mg_kg": 25,
+                    "min_dose_mg_kg": 25,
+                    "max_dose_mg_kg": 25,
+                    "daily_max_mg_kg": 50,
+                    "absolute_max_mg": 1000,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 15,
+                            "max": 15,
+                            "absolute_max": 500
+                        }
+                    },
+                    "notes": "Duração 10 dias. Máx 1 g/dia. Alternativa: 50 mg/kg/dose VO 24/24h (dose única diária). < 3 meses: limitar a 15 mg/kg/dose 12/12h."
                 },
-                "notes": "Duração 10 dias. Máx 1 g/dia. Alternativa: 50 mg/kg/dose VO 24/24h (dose única diária). < 3 meses: limitar a 15 mg/kg/dose 12/12h."
-              },
-              {
-                "indication": "Infecção leve (pele/partes moles, ITU)",
-                "off_label": false,
-                "dose_basis": "per_dose",
-                "routes": [
-                  "VO"
-                ],
-                "frequency_hours": 12,
-                "dose_mg_kg": 25,
-                "min_dose_mg_kg": 20,
-                "max_dose_mg_kg": 25,
-                "daily_max_mg_kg": 50,
-                "absolute_max_mg": 1500,
-                "limits_by_age": {
-                  "neonatal": {
-                    "min": 15,
-                    "max": 15,
-                    "absolute_max": 500
-                  }
+                {
+                    "indication": "Infecção leve (pele/partes moles, ITU)",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "routes": [
+                        "VO"
+                    ],
+                    "frequency_hours": 12,
+                    "dose_mg_kg": 25,
+                    "min_dose_mg_kg": 20,
+                    "max_dose_mg_kg": 25,
+                    "daily_max_mg_kg": 50,
+                    "absolute_max_mg": 1500,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 15,
+                            "max": 15,
+                            "absolute_max": 500
+                        }
+                    },
+                    "notes": "Dose padrão (total 40–50 mg/kg/dia). Alternativa: 13,3–16,6 mg/kg/dose VO 8/8h. < 3 meses: limitar a 15 mg/kg/dose 12/12h."
                 },
-                "notes": "Dose padrão (total 40–50 mg/kg/dia). Alternativa: 13,3–16,6 mg/kg/dose VO 8/8h. < 3 meses: limitar a 15 mg/kg/dose 12/12h."
-              },
-              {
-                "indication": "Profilaxia de endocardite infecciosa",
-                "off_label": false,
-                "dose_basis": "per_dose",
-                "routes": [
-                  "VO"
-                ],
-                "frequency_hours": null,
-                "dose_mg_kg": 50,
-                "min_dose_mg_kg": 50,
-                "max_dose_mg_kg": 50,
-                "absolute_max_mg": 2000,
-                "limits_by_age": null,
-                "notes": "Dose única VO 30–60 min antes do procedimento. Máx 2 g. Sem frequência: administração única."
-              },
-              {
-                "indication": "Erradicação de H. pylori",
-                "off_label": true,
-                "dose_basis": "per_dose",
-                "routes": [
-                  "VO"
-                ],
-                "frequency_hours": 12,
-                "dose_mg_kg": 25,
-                "min_dose_mg_kg": 25,
-                "max_dose_mg_kg": 25,
-                "daily_max_mg_kg": 50,
-                "absolute_max_mg": 2000,
-                "limits_by_age": null,
-                "notes": "Off-label em pediatria. Em esquema tríplice com IBP + claritromicina, por 14 dias. Máx 2 g/dia."
-              }
+                {
+                    "indication": "Profilaxia de endocardite infecciosa",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "routes": [
+                        "VO"
+                    ],
+                    "frequency_hours": null,
+                    "dose_mg_kg": 50,
+                    "min_dose_mg_kg": 50,
+                    "max_dose_mg_kg": 50,
+                    "absolute_max_mg": 2000,
+                    "limits_by_age": null,
+                    "notes": "Dose única VO 30–60 min antes do procedimento. Máx 2 g. Sem frequência: administração única."
+                },
+                {
+                    "indication": "Erradicação de H. pylori",
+                    "off_label": true,
+                    "dose_basis": "per_dose",
+                    "routes": [
+                        "VO"
+                    ],
+                    "frequency_hours": 12,
+                    "dose_mg_kg": 25,
+                    "min_dose_mg_kg": 25,
+                    "max_dose_mg_kg": 25,
+                    "daily_max_mg_kg": 50,
+                    "absolute_max_mg": 2000,
+                    "limits_by_age": null,
+                    "notes": "Off-label em pediatria. Em esquema tríplice com IBP + claritromicina, por 14 dias. Máx 2 g/dia."
+                }
             ],
             "contraindications": [
-              {
-                "rule": "form_min_age_days",
-                "form": "comprimido",
-                "value": 2190
-              }
+                {
+                    "rule": "form_min_age_days",
+                    "form": "comprimido",
+                    "value": 2190
+                }
             ],
             "adjustments": {
-              "renal": [
-                {
-                  "condition": "ClCr > 30 mL/min",
-                  "guidance": "Não requer ajuste."
-                },
-                {
-                  "condition": "ClCr 10–30 mL/min",
-                  "guidance": "250–500 mg VO 12/12h. Não usar a apresentação de 875 mg."
-                },
-                {
-                  "condition": "ClCr < 10 mL/min",
-                  "guidance": "250–500 mg VO 24/24h."
-                },
-                {
-                  "condition": "Hemodiálise",
-                  "guidance": "250–500 mg VO 24/24h; administrar dose adicional durante e ao fim da sessão de diálise."
-                }
-              ],
-              "hepatic": [
-                {
-                  "condition": "Insuficiência hepática",
-                  "guidance": "Não requer ajuste de dose."
-                }
-              ]
+                "renal": [
+                    {
+                        "condition": "ClCr > 30 mL/min",
+                        "guidance": "Não requer ajuste."
+                    },
+                    {
+                        "condition": "ClCr 10–30 mL/min",
+                        "guidance": "250–500 mg VO 12/12h. Não usar a apresentação de 875 mg."
+                    },
+                    {
+                        "condition": "ClCr < 10 mL/min",
+                        "guidance": "250–500 mg VO 24/24h."
+                    },
+                    {
+                        "condition": "Hemodiálise",
+                        "guidance": "250–500 mg VO 24/24h; administrar dose adicional durante e ao fim da sessão de diálise."
+                    }
+                ],
+                "hepatic": [
+                    {
+                        "condition": "Insuficiência hepática",
+                        "guidance": "Não requer ajuste de dose."
+                    }
+                ]
             },
             "administration": {
-              "dilution": "Pó para suspensão: reconstituir adicionando água filtrada aos poucos até a marca do rótulo; agitar vigorosamente antes de cada dose. Pode ser administrada com ou sem alimentos. Usar seringa dosadora."
+                "dilution": "Pó para suspensão: reconstituir adicionando água filtrada aos poucos até a marca do rótulo; agitar vigorosamente antes de cada dose. Pode ser administrada com ou sem alimentos. Usar seringa dosadora."
             },
             "indications": {
-              "anvisa": [
-                "Otite média aguda",
-                "Pneumonia adquirida na comunidade",
-                "Faringite/amigdalite estreptocócica",
-                "Sinusite bacteriana aguda",
-                "Infecções de pele e partes moles",
-                "Infecções do trato urinário"
-              ],
-              "fda": "Aprovado para infecções por organismos sensíveis (incluindo uso pediátrico).",
-              "off_label": [
-                "Erradicação de H. pylori em pediatria (esquema combinado)"
-              ]
+                "anvisa": [
+                    "Otite média aguda",
+                    "Pneumonia adquirida na comunidade",
+                    "Faringite/amigdalite estreptocócica",
+                    "Sinusite bacteriana aguda",
+                    "Infecções de pele e partes moles",
+                    "Infecções do trato urinário"
+                ],
+                "fda": "Aprovado para infecções por organismos sensíveis (incluindo uso pediátrico).",
+                "off_label": [
+                    "Erradicação de H. pylori em pediatria (esquema combinado)"
+                ]
             }
         }
     },
@@ -190,35 +190,62 @@
             "name": "Morfina",
             "category": "Analgésico Opioide",
             "description": "Indicado para dor moderada a intensa em pediatria. Requer monitoramento rigoroso por risco de depressão respiratória.",
-            "prescription": 50,
-            "frequency_hours": 4,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
-            "max_absolute_dose_mg": 3000,
-            "concentration_mg": 250,
-            "concentration_ml": 5,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.05,
-                    "max": 0.1,
-                    "absolute_max": 0.6
-                },
-                "lactente": {
-                    "min": 0.1,
-                    "max": 0.2,
-                    "absolute_max": 1.2
-                },
-                "crianca": {
-                    "min": 0.1,
-                    "max": 0.2,
-                    "absolute_max": 1.2
-                },
-                "adolescente": {
-                    "min": 0.05,
-                    "max": 0.2,
-                    "absolute_max": 10.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 10,
+                    "concentration_ml": 1,
+                    "drops_per_ml": null,
+                    "package": "ampola 1 mL = 10 mg"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Analgesia",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 4,
+                    "dose_mg_kg": 0.1,
+                    "min_dose_mg_kg": 0.05,
+                    "max_dose_mg_kg": 0.2,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 10.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.05,
+                            "max": 0.1,
+                            "absolute_max": 0.6
+                        },
+                        "lactente": {
+                            "min": 0.1,
+                            "max": 0.2,
+                            "absolute_max": 1.2
+                        },
+                        "crianca": {
+                            "min": 0.1,
+                            "max": 0.2,
+                            "absolute_max": 1.2
+                        },
+                        "adolescente": {
+                            "min": 0.05,
+                            "max": 0.2,
+                            "absolute_max": 10.0
+                        }
+                    },
+                    "notes": "Titulação obrigatória; monitorar saturação e frequência respiratória. Dose pontual = 0,1 mg/kg (média conservadora)."
+                }
+            ],
+            "contraindications": [
+                {
+                    "rule": "min_age_days",
+                    "value": 0
+                }
+            ]
         }
     },
     {
@@ -228,35 +255,56 @@
             "name": "Diazepam",
             "category": "Sedativo",
             "description": "Benzodiazepínico indicado para crises convulsivas agudas e ansiedade em crianças. Administrado com cautela por risco de depressão respiratória.",
-            "prescription": 50,
-            "frequency_hours": 8,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
-            "max_absolute_dose_mg": 3000,
-            "concentration_mg": 250,
-            "concentration_ml": 5,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.1,
-                    "max": 0.3,
-                    "absolute_max": 2.0
-                },
-                "lactente": {
-                    "min": 0.1,
-                    "max": 0.5,
-                    "absolute_max": 5.0
-                },
-                "crianca": {
-                    "min": 0.1,
-                    "max": 0.5,
-                    "absolute_max": 10.0
-                },
-                "adolescente": {
-                    "min": 0.1,
-                    "max": 0.3,
-                    "absolute_max": 10.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 10,
+                    "concentration_ml": 2,
+                    "drops_per_ml": null,
+                    "package": "ampola 2 mL = 10 mg"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Crises convulsivas / Ansiedade",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 8,
+                    "dose_mg_kg": 0.2,
+                    "min_dose_mg_kg": 0.1,
+                    "max_dose_mg_kg": 0.5,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 10.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.1,
+                            "max": 0.3,
+                            "absolute_max": 2.0
+                        },
+                        "lactente": {
+                            "min": 0.1,
+                            "max": 0.5,
+                            "absolute_max": 5.0
+                        },
+                        "crianca": {
+                            "min": 0.1,
+                            "max": 0.5,
+                            "absolute_max": 10.0
+                        },
+                        "adolescente": {
+                            "min": 0.1,
+                            "max": 0.3,
+                            "absolute_max": 10.0
+                        }
+                    },
+                    "notes": "Administrar IV lentamente. Dose pontual = média (0,2 mg/kg)."
+                }
+            ]
         }
     },
     {
@@ -329,7 +377,11 @@
                     "indication": "Dor / Febre",
                     "off_label": false,
                     "dose_basis": "per_dose",
-                    "routes": ["VO", "IV", "IM"],
+                    "routes": [
+                        "VO",
+                        "IV",
+                        "IM"
+                    ],
                     "frequency_hours": 6,
                     "dose_mg_kg": 15,
                     "min_dose_mg_kg": 10,
@@ -343,7 +395,9 @@
                     "indication": "Cólica renal / biliar",
                     "off_label": true,
                     "dose_basis": "per_dose",
-                    "routes": ["IV"],
+                    "routes": [
+                        "IV"
+                    ],
                     "frequency_hours": 6,
                     "dose_mg_kg": 15,
                     "min_dose_mg_kg": 10,
@@ -355,18 +409,42 @@
                 }
             ],
             "contraindications": [
-                {"rule": "min_age_days", "value": 90},
-                {"rule": "min_weight_kg", "value": 5},
-                {"rule": "form_min_age_days", "form": "supositorio", "value": 1460},
-                {"rule": "route_forbidden_age_range", "route": "IV", "min_days": 90, "max_days": 365}
+                {
+                    "rule": "min_age_days",
+                    "value": 90
+                },
+                {
+                    "rule": "min_weight_kg",
+                    "value": 5
+                },
+                {
+                    "rule": "form_min_age_days",
+                    "form": "supositorio",
+                    "value": 1460
+                },
+                {
+                    "rule": "route_forbidden_age_range",
+                    "route": "IV",
+                    "min_days": 90,
+                    "max_days": 365
+                }
             ],
             "adjustments": {
                 "renal": [
-                    {"condition": "ClCr > 50 mL/min", "guidance": "Sem ajuste."},
-                    {"condition": "ClCr < 50 mL/min ou diálise", "guidance": "Evitar altas doses e tratamentos prolongados (acúmulo do metabólito 4-N-metilaminoantipirina); usar a menor dose eficaz. O metabólito é dialisável."}
+                    {
+                        "condition": "ClCr > 50 mL/min",
+                        "guidance": "Sem ajuste."
+                    },
+                    {
+                        "condition": "ClCr < 50 mL/min ou diálise",
+                        "guidance": "Evitar altas doses e tratamentos prolongados (acúmulo do metabólito 4-N-metilaminoantipirina); usar a menor dose eficaz. O metabólito é dialisável."
+                    }
                 ],
                 "hepatic": [
-                    {"condition": "Insuficiência hepática", "guidance": "Evitar altas doses e uso prolongado; meia-vida dos metabólitos prolongada."}
+                    {
+                        "condition": "Insuficiência hepática",
+                        "guidance": "Evitar altas doses e uso prolongado; meia-vida dos metabólitos prolongada."
+                    }
                 ]
             },
             "administration": {
@@ -381,9 +459,15 @@
                 "treatment": "Sem antídoto específico. Lavagem gástrica e carvão ativado se ingestão oral recente. Suporte hemodinâmico. Hemodiálise/hemoperfusão removem o metabólito tóxico."
             },
             "indications": {
-                "anvisa": ["Dor (leve a intensa)", "Febre"],
+                "anvisa": [
+                    "Dor (leve a intensa)",
+                    "Febre"
+                ],
                 "fda": "Não aprovado (banido nos EUA desde 1977 pelo risco de agranulocitose).",
-                "off_label": ["Cólica renal", "Cólica biliar"]
+                "off_label": [
+                    "Cólica renal",
+                    "Cólica biliar"
+                ]
             }
         }
     },
@@ -394,35 +478,56 @@
             "name": "Midazolam",
             "category": "Sedativo",
             "description": "Benzodiazepínico de curta ação, o mais utilizado para sedação em pediatria. Indicado para procedimentos e controle de convulsões. Não possui efeito analgésico.",
-            "prescription": 50,
-            "frequency_hours": 8,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
-            "max_absolute_dose_mg": 3000,
-            "concentration_mg": 250,
-            "concentration_ml": 5,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.03,
-                    "max": 0.06,
-                    "absolute_max": 0.5
-                },
-                "lactente": {
-                    "min": 0.05,
-                    "max": 0.15,
-                    "absolute_max": 1.0
-                },
-                "crianca": {
-                    "min": 0.05,
-                    "max": 0.5,
-                    "absolute_max": 10.0
-                },
-                "adolescente": {
-                    "min": 0.05,
-                    "max": 0.5,
-                    "absolute_max": 10.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 5,
+                    "concentration_ml": 5,
+                    "drops_per_ml": null,
+                    "package": "ampola 5 mL = 5 mg (1 mg/mL)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Sedação / Controle de convulsões",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 8,
+                    "dose_mg_kg": 0.1,
+                    "min_dose_mg_kg": 0.03,
+                    "max_dose_mg_kg": 0.5,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 10.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.03,
+                            "max": 0.06,
+                            "absolute_max": 0.5
+                        },
+                        "lactente": {
+                            "min": 0.05,
+                            "max": 0.15,
+                            "absolute_max": 1.0
+                        },
+                        "crianca": {
+                            "min": 0.05,
+                            "max": 0.5,
+                            "absolute_max": 10.0
+                        },
+                        "adolescente": {
+                            "min": 0.05,
+                            "max": 0.5,
+                            "absolute_max": 10.0
+                        }
+                    },
+                    "notes": "Dose pontual = média geral (0,1 mg/kg). Titular conforme resposta clínica."
+                }
+            ]
         }
     },
     {
@@ -432,35 +537,62 @@
             "name": "Fentanil",
             "category": "Anestésico e analgésico",
             "description": "Anestésico e analgésico utilizado em pediatria para procedimentos cirúrgicos e controle de dor. Requer monitoramento rigoroso por risco de depressão respiratória.",
-            "prescription": 50,
-            "frequency_hours": 8,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
-            "max_absolute_dose_mg": 3000,
-            "concentration_mg": 250,
-            "concentration_ml": 5,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.0005,
-                    "max": 0.004,
-                    "absolute_max": 0.025
-                },
-                "lactente": {
-                    "min": 0.001,
-                    "max": 0.004,
-                    "absolute_max": 0.05
-                },
-                "crianca": {
-                    "min": 0.001,
-                    "max": 0.004,
-                    "absolute_max": 0.1
-                },
-                "adolescente": {
-                    "min": 0.001,
-                    "max": 0.004,
-                    "absolute_max": 0.1
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 0.05,
+                    "concentration_ml": 1,
+                    "drops_per_ml": null,
+                    "package": "ampola 10 mL = 0,5 mg (50 mcg/mL)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Anestesia e analgesia",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 8,
+                    "dose_mg_kg": 0.002,
+                    "min_dose_mg_kg": 0.001,
+                    "max_dose_mg_kg": 0.004,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 0.1,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.0005,
+                            "max": 0.004,
+                            "absolute_max": 0.025
+                        },
+                        "lactente": {
+                            "min": 0.001,
+                            "max": 0.004,
+                            "absolute_max": 0.05
+                        },
+                        "crianca": {
+                            "min": 0.001,
+                            "max": 0.004,
+                            "absolute_max": 0.1
+                        },
+                        "adolescente": {
+                            "min": 0.001,
+                            "max": 0.004,
+                            "absolute_max": 0.1
+                        }
+                    },
+                    "notes": "Dose em mg/kg (equivale a 1–4 mcg/kg). Dose pontual = 0,002 mg/kg (2 mcg/kg), média conservadora."
+                }
+            ],
+            "contraindications": [
+                {
+                    "rule": "min_age_days",
+                    "value": 0
+                }
+            ]
         }
     },
     {
@@ -470,35 +602,56 @@
             "name": "Clonidina",
             "category": "Sedativo ou analgésico",
             "description": "Agonista alfa-2 adrenérgico com propriedades sedativas e analgésicas leves. Usado como adjuvante na sedação pediátrica e no controle da hipertensão.",
-            "prescription": 50,
-            "frequency_hours": 6,
-            "min_dose_mg_kg": 0.5,
-            "max_dose_mg_kg": 2.5,
-            "max_absolute_dose_mg": 0.8,
-            "concentration_mg": 250,
-            "concentration_ml": 5,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.5,
-                    "max": 1.0,
-                    "absolute_max": 0.3
-                },
-                "lactente": {
-                    "min": 0.5,
-                    "max": 2.0,
-                    "absolute_max": 0.5
-                },
-                "crianca": {
-                    "min": 0.5,
-                    "max": 2.5,
-                    "absolute_max": 0.8
-                },
-                "adolescente": {
-                    "min": 0.5,
-                    "max": 2.5,
-                    "absolute_max": 0.8
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 0.15,
+                    "concentration_ml": 1,
+                    "drops_per_ml": null,
+                    "package": "ampola 1 mL = 150 mcg (0,15 mg)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Sedação adjuvante / Hipertensão",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 6,
+                    "dose_mg_kg": 0.001,
+                    "min_dose_mg_kg": 0.0005,
+                    "max_dose_mg_kg": 0.0025,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 0.0008,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.0005,
+                            "max": 0.001,
+                            "absolute_max": 0.0003
+                        },
+                        "lactente": {
+                            "min": 0.0005,
+                            "max": 0.002,
+                            "absolute_max": 0.0005
+                        },
+                        "crianca": {
+                            "min": 0.0005,
+                            "max": 0.0025,
+                            "absolute_max": 0.0008
+                        },
+                        "adolescente": {
+                            "min": 0.0005,
+                            "max": 0.0025,
+                            "absolute_max": 0.0008
+                        }
+                    },
+                    "notes": "Dose original em mcg/kg (0,5–2,5 mcg/kg/dose). Convertida para mg/kg para compatibilidade com a engine. Dose pontual = 1 mcg/kg = 0,001 mg/kg."
+                }
+            ]
         }
     },
     {
@@ -508,35 +661,62 @@
             "name": "Paracetamol",
             "category": "Analgésico",
             "description": "Analgésico e antipirético não opioide amplamente utilizado em pediatria para dor leve a moderada e febre. Boa tolerabilidade e perfil de segurança.",
-            "prescription": 50,
-            "frequency_hours": 8,
-            "min_dose_mg_kg": 25,
-            "max_dose_mg_kg": 90,
-            "max_absolute_dose_mg": 3000,
-            "concentration_mg": 250,
-            "concentration_ml": 5,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 10.0,
-                    "max": 15.0,
-                    "absolute_max": 60.0
-                },
-                "lactente": {
-                    "min": 10.0,
-                    "max": 15.0,
-                    "absolute_max": 75.0
-                },
-                "crianca": {
-                    "min": 10.0,
-                    "max": 15.0,
-                    "absolute_max": 75.0
-                },
-                "adolescente": {
-                    "min": 10.0,
-                    "max": 15.0,
-                    "absolute_max": 60.0
+            "presentations": [
+                {
+                    "form": "solucao",
+                    "route": "VO",
+                    "concentration_mg": 200,
+                    "concentration_ml": 5,
+                    "drops_per_ml": null,
+                    "package": "frasco 100 mL (40 mg/mL)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Dor leve a moderada / Febre",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "VO"
+                    ],
+                    "frequency_hours": 6,
+                    "dose_mg_kg": 15.0,
+                    "min_dose_mg_kg": 10.0,
+                    "max_dose_mg_kg": 15.0,
+                    "daily_max_mg_kg": 75.0,
+                    "absolute_max_mg": 3000.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 10.0,
+                            "max": 15.0,
+                            "absolute_max": 60.0
+                        },
+                        "lactente": {
+                            "min": 10.0,
+                            "max": 15.0,
+                            "absolute_max": 75.0
+                        },
+                        "crianca": {
+                            "min": 10.0,
+                            "max": 15.0,
+                            "absolute_max": 75.0
+                        },
+                        "adolescente": {
+                            "min": 10.0,
+                            "max": 15.0,
+                            "absolute_max": 60.0
+                        }
+                    },
+                    "notes": "Dose pontual = máximo recomendado (15 mg/kg). Intervalo mínimo de 6h. Não ultrapassar 75 mg/kg/dia."
+                }
+            ],
+            "contraindications": [
+                {
+                    "rule": "min_weight_kg",
+                    "value": 3
+                }
+            ]
         }
     },
     {
@@ -546,35 +726,56 @@
             "name": "Dexmedetomidina",
             "category": "Sedativo",
             "description": "Agonista alfa-2 adrenérgico altamente seletivo indicado para sedação em ambiente de terapia intensiva. Oferece sedação com menor risco de depressão respiratória.",
-            "prescription": 50,
-            "frequency_hours": 1,
-            "min_dose_mg_kg": 0.2,
-            "max_dose_mg_kg": 1.5,
-            "max_absolute_dose_mg": 2.0,
-            "concentration_mg": 200,
-            "concentration_ml": 2,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.2,
-                    "max": 1.0,
-                    "absolute_max": 1.0
-                },
-                "lactente": {
-                    "min": 0.2,
-                    "max": 1.5,
-                    "absolute_max": 2.0
-                },
-                "crianca": {
-                    "min": 0.2,
-                    "max": 1.5,
-                    "absolute_max": 2.0
-                },
-                "adolescente": {
-                    "min": 0.2,
-                    "max": 1.5,
-                    "absolute_max": 2.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 0.2,
+                    "concentration_ml": 2,
+                    "drops_per_ml": null,
+                    "package": "ampola 2 mL = 200 mcg (100 mcg/mL)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Sedação em UTI",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 1,
+                    "dose_mg_kg": 0.0007,
+                    "min_dose_mg_kg": 0.0002,
+                    "max_dose_mg_kg": 0.0015,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 0.002,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.0002,
+                            "max": 0.001,
+                            "absolute_max": 0.001
+                        },
+                        "lactente": {
+                            "min": 0.0002,
+                            "max": 0.0015,
+                            "absolute_max": 0.002
+                        },
+                        "crianca": {
+                            "min": 0.0002,
+                            "max": 0.0015,
+                            "absolute_max": 0.002
+                        },
+                        "adolescente": {
+                            "min": 0.0002,
+                            "max": 0.0015,
+                            "absolute_max": 0.002
+                        }
+                    },
+                    "notes": "Dose original em mcg/kg/h (0,2–1,5 mcg/kg/h). Convertida para mg/kg. Dose pontual = 0,7 mcg/kg/h = 0,0007 mg/kg (média conservadora)."
+                }
+            ]
         }
     },
     {
@@ -584,35 +785,62 @@
             "name": "Metadona",
             "category": "Analgésico Opioide",
             "description": "Opioide sintético de longa ação indicado para o manejo de dor severa e transição/desmame de opioides contínuos na prevenção de abstinência.",
-            "prescription": 50,
-            "frequency_hours": 6,
-            "min_dose_mg_kg": 0.05,
-            "max_dose_mg_kg": 0.2,
-            "max_absolute_dose_mg": 10.0,
-            "concentration_mg": 10,
-            "concentration_ml": 1,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.05,
-                    "max": 0.1,
-                    "absolute_max": 2.0
-                },
-                "lactente": {
-                    "min": 0.05,
-                    "max": 0.2,
-                    "absolute_max": 5.0
-                },
-                "crianca": {
-                    "min": 0.05,
-                    "max": 0.2,
-                    "absolute_max": 10.0
-                },
-                "adolescente": {
-                    "min": 0.05,
-                    "max": 0.2,
-                    "absolute_max": 10.0
+            "presentations": [
+                {
+                    "form": "solucao",
+                    "route": "VO",
+                    "concentration_mg": 10,
+                    "concentration_ml": 1,
+                    "drops_per_ml": null,
+                    "package": "frasco 100 mL = 10 mg/mL"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Manejo de dor severa / Desmame de opioides",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "VO"
+                    ],
+                    "frequency_hours": 6,
+                    "dose_mg_kg": 0.1,
+                    "min_dose_mg_kg": 0.05,
+                    "max_dose_mg_kg": 0.2,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 10.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.05,
+                            "max": 0.1,
+                            "absolute_max": 2.0
+                        },
+                        "lactente": {
+                            "min": 0.05,
+                            "max": 0.2,
+                            "absolute_max": 5.0
+                        },
+                        "crianca": {
+                            "min": 0.05,
+                            "max": 0.2,
+                            "absolute_max": 10.0
+                        },
+                        "adolescente": {
+                            "min": 0.05,
+                            "max": 0.2,
+                            "absolute_max": 10.0
+                        }
+                    },
+                    "notes": "Dose pontual = média (0,1 mg/kg). Meia-vida longa; risco de acúmulo. Monitorar depressão respiratória."
+                }
+            ],
+            "contraindications": [
+                {
+                    "rule": "min_age_days",
+                    "value": 0
+                }
+            ]
         }
     },
     {
@@ -622,35 +850,56 @@
             "name": "Lorazepam",
             "category": "Sedativo",
             "description": "Benzodiazepínico de ação intermediária utilizado para sedação contínua ou controle de ansiedade em UTI pediátrica. Requer cautela e monitoramento por risco de tolerância.",
-            "prescription": 50,
-            "frequency_hours": 6,
-            "min_dose_mg_kg": 0.04,
-            "max_dose_mg_kg": 0.1,
-            "max_absolute_dose_mg": 4.0,
-            "concentration_mg": 2,
-            "concentration_ml": 1,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.04,
-                    "max": 0.05,
-                    "absolute_max": 1.0
-                },
-                "lactente": {
-                    "min": 0.04,
-                    "max": 0.1,
-                    "absolute_max": 2.0
-                },
-                "crianca": {
-                    "min": 0.04,
-                    "max": 0.1,
-                    "absolute_max": 4.0
-                },
-                "adolescente": {
-                    "min": 0.04,
-                    "max": 0.1,
-                    "absolute_max": 4.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 2,
+                    "concentration_ml": 1,
+                    "drops_per_ml": null,
+                    "package": "ampola 1 mL = 2 mg"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Sedação / Controle de ansiedade",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 6,
+                    "dose_mg_kg": 0.05,
+                    "min_dose_mg_kg": 0.04,
+                    "max_dose_mg_kg": 0.1,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 4.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.04,
+                            "max": 0.05,
+                            "absolute_max": 1.0
+                        },
+                        "lactente": {
+                            "min": 0.04,
+                            "max": 0.1,
+                            "absolute_max": 2.0
+                        },
+                        "crianca": {
+                            "min": 0.04,
+                            "max": 0.1,
+                            "absolute_max": 4.0
+                        },
+                        "adolescente": {
+                            "min": 0.04,
+                            "max": 0.1,
+                            "absolute_max": 4.0
+                        }
+                    },
+                    "notes": "Dose pontual = mínima conservadora (0,05 mg/kg). Monitorar tolerância em uso prolongado."
+                }
+            ]
         }
     },
     {
@@ -660,35 +909,56 @@
             "name": "Dobutamina",
             "category": "Inotrópico e Droga Vasoativa",
             "description": "Amina vasoativa inotrópica indicada no manejo do choque (Grupo D da Dengue) quando há suspeita ou confirmação de miocardite ou disfunção miocárdica.",
-            "prescription": 50,
-            "frequency_hours": 1,
-            "min_dose_mg_kg": 5.0,
-            "max_dose_mg_kg": 10.0,
-            "max_absolute_dose_mg": 20.0,
-            "concentration_mg": 250,
-            "concentration_ml": 20,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 2.0,
-                    "max": 20.0,
-                    "absolute_max": 20.0
-                },
-                "lactente": {
-                    "min": 5.0,
-                    "max": 10.0,
-                    "absolute_max": 20.0
-                },
-                "crianca": {
-                    "min": 5.0,
-                    "max": 10.0,
-                    "absolute_max": 20.0
-                },
-                "adolescente": {
-                    "min": 5.0,
-                    "max": 10.0,
-                    "absolute_max": 20.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 250,
+                    "concentration_ml": 20,
+                    "drops_per_ml": null,
+                    "package": "ampola 20 mL = 250 mg (12,5 mg/mL)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Choque / Disfunção miocárdica",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 1,
+                    "dose_mg_kg": 0.005,
+                    "min_dose_mg_kg": 0.005,
+                    "max_dose_mg_kg": 0.01,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 20.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 0.002,
+                            "max": 0.02,
+                            "absolute_max": 20.0
+                        },
+                        "lactente": {
+                            "min": 0.005,
+                            "max": 0.01,
+                            "absolute_max": 20.0
+                        },
+                        "crianca": {
+                            "min": 0.005,
+                            "max": 0.01,
+                            "absolute_max": 20.0
+                        },
+                        "adolescente": {
+                            "min": 0.005,
+                            "max": 0.01,
+                            "absolute_max": 20.0
+                        }
+                    },
+                    "notes": "Dose original em mcg/kg/min (5–10 mcg/kg/min). Convertida: 5 mcg/kg/min = 0,005 mg/kg/min. Infusão contínua; dose horária para engine = 0,3 mg/kg/h (min). Ajustar por ECG e PA."
+                }
+            ]
         }
     },
     {
@@ -698,35 +968,56 @@
             "name": "Adrenalina",
             "category": "Vasopressor e Droga Vasoativa",
             "description": "Catecolamina utilizada no suporte hemodinâmico do choque grave refratário na Dengue Grupo D. Deve ser iniciada com a menor dose recomendada.",
-            "prescription": 50,
-            "frequency_hours": 1,
-            "min_dose_mg_kg": 0.05,
-            "max_dose_mg_kg": 0.3,
-            "max_absolute_dose_mg": 1.0,
-            "concentration_mg": 1,
-            "concentration_ml": 1,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.05,
-                    "max": 0.3,
-                    "absolute_max": 1.0
-                },
-                "lactente": {
-                    "min": 0.05,
-                    "max": 0.3,
-                    "absolute_max": 1.0
-                },
-                "crianca": {
-                    "min": 0.05,
-                    "max": 0.3,
-                    "absolute_max": 1.0
-                },
-                "adolescente": {
-                    "min": 0.05,
-                    "max": 0.3,
-                    "absolute_max": 1.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 1,
+                    "concentration_ml": 1,
+                    "drops_per_ml": null,
+                    "package": "ampola 1 mL = 1 mg (1:1000)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Suporte hemodinâmico / Choque grave refratário",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 1,
+                    "dose_mg_kg": 0.0001,
+                    "min_dose_mg_kg": 5e-05,
+                    "max_dose_mg_kg": 0.0003,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 1.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 5e-05,
+                            "max": 0.0003,
+                            "absolute_max": 1.0
+                        },
+                        "lactente": {
+                            "min": 5e-05,
+                            "max": 0.0003,
+                            "absolute_max": 1.0
+                        },
+                        "crianca": {
+                            "min": 5e-05,
+                            "max": 0.0003,
+                            "absolute_max": 1.0
+                        },
+                        "adolescente": {
+                            "min": 5e-05,
+                            "max": 0.0003,
+                            "absolute_max": 1.0
+                        }
+                    },
+                    "notes": "Dose original em mcg/kg/min (0,05–0,3 mcg/kg/min). Convertida para mg/kg/min. Dose pontual = 0,1 mcg/kg/min = 0,0001 mg/kg/min. Iniciar pela menor dose; titular por PA."
+                }
+            ]
         }
     },
     {
@@ -736,35 +1027,56 @@
             "name": "Noradrenalina",
             "category": "Vasopressor e Droga Vasoativa",
             "description": "Vasopressor potente indicado em associação quando o paciente com choque por Dengue Grupo D persiste hipotenso após medidas iniciais.",
-            "prescription": 50,
-            "frequency_hours": 1,
-            "min_dose_mg_kg": 0.05,
-            "max_dose_mg_kg": 1.0,
-            "max_absolute_dose_mg": 2.0,
-            "concentration_mg": 4,
-            "concentration_ml": 4,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 0.05,
-                    "max": 1.0,
-                    "absolute_max": 2.0
-                },
-                "lactente": {
-                    "min": 0.05,
-                    "max": 1.0,
-                    "absolute_max": 2.0
-                },
-                "crianca": {
-                    "min": 0.05,
-                    "max": 1.0,
-                    "absolute_max": 2.0
-                },
-                "adolescente": {
-                    "min": 0.05,
-                    "max": 1.0,
-                    "absolute_max": 2.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 4,
+                    "concentration_ml": 4,
+                    "drops_per_ml": null,
+                    "package": "ampola 4 mL = 4 mg (1 mg/mL)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Hipotensão persistente no choque",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 1,
+                    "dose_mg_kg": 0.0001,
+                    "min_dose_mg_kg": 5e-05,
+                    "max_dose_mg_kg": 0.001,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 2.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 5e-05,
+                            "max": 0.001,
+                            "absolute_max": 2.0
+                        },
+                        "lactente": {
+                            "min": 5e-05,
+                            "max": 0.001,
+                            "absolute_max": 2.0
+                        },
+                        "crianca": {
+                            "min": 5e-05,
+                            "max": 0.001,
+                            "absolute_max": 2.0
+                        },
+                        "adolescente": {
+                            "min": 5e-05,
+                            "max": 0.001,
+                            "absolute_max": 2.0
+                        }
+                    },
+                    "notes": "Dose original em mcg/kg/min (0,05–1 mcg/kg/min). Convertida para mg/kg/min. Dose pontual = 0,1 mcg/kg/min = 0,0001 mg/kg/min. Titular por PA contínua."
+                }
+            ]
         }
     },
     {
@@ -774,35 +1086,56 @@
             "name": "Furosemida",
             "category": "Diurético de Alça",
             "description": "Diurético indicado em caso de sinais de hiperhidratação/sobrecarga hídrica (fase de recuperação de 48-72h) com restrição hídrica concomitante.",
-            "prescription": 50,
-            "frequency_hours": 4,
-            "min_dose_mg_kg": 2.0,
-            "max_dose_mg_kg": 4.0,
-            "max_absolute_dose_mg": 40.0,
-            "concentration_mg": 20,
-            "concentration_ml": 2,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 1.0,
-                    "max": 2.0,
-                    "absolute_max": 20.0
-                },
-                "lactente": {
-                    "min": 2.0,
-                    "max": 4.0,
-                    "absolute_max": 40.0
-                },
-                "crianca": {
-                    "min": 2.0,
-                    "max": 4.0,
-                    "absolute_max": 40.0
-                },
-                "adolescente": {
-                    "min": 2.0,
-                    "max": 4.0,
-                    "absolute_max": 40.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 20,
+                    "concentration_ml": 2,
+                    "drops_per_ml": null,
+                    "package": "ampola 2 mL = 20 mg (10 mg/mL)"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Sobrecarga hídrica / Hiperhidratação",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 6,
+                    "dose_mg_kg": 2.0,
+                    "min_dose_mg_kg": 1.0,
+                    "max_dose_mg_kg": 4.0,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 40.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 1.0,
+                            "max": 2.0,
+                            "absolute_max": 20.0
+                        },
+                        "lactente": {
+                            "min": 2.0,
+                            "max": 4.0,
+                            "absolute_max": 40.0
+                        },
+                        "crianca": {
+                            "min": 2.0,
+                            "max": 4.0,
+                            "absolute_max": 40.0
+                        },
+                        "adolescente": {
+                            "min": 2.0,
+                            "max": 4.0,
+                            "absolute_max": 40.0
+                        }
+                    },
+                    "notes": "Dose pontual = mínima conservadora (2 mg/kg). Monitorar eletrólitos e diurese."
+                }
+            ]
         }
     },
     {
@@ -812,35 +1145,56 @@
             "name": "Vitamina K",
             "category": "Coagulante e Vitamina",
             "description": "Indicada no manejo farmacológico de suporte para correção de coagulopatia padrão conforme diretrizes clínicas do protocolo.",
-            "prescription": 50,
-            "frequency_hours": 24,
-            "min_dose_mg_kg": 5.0,
-            "max_dose_mg_kg": 10.0,
-            "max_absolute_dose_mg": 10.0,
-            "concentration_mg": 10,
-            "concentration_ml": 1,
-            "limits_by_age": {
-                "neonatal": {
-                    "min": 1.0,
-                    "max": 2.0,
-                    "absolute_max": 2.0
-                },
-                "lactente": {
-                    "min": 5.0,
-                    "max": 10.0,
-                    "absolute_max": 10.0
-                },
-                "crianca": {
-                    "min": 5.0,
-                    "max": 10.0,
-                    "absolute_max": 10.0
-                },
-                "adolescente": {
-                    "min": 5.0,
-                    "max": 10.0,
-                    "absolute_max": 10.0
+            "presentations": [
+                {
+                    "form": "ampola",
+                    "route": "IV",
+                    "concentration_mg": 10,
+                    "concentration_ml": 1,
+                    "drops_per_ml": null,
+                    "package": "ampola 1 mL = 10 mg"
                 }
-            }
+            ],
+            "regimens": [
+                {
+                    "indication": "Correção de coagulopatia",
+                    "off_label": false,
+                    "dose_basis": "per_dose",
+                    "dose_unit": "mg/kg",
+                    "routes": [
+                        "IV"
+                    ],
+                    "frequency_hours": 24,
+                    "dose_mg_kg": 5.0,
+                    "min_dose_mg_kg": 5.0,
+                    "max_dose_mg_kg": 10.0,
+                    "daily_max_mg_kg": null,
+                    "absolute_max_mg": 10.0,
+                    "limits_by_age": {
+                        "neonatal": {
+                            "min": 1.0,
+                            "max": 2.0,
+                            "absolute_max": 2.0
+                        },
+                        "lactente": {
+                            "min": 5.0,
+                            "max": 10.0,
+                            "absolute_max": 10.0
+                        },
+                        "crianca": {
+                            "min": 5.0,
+                            "max": 10.0,
+                            "absolute_max": 10.0
+                        },
+                        "adolescente": {
+                            "min": 5.0,
+                            "max": 10.0,
+                            "absolute_max": 10.0
+                        }
+                    },
+                    "notes": "Dose pontual = mínima (5 mg/kg). Administrar IV lentamente; risco de reação anafilactoide em infusão rápida."
+                }
+            ]
         }
     }
 ]
