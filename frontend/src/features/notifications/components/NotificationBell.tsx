@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 import NotificationPanel from './NotificationPanel'
-import { useNotifications } from './useNotifications'
+import { useNotifications } from '../hooks/useNotifications'
 
 export default function NotificationBell() {
   const {

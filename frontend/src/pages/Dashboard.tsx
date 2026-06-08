@@ -1,10 +1,11 @@
 import { useNavigate, Link } from 'react-router'
-import { Bell, LogOut, Plus, ArrowRight, History, BookOpen } from 'lucide-react'
+import { LogOut, Plus, ArrowRight, History, BookOpen } from 'lucide-react'
 import { useAuth } from '@/features/auth'
 import { usePatients } from '@/features/patient/api'
 import { usePatientStore } from '@/features/patient/store'
 import PatientPill from '@/features/patient/components/PatientPill'
 import { Button } from '@/components/ui/button'
+import { NotificationBell } from '@/features/notifications'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = [
@@ -103,13 +104,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 pt-4 tablet:gap-3 tablet:pt-6">
-          <button
-            type="button"
-            className="flex size-11 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/30 tablet:size-12"
-            aria-label="Notificações"
-          >
-            <Bell size={20} className="text-foreground" />
-          </button>
+          <NotificationBell />
           <button
             type="button"
             onClick={handleLogout}

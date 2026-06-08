@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { fetchUnread, markAllAsRead, markAsRead } from './api'
-import type { Notification } from './types'
+import { fetchUnread, markAllAsRead, markAsRead } from '../api'
+import type { Notification } from '../types'
 
 const POLL_INTERVAL_MS = 30_000 
 
