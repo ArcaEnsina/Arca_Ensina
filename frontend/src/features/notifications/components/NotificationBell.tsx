@@ -6,7 +6,11 @@ import { cn } from '@/lib/utils'
 import NotificationPanel from './NotificationPanel'
 import { useNotifications } from '../hooks/useNotifications'
 
-export default function NotificationBell() {
+interface Props {
+  className?: string
+}
+
+export default function NotificationBell({ className }: Props) {
   const {
     notifications,
     unreadCount,
@@ -29,7 +33,7 @@ export default function NotificationBell() {
   }, [setIsOpen])
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className={cn('relative', className)}>
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
