@@ -1,4 +1,5 @@
 import { X } from 'lucide-react'
+import { useNavigate } from 'react-router'
 
 import type { Notification } from '../types'
 
@@ -6,13 +7,23 @@ interface Props {
   notifications: Notification[]
   onMarkAsRead: (id: string) => void
   onMarkAllAsRead: () => void
+  onClose?: () => void
 }
 
 export default function NotificationPanel({
   notifications,
   onMarkAsRead,
   onMarkAllAsRead,
+  onClose,
 }: Props) {
+  const navigate = useNavigate()
+
+  const handleNotificationClick = (n: Notification) => {
+    onMarkAsRead(n.id)
+    navigate(`/guided-protocol/${n.protocol_id}`)
+    onClose?.()
+  }
+
   return (
     <div
       role="dialog"
@@ -41,17 +52,26 @@ export default function NotificationPanel({
           notifications.map((n) => (
             <li
               key={n.id}
-              className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50"
+              className="group flex items-start gap-3 px-4 py-3 hover:bg-muted/50"
             >
-              <div className="min-w-0 flex-1">
-                <p className="text-body-md font-medium text-foreground">{n.protocol_title}</p>
+              <button
+                type="button"
+                onClick={() => handleNotificationClick(n)}
+                className="min-w-0 flex-1 text-left focus-visible:outline-none"
+              >
+                <p className="text-body-md font-medium text-foreground group-hover:text-primary transition-colors">
+                  {n.protocol_title}
+                </p>
                 <p className="text-caption text-muted-foreground">
                   Versão {n.protocol_version_label} disponível
                 </p>
-              </div>
+              </button>
               <button
                 type="button"
-                onClick={() => onMarkAsRead(n.id)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMarkAsRead(n.id)
+                }}
                 className="shrink-0 rounded-full p-1 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={`Dispensar notificação: ${n.protocol_title}`}
               >

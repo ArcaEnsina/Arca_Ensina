@@ -4,6 +4,10 @@ from .models import Notification
 
 
 class NotificationSerializer(serializers.ModelSerializer):
+    protocol_id = serializers.IntegerField(
+        source="protocol_version.protocol_id",
+        read_only=True,
+    )
     protocol_title = serializers.CharField(
         source="protocol_version.protocol.title",
         read_only=True,
@@ -17,6 +21,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = [
             "id",
+            "protocol_id",
             "protocol_title",
             "protocol_version_label",
             "is_read",
@@ -24,6 +29,7 @@ class NotificationSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "id",
+            "protocol_id",
             "protocol_title",
             "protocol_version_label",
             "created_at",

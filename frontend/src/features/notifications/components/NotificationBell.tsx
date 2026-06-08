@@ -62,6 +62,7 @@ export default function NotificationBell({ className }: Props) {
           notifications={notifications}
           onMarkAsRead={handleMarkAsRead}
           onMarkAllAsRead={handleMarkAllAsRead}
+          onClose={() => setIsOpen(false)}
         />
       )}
     </div>
