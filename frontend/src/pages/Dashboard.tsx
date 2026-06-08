@@ -5,7 +5,6 @@ import { usePatients } from '@/features/patient/api'
 import { usePatientStore } from '@/features/patient/store'
 import PatientPill from '@/features/patient/components/PatientPill'
 import { Button } from '@/components/ui/button'
-import { NotificationBell } from '@/features/notifications'
 import { cn } from '@/lib/utils'
 
 const WEEKDAYS = [
@@ -104,7 +103,6 @@ export default function Dashboard() {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 pt-4 tablet:gap-3 tablet:pt-6">
-          <NotificationBell />
           <button
             type="button"
             onClick={handleLogout}
