@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 
-import type { Notification } from './types'
+import type { Notification } from '../types'
 
 interface Props {
   notifications: Notification[]
