@@ -19,9 +19,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         Pular para o conteúdo
       </a>
 
+      <OfflineIndicator />
       <DesktopNav />
       <ClipboardNav />
-      <OfflineIndicator />
 
       {/* padding reserva espaço para a nav fixa: rodapé no mobile, topo no desktop */}
       <main id="conteudo" className="w-full pb-32 pt-4 tablet:pb-16 tablet:pt-28">
