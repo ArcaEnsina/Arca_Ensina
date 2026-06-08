@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import arcaLogo from "@/assets/arca-logo.png";
 import { NAV_ITEMS } from "./nav-items";
+import { NotificationBell } from "@/features/notifications";
 
 /**
  * NavBar de desktop / iPad (CORE-013): pill branca flutuante com a marca ARCA
@@ -51,6 +52,7 @@ export function DesktopNav() {
             );
           })}
         </ul>
+      <NotificationBell />
       </div>
     </nav>
   );
