@@ -3,6 +3,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Lock, ChevronRight, Info } from 'lucide-react';
 import Decimal from 'decimal.js';
+import { normalizeDecimalInput } from '@/lib/decimal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -104,7 +105,10 @@ export function DrugSelectionStep({ onNext }: DrugSelectionStepProps) {
     !!patientWeight &&
     (() => {
       try {
-        return new Decimal(currentDose).gt(0) && new Decimal(patientWeight).gt(0);
+        return (
+          new Decimal(String(normalizeDecimalInput(currentDose))).gt(0) &&
+          new Decimal(String(normalizeDecimalInput(patientWeight))).gt(0)
+        );
       } catch {
         return false;
       }
@@ -219,7 +223,7 @@ export function DrugSelectionStep({ onNext }: DrugSelectionStepProps) {
                     placeholder={sourceDrug?.dosePlaceholder ?? '0'}
                     aria-invalid={!!form.formState.errors.currentDose}
                     className="pr-16"
-                    {...form.register('currentDose')}
+                    {...form.register('currentDose', { setValueAs: normalizeDecimalInput })}
                   />
                   <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                     {sourceDrug?.doseUnit ?? ''}
@@ -245,7 +249,7 @@ export function DrugSelectionStep({ onNext }: DrugSelectionStepProps) {
                     aria-invalid={!!form.formState.errors.patientWeight}
                     className="pr-10"
                     readOnly={!!activePatient?.peso}
-                    {...form.register('patientWeight')}
+                    {...form.register('patientWeight', { setValueAs: normalizeDecimalInput })}
                   />
                   <Lock
                     className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"

@@ -1,0 +1,1464 @@
+[
+  {
+    "name": "legacy: weight-based per_day with concentration",
+    "medication": {
+      "id": 1,
+      "name": "Amoxicilina",
+      "category": "Antibióticos",
+      "description": "Penicilino de amplo espectro",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": 25,
+      "max_dose_mg_kg": 90,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": null,
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "legacy: weight-based per_day with limits_by_age",
+    "medication": {
+      "id": 2,
+      "name": "Amoxicilina LA",
+      "category": "Antibióticos",
+      "description": "Penicilino de amplo espectro (LA)",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": {
+        "neonatal": {"min": 20, "max": 35, "absolute_max": 1000},
+        "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
+        "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
+        "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
+        "adulto": {"min": 25, "max": 90, "absolute_max": 3000}
+      },
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "legacy: no concentration (volume/drops/units null)",
+    "medication": {
+      "id": 3,
+      "name": "Amoxicilina Seca",
+      "category": "Antibióticos",
+      "description": "Penicilino sem concentração definida",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": 25,
+      "max_dose_mg_kg": 90,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "rich: basic regimen per_day mg/kg",
+    "medication": {
+      "id": 4,
+      "name": "Amoxicilina Rich",
+      "category": "Antibióticos",
+      "description": "Penicilino via regimen",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Infecções bacterianas",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO", "gotas"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 50,
+          "min_dose_mg_kg": 25,
+          "max_dose_mg_kg": 90,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 3000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "gotas",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "rich: per_dose basis mg/kg",
+    "medication": {
+      "id": 5,
+      "name": "Dipirona",
+      "category": "Analgésicos",
+      "description": "Analgésico e antipirético",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Dor e febre",
+          "dose_basis": "per_dose",
+          "dose_unit": "mg/kg",
+          "routes": ["VO", "gotas"],
+          "frequency_hours": 6,
+          "dose_mg_kg": 10,
+          "min_dose_mg_kg": 8,
+          "max_dose_mg_kg": 15,
+          "daily_max_mg_kg": 60,
+          "absolute_max_mg": 4000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "gotas",
+          "concentration_mg": 500,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 20,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "rich: mg/m2 dose_unit with height (BSA)",
+    "medication": {
+      "id": 6,
+      "name": "Methotrexate",
+      "category": "Antineoplásicos",
+      "description": "Antimetabólito",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Oncologia",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/m2",
+          "routes": ["VO", "IV"],
+          "frequency_hours": 24,
+          "dose_mg_kg": 100,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": 100,
+          "absolute_max_mg": 200,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "solucao",
+          "route": "VO",
+          "concentration_mg": 50,
+          "concentration_ml": 2,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 16,
+      "height": 100,
+      "age_days": 2920,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "rich: drops form presentation",
+    "medication": {
+      "id": 7,
+      "name": "Paracetamol Gotas",
+      "category": "Analgésicos",
+      "description": "Antipirético em gotas",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Dor e febre",
+          "dose_basis": "per_dose",
+          "dose_unit": "mg/kg",
+          "routes": ["VO", "gotas"],
+          "frequency_hours": 6,
+          "dose_mg_kg": 15,
+          "min_dose_mg_kg": 10,
+          "max_dose_mg_kg": 20,
+          "daily_max_mg_kg": 60,
+          "absolute_max_mg": 4000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "gotas",
+          "concentration_mg": 200,
+          "concentration_ml": 1,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 10,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "rich: solid form (comprimido, concentration_ml null)",
+    "medication": {
+      "id": 8,
+      "name": "Ibuprofeno",
+      "category": "AINEs",
+      "description": "Anti-inflamatório",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Anti-inflamatório",
+          "dose_basis": "per_dose",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 10,
+          "min_dose_mg_kg": 5,
+          "max_dose_mg_kg": 12,
+          "daily_max_mg_kg": 40,
+          "absolute_max_mg": 2400,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "comprimido",
+          "route": "VO",
+          "concentration_mg": 200,
+          "concentration_ml": null,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "contraindication: min_age_days",
+    "medication": {
+      "id": 9,
+      "name": "Azitromicina",
+      "category": "Antibióticos",
+      "description": "Macrolídeo",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Infecções",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 24,
+          "dose_mg_kg": 10,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 500,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 200,
+          "concentration_ml": 5,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": [
+        {
+          "rule": "min_age_days",
+          "value": 30
+        }
+      ]
+    },
+    "input": {
+      "weight": 5,
+      "height": null,
+      "age_days": 20,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "contraindication: min_weight_kg",
+    "medication": {
+      "id": 10,
+      "name": "Vancomicina",
+      "category": "Antibióticos",
+      "description": "Glicopeptídeo",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Infecções graves",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["IV"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 40,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 2000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "solucao",
+          "route": "IV",
+          "concentration_mg": 500,
+          "concentration_ml": 10,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": [
+        {
+          "rule": "min_weight_kg",
+          "value": 3
+        }
+      ]
+    },
+    "input": {
+      "weight": 2,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "contraindication: form_min_age_days",
+    "medication": {
+      "id": 11,
+      "name": "Dipirona Sup",
+      "category": "Analgésicos",
+      "description": "Dipirona supositório",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Dor e febre",
+          "dose_basis": "per_dose",
+          "dose_unit": "mg/kg",
+          "routes": ["VO", "supositorio"],
+          "frequency_hours": 6,
+          "dose_mg_kg": 10,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 4000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "supositorio",
+          "route": "supositorio",
+          "concentration_mg": 300,
+          "concentration_ml": null,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": [
+        {
+          "rule": "form_min_age_days",
+          "form": "supositorio",
+          "value": 120
+        }
+      ]
+    },
+    "input": {
+      "weight": 5,
+      "height": null,
+      "age_days": 30,
+      "indication": null,
+      "route": null,
+      "presentation_index": 0
+    }
+  },
+  {
+    "name": "contraindication: route_min_age_days",
+    "medication": {
+      "id": 12,
+      "name": "Gentamicina",
+      "category": "Antibióticos",
+      "description": "Aminoglicosídeo",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Infecções graves",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["IV", "IM"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 5,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 500,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "solucao",
+          "route": "IV",
+          "concentration_mg": 40,
+          "concentration_ml": 2,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": [
+        {
+          "rule": "route_min_age_days",
+          "route": "IV",
+          "value": 30
+        }
+      ]
+    },
+    "input": {
+      "weight": 3,
+      "height": null,
+      "age_days": 20,
+      "indication": null,
+      "route": "IV",
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "contraindication: route_forbidden_age_range",
+    "medication": {
+      "id": 13,
+      "name": "Aspirina",
+      "category": "AINEs",
+      "description": "Ácido acetilsalicílico",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Anti-inflamatório",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 10,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 4000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "comprimido",
+          "route": "VO",
+          "concentration_mg": 500,
+          "concentration_ml": null,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": [
+        {
+          "rule": "route_forbidden_age_range",
+          "route": "VO",
+          "min_days": 180,
+          "max_days": 1825
+        }
+      ]
+    },
+    "input": {
+      "weight": 10,
+      "height": null,
+      "age_days": 730,
+      "indication": null,
+      "route": "VO",
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "special block: age_band_null",
+    "medication": {
+      "id": 14,
+      "name": "Teste Band Null",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 50,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 3000,
+          "limits_by_age": {
+            "neonatal": null,
+            "lactente": {"min": 25, "max": 50},
+            "crianca": {"min": 30, "max": 60},
+            "adolescente": {"min": 35, "max": 70},
+            "adulto": {"min": 25, "max": 90}
+          }
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 3,
+      "height": null,
+      "age_days": 15,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "special block: height_required for mg/m2",
+    "medication": {
+      "id": 15,
+      "name": "Teste BSA Sem Altura",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Oncologia",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/m2",
+          "routes": ["VO"],
+          "frequency_hours": 24,
+          "dose_mg_kg": 100,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 200,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "solucao",
+          "route": "VO",
+          "concentration_mg": 50,
+          "concentration_ml": 2,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 16,
+      "height": null,
+      "age_days": 2920,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "warning: below_min_recommended",
+    "medication": {
+      "id": 16,
+      "name": "Teste Dose Baixa",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 15,
+          "min_dose_mg_kg": 20,
+          "max_dose_mg_kg": 90,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 3000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "warning: above_max_recommended",
+    "medication": {
+      "id": 17,
+      "name": "Teste Dose Alta",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 95,
+          "min_dose_mg_kg": 25,
+          "max_dose_mg_kg": 90,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 3000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "warning: above_absolute_max",
+    "medication": {
+      "id": 18,
+      "name": "Teste Teto Absoluto",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 200,
+          "min_dose_mg_kg": 25,
+          "max_dose_mg_kg": 90,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 2000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "warning: above_daily_max",
+    "medication": {
+      "id": 19,
+      "name": "Teste Teto Diário",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_dose",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 6,
+          "dose_mg_kg": 15,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": 50,
+          "absolute_max_mg": 5000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 500,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 10,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "no warnings: dose within all limits",
+    "medication": {
+      "id": 20,
+      "name": "Teste Sem Avisos",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 50,
+          "min_dose_mg_kg": 25,
+          "max_dose_mg_kg": 90,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 3000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 10,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "boundary age: 27 days (neonatal)",
+    "medication": {
+      "id": 21,
+      "name": "Teste Neonatal",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": {
+        "neonatal": {"min": 20, "max": 35, "absolute_max": 1000},
+        "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
+        "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
+        "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
+        "adulto": {"min": 25, "max": 90, "absolute_max": 3000}
+      },
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 4,
+      "height": null,
+      "age_days": 27,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "boundary age: 28 days (lactente)",
+    "medication": {
+      "id": 22,
+      "name": "Teste Lactente",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": {
+        "neonatal": {"min": 20, "max": 35, "absolute_max": 1000},
+        "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
+        "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
+        "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
+        "adulto": {"min": 25, "max": 90, "absolute_max": 3000}
+      },
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 5,
+      "height": null,
+      "age_days": 28,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "boundary age: 364 days (lactente end)",
+    "medication": {
+      "id": 23,
+      "name": "Teste Lactente Fim",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": {
+        "neonatal": {"min": 20, "max": 35, "absolute_max": 1000},
+        "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
+        "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
+        "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
+        "adulto": {"min": 25, "max": 90, "absolute_max": 3000}
+      },
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 9,
+      "height": null,
+      "age_days": 364,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "boundary age: 365 days (crianca)",
+    "medication": {
+      "id": 24,
+      "name": "Teste Crianca",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": {
+        "neonatal": {"min": 20, "max": 35, "absolute_max": 1000},
+        "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
+        "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
+        "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
+        "adulto": {"min": 25, "max": 90, "absolute_max": 3000}
+      },
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 10,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "boundary age: 4379 days (crianca end)",
+    "medication": {
+      "id": 25,
+      "name": "Teste Crianca Fim",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": {
+        "neonatal": {"min": 20, "max": 35, "absolute_max": 1000},
+        "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
+        "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
+        "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
+        "adulto": {"min": 25, "max": 90, "absolute_max": 3000}
+      },
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 35,
+      "height": null,
+      "age_days": 4379,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "boundary age: 4380 days (adolescente)",
+    "medication": {
+      "id": 26,
+      "name": "Teste Adolescente",
+      "category": "Teste",
+      "description": "Medicamento de teste",
+      "prescription": 50,
+      "frequency_hours": 8,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": {
+        "neonatal": {"min": 20, "max": 35, "absolute_max": 1000},
+        "lactente": {"min": 25, "max": 50, "absolute_max": 1500},
+        "crianca": {"min": 30, "max": 60, "absolute_max": 2000},
+        "adolescente": {"min": 35, "max": 70, "absolute_max": 2500},
+        "adulto": {"min": 25, "max": 90, "absolute_max": 3000}
+      },
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 50,
+      "height": null,
+      "age_days": 4380,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "BSA precision guard: sqrt non-terminating",
+    "medication": {
+      "id": 27,
+      "name": "Teste BSA Precisão",
+      "category": "Teste",
+      "description": "Teste de precisão BSA",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste BSA",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/m2",
+          "routes": ["VO"],
+          "frequency_hours": 24,
+          "dose_mg_kg": 100,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": null,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "solucao",
+          "route": "VO",
+          "concentration_mg": 50,
+          "concentration_ml": 2,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 16,
+      "height": 100,
+      "age_days": 2920,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "frequency edge: 7 hours (non-terminating 24/7)",
+    "medication": {
+      "id": 28,
+      "name": "Teste Frequencia 7h",
+      "category": "Teste",
+      "description": "Teste de frequência não-inteira",
+      "prescription": 50,
+      "frequency_hours": 7,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": null,
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "frequency edge: 6 hours (clean integer 4)",
+    "medication": {
+      "id": 29,
+      "name": "Teste Frequencia 6h",
+      "category": "Teste",
+      "description": "Teste de frequência inteira",
+      "prescription": 50,
+      "frequency_hours": 6,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": 3000,
+      "concentration_mg": 250,
+      "concentration_ml": 5,
+      "limits_by_age": null,
+      "regimens": null,
+      "presentations": null,
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "presentation selection: explicit index",
+    "medication": {
+      "id": 30,
+      "name": "Teste Apresentação Índice",
+      "category": "Teste",
+      "description": "Teste de seleção de apresentação",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO", "gotas"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 50,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 3000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "gotas",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        },
+        {
+          "form": "comprimido",
+          "route": "VO",
+          "concentration_mg": 500,
+          "concentration_ml": null,
+          "drops_per_ml": null
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": 1
+    }
+  },
+  {
+    "name": "presentation selection: auto-select by route",
+    "medication": {
+      "id": 31,
+      "name": "Teste Apresentação Auto",
+      "category": "Teste",
+      "description": "Teste de seleção automática",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Teste",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO", "gotas"],
+          "frequency_hours": 8,
+          "dose_mg_kg": 50,
+          "min_dose_mg_kg": null,
+          "max_dose_mg_kg": null,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 3000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "comprimido",
+          "route": "VO",
+          "concentration_mg": 500,
+          "concentration_ml": null,
+          "drops_per_ml": null
+        },
+        {
+          "form": "gotas",
+          "route": "gotas",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 15,
+      "height": null,
+      "age_days": 365,
+      "indication": null,
+      "route": null,
+      "presentation_index": null
+    }
+  },
+  {
+    "name": "indication selection: specific indication chosen",
+    "medication": {
+      "id": 32,
+      "name": "Teste Indicação",
+      "category": "Teste",
+      "description": "Teste de seleção de indicação",
+      "prescription": null,
+      "frequency_hours": null,
+      "min_dose_mg_kg": null,
+      "max_dose_mg_kg": null,
+      "max_absolute_dose_mg": null,
+      "concentration_mg": null,
+      "concentration_ml": null,
+      "limits_by_age": null,
+      "regimens": [
+        {
+          "indication": "Infecções de vias aéreas",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 24,
+          "dose_mg_kg": 10,
+          "min_dose_mg_kg": 8,
+          "max_dose_mg_kg": 12,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 500,
+          "limits_by_age": null
+        },
+        {
+          "indication": "Otitis media",
+          "dose_basis": "per_day",
+          "dose_unit": "mg/kg",
+          "routes": ["VO"],
+          "frequency_hours": 12,
+          "dose_mg_kg": 15,
+          "min_dose_mg_kg": 10,
+          "max_dose_mg_kg": 20,
+          "daily_max_mg_kg": null,
+          "absolute_max_mg": 1000,
+          "limits_by_age": null
+        }
+      ],
+      "presentations": [
+        {
+          "form": "gotas",
+          "route": "VO",
+          "concentration_mg": 250,
+          "concentration_ml": 5,
+          "drops_per_ml": 20
+        }
+      ],
+      "contraindications": null
+    },
+    "input": {
+      "weight": 25,
+      "height": null,
+      "age_days": 1825,
+      "indication": "Otitis media",
+      "route": null,
+      "presentation_index": null
+    }
+  }
+]

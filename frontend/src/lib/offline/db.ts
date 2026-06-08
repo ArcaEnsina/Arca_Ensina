@@ -1,7 +1,7 @@
 import { openDB, type DBSchema } from 'idb'
 
 const DB_NAME = 'arca-offline'
-const DB_VERSION = 3
+const DB_VERSION = 4
 
 export interface ArcaDB extends DBSchema {
   protocols: {
@@ -64,6 +64,14 @@ export interface ArcaDB extends DBSchema {
       createdAt: number
     }
   }
+  medicationDetails: {
+    key: number
+    value: {
+      id: number
+      [key: string]: unknown
+      updatedAt?: number
+    }
+  }
 }
 
 export async function getDB() {
@@ -91,6 +99,10 @@ export async function getDB() {
         db.deleteObjectStore('protocols')
         const protocolStore = db.createObjectStore('protocols', { keyPath: 'id' })
         protocolStore.createIndex('by-specialty', 'specialty')
+      }
+
+      if (oldVersion < 4) {
+        db.createObjectStore('medicationDetails', { keyPath: 'id' })
       }
     },
   })

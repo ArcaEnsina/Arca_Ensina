@@ -1,11 +1,13 @@
 from rest_framework import serializers
 
+from project.drf_fields import CommaDecimalField
+
 
 class PanelCalculateSerializer(serializers.Serializer):
     origem = serializers.CharField()
     destino = serializers.CharField()
-    dose = serializers.DecimalField(max_digits=12, decimal_places=4)
-    peso_kg = serializers.DecimalField(max_digits=12, decimal_places=4)
+    dose = CommaDecimalField(max_digits=12, decimal_places=4)
+    peso_kg = CommaDecimalField(max_digits=12, decimal_places=4)
     horario = serializers.CharField(required=False, allow_blank=True)
     client_uuid = serializers.UUIDField(required=False)
 
@@ -34,9 +36,9 @@ class PanelCalculateSerializer(serializers.Serializer):
 class PanelConversionSerializer(serializers.Serializer):
     origem = serializers.CharField()
     destino = serializers.CharField()
-    dose = serializers.DecimalField(max_digits=12, decimal_places=4)
-    peso_kg = serializers.DecimalField(max_digits=12, decimal_places=4)
-    converted_dose = serializers.DecimalField(max_digits=12, decimal_places=4)
+    dose = CommaDecimalField(max_digits=12, decimal_places=4)
+    peso_kg = CommaDecimalField(max_digits=12, decimal_places=4)
+    converted_dose = CommaDecimalField(max_digits=12, decimal_places=4)
     converted_dose_unit = serializers.CharField()
     frequency = serializers.CharField()
     patient_id = serializers.IntegerField(required=False, allow_null=True)

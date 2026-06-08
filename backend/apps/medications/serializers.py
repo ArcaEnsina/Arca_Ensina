@@ -30,4 +30,12 @@ class MedicationDetailSerializer(serializers.ModelSerializer):
             "administration",
             "overdose",
             "indications",
+            "prescription",
+            "frequency_hours",
+            "min_dose_mg_kg",
+            "max_dose_mg_kg",
+            "max_absolute_dose_mg",
+            "concentration_mg",
+            "concentration_ml",
+            "limits_by_age",
         ]

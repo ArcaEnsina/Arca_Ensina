@@ -3,12 +3,12 @@ from django.db import models
 
 class Medication(models.Model):
     name = models.CharField(max_length=255)
-    # dose (mg/kg/dia ou mg/m²/dia)
-    prescription = models.DecimalField(max_digits=12, decimal_places=4)
+    prescription = models.DecimalField(
+        max_digits=12, decimal_places=4, null=True, blank=True
+    )
     category = models.CharField(default="Outro", max_length=100)
     description = models.TextField(default="Nenhuma descrição disponível.", blank=True)
-    # frequência em horas, ex: a cada 6h -> 6
-    frequency_hours = models.IntegerField()
+    frequency_hours = models.IntegerField(null=True, blank=True)
     # dose mínima segura em mg/kg/dia
     min_dose_mg_kg = models.DecimalField(
         max_digits=12, decimal_places=4, null=True, blank=True

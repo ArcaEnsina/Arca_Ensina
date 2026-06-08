@@ -1,6 +1,7 @@
 export { getDB, type ArcaDB } from './db'
 export * as protocolCache from './protocolCache'
 export * as medicationCache from './medicationCache'
+export * as medicationDetailCache from './medicationDetailCache'
 export * as executionQueue from './executionQueue'
 export * as patientSession from './patientSession'
 export { startSyncListener, stopSyncListener } from './syncOrchestrator'
