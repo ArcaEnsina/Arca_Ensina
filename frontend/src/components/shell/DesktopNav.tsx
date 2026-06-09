@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import arcaLogo from "@/assets/arca-logo.png";
@@ -16,11 +17,26 @@ import { NotificationBell } from "@/features/notifications";
  */
 export function DesktopNav() {
   const { pathname } = useLocation();
+  const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   return (
     <nav
       aria-label="Navegação principal"
-      className="fixed left-1/2 top-6 z-40 hidden -translate-x-1/2 tablet:block"
+      className={cn(
+        "fixed left-1/2 z-40 hidden -translate-x-1/2 tablet:block transition-[top] duration-300",
+        isOffline ? "top-16" : "top-6"
+      )}
     >
       <div className="flex items-center gap-1 rounded-full border border-neutral-200 bg-white p-1.5 pl-2 shadow-md">
         {/* marca ARCA */}
