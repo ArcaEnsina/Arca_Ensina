@@ -1,8 +1,9 @@
 export interface Notification {
   id: string
-  protocol_id: string
-  protocol_title: string
-  protocol_version_label: number
   is_read: boolean
   created_at: string
+  title: string
+  message: string
+  target_type: string | null
+  target_id: string | null
 }

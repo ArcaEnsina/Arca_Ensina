@@ -20,7 +20,9 @@ export default function NotificationPanel({
 
   const handleNotificationClick = (n: Notification) => {
     onMarkAsRead(n.id)
-    navigate(`/guided-protocol/${n.protocol_id}`)
+    if (n.target_type === 'protocol' && n.target_id) {
+      navigate(`/guided-protocol/${n.target_id}`)
+    }
     onClose?.()
   }
 
@@ -60,10 +62,10 @@ export default function NotificationPanel({
                 className="min-w-0 flex-1 text-left focus-visible:outline-none"
               >
                 <p className="text-body-md font-medium text-foreground group-hover:text-primary transition-colors">
-                  {n.protocol_title}
+                  {n.title}
                 </p>
                 <p className="text-caption text-muted-foreground">
-                  Versão {n.protocol_version_label} disponível
+                  {n.message}
                 </p>
               </button>
               <button
@@ -73,7 +75,7 @@ export default function NotificationPanel({
                   onMarkAsRead(n.id)
                 }}
                 className="shrink-0 rounded-full p-1 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                aria-label={`Dispensar notificação: ${n.protocol_title}`}
+                aria-label={`Dispensar notificação: ${n.title}`}
               >
                 <X size={14} className="text-muted-foreground" />
               </button>
