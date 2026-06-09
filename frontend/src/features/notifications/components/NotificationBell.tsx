@@ -20,6 +20,8 @@ export default function NotificationBell({ className }: Props) {
     handleMarkAllAsRead,
   } = useNotifications()
 
+  const hasWarning = notifications.some((n) => n.level === 'warning')
+
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -50,7 +52,10 @@ export default function NotificationBell({ className }: Props) {
         {unreadCount > 0 && (
           <span
             aria-hidden="true"
-            className="absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground"
+            className={cn(
+              'absolute right-1.5 top-1.5 flex size-4 items-center justify-center rounded-full text-[10px] font-bold text-white',
+              hasWarning ? 'bg-red-500' : 'bg-yellow-500',
+            )}
           >
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>

@@ -4,10 +4,9 @@ from .models import Notification
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    title = serializers.CharField(source="title", read_only=True)
     message = serializers.CharField(source="description", read_only=True)
-    target_type = serializers.CharField(source="target_content_type.model", read_only=True)
-    target_id = serializers.CharField(source="target_object_id", read_only=True)
+    target_type = serializers.SerializerMethodField()
+    target_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
@@ -19,6 +18,8 @@ class NotificationSerializer(serializers.ModelSerializer):
             "message",
             "target_type",
             "target_id",
+            "level",
+            "scheduled_for",
         ]
         read_only_fields = [
             "id",
@@ -27,4 +28,16 @@ class NotificationSerializer(serializers.ModelSerializer):
             "message",
             "target_type",
             "target_id",
+            "level",
+            "scheduled_for",
         ]
+
+    def get_target_type(self, obj):
+        if obj.target_content_type:
+            return obj.target_content_type.model
+        return None
+
+    def get_target_id(self, obj):
+        if obj.target_object_id:
+            return obj.target_object_id
+        return None
