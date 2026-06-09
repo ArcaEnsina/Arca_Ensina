@@ -14,13 +14,17 @@ export function useNotifications() {
       const data = await fetchUnread()
       setNotifications(data)
     } catch {
+      // silent fail
     }
   }, [])
 
   useEffect(() => {
-    load()
     const id = setInterval(load, POLL_INTERVAL_MS)
-    return () => clearInterval(id)
+    const timeoutId = setTimeout(load, 0)
+    return () => {
+      clearInterval(id)
+      clearTimeout(timeoutId)
+    }
   }, [load])
 
   const handleMarkAsRead = async (id: string) => {
