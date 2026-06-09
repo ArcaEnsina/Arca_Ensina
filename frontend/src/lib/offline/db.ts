@@ -52,6 +52,7 @@ export interface ArcaDB extends DBSchema {
       status: 'pending' | 'done' | 'error'
       createdAt: number
       retryCount: number
+      nextAttemptAt?: number
     }
     indexes: { 'by-status': string }
   }

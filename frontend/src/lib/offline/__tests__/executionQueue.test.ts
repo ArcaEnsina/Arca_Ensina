@@ -4,6 +4,7 @@ import {
   listPending,
   markDone,
   markError,
+  markRetry,
   peek,
 } from '../executionQueue'
 
@@ -27,6 +28,16 @@ describe('executionQueue', () => {
     await markError(id)
     const pending = await listPending()
     expect(pending).toHaveLength(0)
+  })
+
+  it('keeps item pending with backoff on markRetry', async () => {
+    const id = await enqueue('test', {})
+    const before = Date.now()
+    await markRetry(id, 5_000)
+    const pending = await listPending()
+    expect(pending).toHaveLength(1)
+    expect(pending[0].retryCount).toBe(1)
+    expect(pending[0].nextAttemptAt).toBeGreaterThanOrEqual(before + 5_000)
   })
 
   it('peeks at next pending item', async () => {

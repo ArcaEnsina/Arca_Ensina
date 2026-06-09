@@ -7,6 +7,8 @@ export interface QueueEntry {
   status: 'pending' | 'done' | 'error'
   createdAt: number
   retryCount: number
+  /** Timestamp (ms) antes do qual a entrada não deve ser reenviada (backoff). Ausente = imediato. */
+  nextAttemptAt?: number
 }
 
 export async function enqueue(type: string, payload: unknown): Promise<number> {
@@ -53,6 +55,7 @@ export async function markDone(id: number): Promise<void> {
   }
 }
 
+/** Falha permanente (ex.: 400 de validação) — sai da fila de retry. */
 export async function markError(id: number): Promise<void> {
   const db = await getDB()
   const entry = await db.get('syncQueue', id)
@@ -62,6 +65,21 @@ export async function markError(id: number): Promise<void> {
       id,
       status: 'error',
       retryCount: entry.retryCount + 1,
+    })
+  }
+}
+
+/** Falha transitória — mantém pendente e agenda nova tentativa após `delayMs`. */
+export async function markRetry(id: number, delayMs: number): Promise<void> {
+  const db = await getDB()
+  const entry = await db.get('syncQueue', id)
+  if (entry) {
+    await db.put('syncQueue', {
+      ...entry,
+      id,
+      status: 'pending',
+      retryCount: entry.retryCount + 1,
+      nextAttemptAt: Date.now() + delayMs,
     })
   }
 }
