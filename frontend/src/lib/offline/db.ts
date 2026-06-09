@@ -1,7 +1,7 @@
 import { openDB, type DBSchema } from 'idb'
 
 const DB_NAME = 'arca-offline'
-const DB_VERSION = 4
+const DB_VERSION = 5
 
 export interface ArcaDB extends DBSchema {
   protocols: {
@@ -73,6 +73,28 @@ export interface ArcaDB extends DBSchema {
       updatedAt?: number
     }
   }
+  guidedExecutionStates: {
+    key: string
+    value: {
+      clientUuid: string
+      currentStepKey: string
+      history: Array<{
+        stepKey: string
+        stepType: string
+        title: string
+        values: Record<string, unknown>
+        answeredAt: string
+      }>
+      values: Record<string, unknown>
+      protocolVersionId: string
+      protocolId: string
+      patientName: string
+      patientId?: string
+      status: 'em_andamento' | 'concluido' | 'abandonado'
+      updatedAt: string
+    }
+    indexes: { 'by-status': string }
+  }
 }
 
 export async function getDB() {
@@ -104,6 +126,11 @@ export async function getDB() {
 
       if (oldVersion < 4) {
         db.createObjectStore('medicationDetails', { keyPath: 'id' })
+      }
+
+      if (oldVersion < 5) {
+        const execStore = db.createObjectStore('guidedExecutionStates', { keyPath: 'clientUuid' })
+        execStore.createIndex('by-status', 'status')
       }
     },
   })
