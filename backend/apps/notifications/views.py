@@ -17,7 +17,7 @@ class NotificationViewSet(
 
     def get_queryset(self):
         qs = Notification.objects.filter(recipient=self.request.user).select_related(
-            "protocol_version__protocol"
+            "protocol_version__protocol", "target_content_type"
         )
         is_read = self.request.query_params.get("is_read")
         if is_read is not None:

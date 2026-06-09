@@ -4,33 +4,27 @@ from .models import Notification
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    protocol_id = serializers.IntegerField(
-        source="protocol_version.protocol_id",
-        read_only=True,
-    )
-    protocol_title = serializers.CharField(
-        source="protocol_version.protocol.title",
-        read_only=True,
-    )
-    protocol_version_label = serializers.IntegerField(
-        source="protocol_version.version_number",
-        read_only=True,
-    )
+    title = serializers.CharField(source="verb", read_only=True)
+    message = serializers.CharField(source="description", read_only=True)
+    target_type = serializers.CharField(source="target_content_type.model", read_only=True)
+    target_id = serializers.CharField(source="target_object_id", read_only=True)
 
     class Meta:
         model = Notification
         fields = [
             "id",
-            "protocol_id",
-            "protocol_title",
-            "protocol_version_label",
             "is_read",
             "created_at",
+            "title",
+            "message",
+            "target_type",
+            "target_id",
         ]
         read_only_fields = [
             "id",
-            "protocol_id",
-            "protocol_title",
-            "protocol_version_label",
             "created_at",
+            "title",
+            "message",
+            "target_type",
+            "target_id",
         ]
