@@ -35,7 +35,7 @@ def notify_users_on_protocol_update(sender, instance, created, **kwargs):
                 protocol_version=instance,
                 target_content_type=content_type,
                 target_object_id=str(protocol.pk),
-                verb="Protocolo atualizado",
+                title="Protocolo atualizado",
                 description=f"O protocolo '{protocol.title}' foi atualizado para a versão {instance.version_number}.",
             )
             for uid in user_ids
