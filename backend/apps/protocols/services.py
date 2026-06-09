@@ -262,12 +262,12 @@ class ProtocolExecutionEngine:
 
         return state
     
-    def _agendar_lembrete_wait_reassess(self, execution):
+    def _agendar_lembrete_wait_reassess(self, execution, step):
         duration = step.get("duration_hours", 0)
         if duration <= 0:
             return
         
-        scheduled_time = timezone.now() + timezone.timedelta(hours=duration)
+        scheduled_time = timezone.now() + timedelta(hours=duration)
         Notification.objects.create(
             recipient=execution.physician,
             target_content_type=ContentType.objects.get_for_model(execution),
