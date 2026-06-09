@@ -1,8 +1,10 @@
 from datetime import timedelta
+
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
-from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
+
 from .models import Notification
 
 User = get_user_model()
@@ -74,7 +76,10 @@ class NotificationScheduleTests(TestCase):
         self.assertEqual(data[0]["level"], "warning")
 
     def test_mark_all_read_affects_only_visible_notifications(self):
-        """Verifica se o 'marcar todas como lidas' não afeta as que ainda estão escondidas."""
+        """
+        Verifica se o 'marcar todas como lidas' não afeta as
+        que ainda estão escondidas.
+        """
         future_time = timezone.now() + timedelta(hours=1)
         future_notif = Notification.objects.create(
             recipient=self.user,

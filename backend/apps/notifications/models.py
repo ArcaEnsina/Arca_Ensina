@@ -1,11 +1,12 @@
 import uuid
 
 from django.conf import settings
-from django.db import models
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 
 from apps.protocols.models import ProtocolVersion
+
 
 class Notification(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -41,7 +42,10 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        unique_together = [("recipient", "target_content_type", "target_object_id", "title")]
+        unique_together = [("recipient", 
+                            "target_content_type", 
+                            "target_object_id", 
+                            "title")]
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"
 

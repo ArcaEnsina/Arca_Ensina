@@ -1,10 +1,12 @@
 import ast
 import operator
+from datetime import timedelta
 from decimal import Decimal
 
-from django.utils import timezone
-from apps.notifications.models import Notification
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
+
+from apps.notifications.models import Notification
 
 from .engine.interpreter import GuidedProtocolInterpreter
 from .models import ProtocolExecutionState
@@ -273,7 +275,12 @@ class ProtocolExecutionEngine:
             target_content_type=ContentType.objects.get_for_model(execution),
             target_object_id=str(execution.pk),
             title="Reavaliação necessária",
-            description=(f"O tempo de espera de {duration}h para o paciente {execution.patient} no passo '{step.get('title', '')}' do protocolo '{execution.version.protocol.title}' acabou. Por favor, reavalie o caso."),
+            description=(
+                f"O tempo de espera de {duration}h para o paciente {execution.patient} "
+                f"no passo '{step.get('title', '')}' do protocolo "
+                f"'{execution.version.protocol.title}' acabou. "
+                f"Por favor, reavalie o caso."
+            ),
             level="warning",
             scheduled_for=scheduled_time
         )
