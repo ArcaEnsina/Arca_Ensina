@@ -3,6 +3,8 @@ import operator
 from decimal import Decimal
 
 from django.utils import timezone
+from apps.notifications.models import Notification
+from django.contrib.contenttypes.models import ContentType
 
 from .engine.interpreter import GuidedProtocolInterpreter
 from .models import ProtocolExecutionState
@@ -231,6 +233,10 @@ class ProtocolExecutionEngine:
             valores,
             {"loop_count": state.loop_count},
         )
+        if next_step_key:
+            next_step = interpreter.get_step(next_step_key)
+            if next_step and next_step.get("type") == "wait_reassess":
+                self._agendar_lembrete_wait_reassess(execution, next_step)
 
         if step and step.get("type") == "titration_loop":
             state.loop_count += 1
@@ -255,7 +261,23 @@ class ProtocolExecutionEngine:
             execution.save(update_fields=["current_step_key", "current_step"])
 
         return state
-
+    
+    def _agendar_lembrete_wait_reassess(self, execution):
+        duration = step.get("duration_hours", 0)
+        if duration <= 0:
+            return
+        
+        scheduled_time = timezone.now() + timezone.timedelta(hours=duration)
+        Notification.objects.create(
+            recipient=execution.physician,
+            target_content_type=ContentType.objects.get_for_model(execution),
+            target_object_id=str(execution.pk),
+            title="Reavaliação necessária",
+            description=(f"O tempo de espera de {duration}h para o paciente {execution.patient} no passo '{step.get('title', '')}' do protocolo '{execution.version.protocol.title}' acabou. Por favor, reavalie o caso."),
+            level="warning",
+            scheduled_for=scheduled_time
+        )
+        
     def _historico_json(self, execution):
         return [
             {
