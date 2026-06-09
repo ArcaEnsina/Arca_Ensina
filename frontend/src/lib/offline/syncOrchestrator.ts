@@ -1,5 +1,6 @@
 import { isAxiosError } from 'axios'
 import { listPending, markDone, markError, markRetry } from './executionQueue'
+import { deleteExecutionState } from './executionState'
 import api from '@/lib/api/client'
 
 const BASE_RETRY_DELAY_MS = 2_000
@@ -45,6 +46,8 @@ async function processPendingQueue(): Promise<void> {
       try {
         if (entry.type === 'calculator.calculate') {
           await api.post('calculator/calculate/', entry.payload)
+        } else if (entry.type === 'guided:execution-upsert') {
+          await handleGuidedExecutionSync(entry.payload)
         } else {
           console.log(`[sync] tipo desconhecido ${entry.type}, ignorando`)
         }
@@ -68,6 +71,44 @@ async function processPendingQueue(): Promise<void> {
     isProcessing = false
   }
   await scheduleNextRun()
+}
+
+async function handleGuidedExecutionSync(payload: unknown): Promise<void> {
+  const data = payload as {
+    protocolId: number
+    clientUuid?: string
+    status?: string
+    currentStepKey?: string
+    history?: Array<Record<string, unknown>>
+    patientName?: string
+    patientId?: number | null
+  }
+
+  const snakeHistory = (data.history ?? []).map((entry) => ({
+    step_key: entry.stepKey,
+    step_type: entry.stepType,
+    title: entry.title,
+    values: entry.values,
+    answered_at: entry.answeredAt,
+  }))
+
+  await api.post('protocol-executions/sync/', {
+    protocol_id: data.protocolId,
+    client_uuid: data.clientUuid,
+    status: data.status,
+    current_step_key: data.currentStepKey,
+    history: snakeHistory,
+    patient_name: data.patientName,
+    patient_id: data.patientId,
+  })
+
+  if (data.clientUuid) {
+    try {
+      await deleteExecutionState(data.clientUuid)
+    } catch (err) {
+      console.warn('[sync] Falha ao limpar estado local apos sync:', err)
+    }
+  }
 }
 
 /** Re-agenda o processamento para a entrada pendente mais próxima de vencer. */
