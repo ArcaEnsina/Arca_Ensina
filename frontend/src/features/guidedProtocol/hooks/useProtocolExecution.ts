@@ -3,12 +3,19 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useGuidedProtocolStore } from '../store';
 import { apiExecutor } from '../engine/apiExecutor';
+import { localExecutor } from '../engine/localExecutor';
+import type { IProtocolExecutor } from '../engine/executor';
 import {
   useAdvanceStep,
   useExecutionReminders,
   useGoBack,
   useSubmitAnswer,
 } from '../api';
+import {
+  loadExecutionState,
+  saveExecutionState,
+} from '@/lib/offline/executionState';
+import { enqueue } from '@/lib/offline/executionQueue';
 import type {
   AnswerValues,
   Execution,
@@ -59,6 +66,7 @@ export function useProtocolExecution({
 
   const loopCountsRef = useRef<Map<string, number>>(new Map());
   const bootstrappedRef = useRef(false);
+  const executorRef = useRef<IProtocolExecutor>(apiExecutor);
 
   const answerMutation = useSubmitAnswer();
   const advanceMutation = useAdvanceStep();
@@ -77,6 +85,55 @@ export function useProtocolExecution({
     }
   }, []);
 
+  /** Persist execution state to IndexedDB (write-through). */
+  const persistState = useCallback(
+    (exec: Execution) => {
+      const clientUuid = useGuidedProtocolStore.getState().clientUuid;
+      if (!clientUuid) return;
+      void saveExecutionState({
+        clientUuid,
+        currentStepKey: exec.currentStepKey ?? '',
+        history: useGuidedProtocolStore.getState().history.map((h) => ({
+          stepKey: h.stepKey,
+          stepType: h.stepType,
+          title: h.title,
+          values: h.values,
+          answeredAt: h.answeredAt,
+        })),
+        values: {},
+        protocolVersionId: '',
+        protocolId: String(protocolId),
+        patientName,
+        patientId: patientId != null ? String(patientId) : undefined,
+        status: exec.status,
+        updatedAt: new Date().toISOString(),
+      }).catch((err: unknown) => {
+        console.error('[execution] Falha ao salvar estado local:', err);
+      });
+    },
+    [protocolId, patientName, patientId],
+  );
+
+  /** Enqueue sync snapshot when using local executor online. */
+  const enqueueSync = useCallback(
+    (exec: Execution) => {
+      if (executorRef.current !== localExecutor) return;
+      if (!navigator.onLine) return;
+      void enqueue('guided:execution-upsert', {
+        protocolId,
+        clientUuid: exec.clientUuid,
+        status: exec.status,
+        currentStepKey: exec.currentStepKey,
+        history: useGuidedProtocolStore.getState().history,
+        patientName,
+        patientId,
+      }).catch((err: unknown) => {
+        console.error('[sync] Falha ao enfileirar execution-upsert:', err);
+      });
+    },
+    [protocolId, patientName, patientId],
+  );
+
   const applyExecution = useCallback(
     (exec: Execution) => {
       setExecutionId(exec.id);
@@ -90,8 +147,10 @@ export function useProtocolExecution({
         setCompleted(false);
         setStep(exec.currentStepData);
       }
+      // Write-through to IndexedDB
+      persistState(exec);
     },
-    [setExecutionId, setStatus, setCurrentStepKey, setStep],
+    [setExecutionId, setStatus, setCurrentStepKey, setStep, persistState],
   );
 
   const applyStepResponse = useCallback(
@@ -112,8 +171,9 @@ export function useProtocolExecution({
     [setStatus, setCurrentStepKey, setStep],
   );
 
-  // Idempotent start-on-mount: resume the active execution if one exists,
-  // otherwise start a fresh one (guarded by a stable client_uuid).
+  // Idempotent start-on-mount: restore execution state from IndexedDB by
+  // clientUuid (always, not just offline). Pick executor: apiExecutor when
+  // online AND server has state; localExecutor when offline OR no server state.
   useEffect(() => {
     if (!patientName || bootstrappedRef.current) return;
     bootstrappedRef.current = true;
@@ -134,27 +194,124 @@ export function useProtocolExecution({
     (async () => {
       setBootstrapping(true);
       setError(null);
+
+      // Pick executor: prefer API when online, fall back to local
+      executorRef.current = navigator.onLine ? apiExecutor : localExecutor;
+
       try {
-        const res = await apiExecutor.getStep(protocolId);
-        applyStepResponse(res);
-      } catch (err) {
-        if (isNotFound(err)) {
+        // Try API first (when online)
+        if (navigator.onLine) {
+          try {
+            const res = await apiExecutor.getStep(protocolId);
+            executorRef.current = apiExecutor;
+            applyStepResponse(res);
+            return;
+          } catch (err) {
+            if (!isNotFound(err)) {
+              // Non-404 API error — try local fallback
+              const clientUuid = ensureClientUuid();
+              const localState = await loadExecutionState(clientUuid);
+              if (localState && localState.status === 'em_andamento') {
+                executorRef.current = localExecutor;
+                await localExecutor.start(
+                  protocolId,
+                  patientName,
+                  clientUuid,
+                  patientId,
+                );
+                const stepRes = await localExecutor.getStep(protocolId);
+                applyStepResponse(stepRes);
+                setStatus(localState.status);
+                return;
+              }
+              throw err;
+            }
+          }
+        }
+
+        // Offline or 404 from API — restore from IndexedDB
+        const clientUuid = ensureClientUuid();
+        const localState = await loadExecutionState(clientUuid);
+
+        if (localState && localState.status === 'em_andamento') {
+          executorRef.current = localExecutor;
+          await localExecutor.start(
+            protocolId,
+            patientName,
+            clientUuid,
+            patientId,
+          );
+          // Hydrate store from saved state
+          setCurrentStepKey(localState.currentStepKey);
+          setStatus(localState.status);
+          for (const entry of localState.history) {
+            appendHistory({
+              stepKey: entry.stepKey,
+              stepType: entry.stepType as import('../types').StepType,
+              title: entry.title,
+              values: entry.values,
+              answeredAt: entry.answeredAt,
+            });
+          }
+          const stepRes = await localExecutor.getStep(protocolId);
+          applyStepResponse(stepRes);
+
+          // Load reminders from local state
+          const localReminders = await localExecutor.getReminders(protocolId);
+          void localReminders; // Reminders are loaded via the query below
+          return;
+        }
+
+        // No local state — start fresh
+        if (navigator.onLine) {
+          // API 404 + no local state → start on server
           try {
             const exec = await apiExecutor.start(
               protocolId,
               patientName,
-              ensureClientUuid(),
+              clientUuid,
               patientId,
             );
+            executorRef.current = apiExecutor;
             applyExecution(exec);
+            return;
           } catch (startErr) {
-            setError(startErr as Error);
-            toast.error('Não foi possível iniciar o protocolo. Tente novamente.');
+            // Server start failed — try local
+            try {
+              const exec = await localExecutor.start(
+                protocolId,
+                patientName,
+                clientUuid,
+                patientId,
+              );
+              executorRef.current = localExecutor;
+              applyExecution(exec);
+              return;
+            } catch {
+              setError(startErr as Error);
+              toast.error('Não foi possível iniciar o protocolo. Tente novamente.');
+              return;
+            }
           }
-        } else {
-          setError(err as Error);
-          toast.error('Não foi possível carregar o protocolo. Tente novamente.');
         }
+
+        // Offline + no local state — start local
+        try {
+          const exec = await localExecutor.start(
+            protocolId,
+            patientName,
+            clientUuid,
+            patientId,
+          );
+          executorRef.current = localExecutor;
+          applyExecution(exec);
+        } catch (startErr) {
+          setError(startErr as Error);
+          toast.error('Não foi possível iniciar o protocolo. Tente novamente.');
+        }
+      } catch (err) {
+        setError(err as Error);
+        toast.error('Não foi possível carregar o protocolo. Tente novamente.');
       } finally {
         setBootstrapping(false);
       }
@@ -168,6 +325,9 @@ export function useProtocolExecution({
     ensureClientUuid,
     reset,
     setProtocolId,
+    setStatus,
+    setCurrentStepKey,
+    appendHistory,
   ]);
 
   /** Answer the current answerable step — exactly one /answer/ call (fix3 #1). */
@@ -176,7 +336,8 @@ export function useProtocolExecution({
       if (!step) return;
       const answered = step;
       try {
-        const exec = await answerMutation.mutateAsync({ protocolId, values });
+        const executor = executorRef.current;
+        const exec = await executor.answer(protocolId, values);
         appendHistory({
           stepKey: answered.id,
           stepType: answered.type,
@@ -185,6 +346,8 @@ export function useProtocolExecution({
           answeredAt: new Date().toISOString(),
         });
         applyExecution(exec);
+        // Sync queue when using local executor online
+        enqueueSync(exec);
         if (exec.status === 'concluido') {
           toast.success('Protocolo concluído.');
         }
@@ -192,7 +355,7 @@ export function useProtocolExecution({
         toast.error('Erro ao registrar resposta. Tente novamente.');
       }
     },
-    [step, protocolId, answerMutation, appendHistory, applyExecution],
+    [step, protocolId, appendHistory, applyExecution, enqueueSync],
   );
 
   /** Advance past a display-only step — single /next/ call (fix3 #1). */
@@ -200,7 +363,8 @@ export function useProtocolExecution({
     if (!step) return;
     const leaving = step;
     try {
-      const res = await advanceMutation.mutateAsync({ protocolId });
+      const executor = executorRef.current;
+      const res = await executor.advance(protocolId);
       appendHistory({
         stepKey: leaving.id,
         stepType: leaving.type,
@@ -215,13 +379,14 @@ export function useProtocolExecution({
     } catch {
       toast.error('Erro ao avançar. Tente novamente.');
     }
-  }, [step, protocolId, advanceMutation, appendHistory, applyStepResponse]);
+  }, [step, protocolId, appendHistory, applyStepResponse]);
 
   /** Revert to the previous visited step so a past decision can be redone. */
   const goBack = useCallback(async () => {
     if (!canGoBack) return;
     try {
-      const res = await backMutation.mutateAsync({ protocolId });
+      const executor = executorRef.current;
+      const res = await executor.back(protocolId);
       // The step we return to is reopened for a fresh answer, so drop its
       // recorded decision from the timeline to keep it in sync with the engine.
       if (res.step) removeHistory(res.step.id);
@@ -229,7 +394,7 @@ export function useProtocolExecution({
     } catch {
       toast.error('Erro ao voltar. Tente novamente.');
     }
-  }, [canGoBack, protocolId, backMutation, removeHistory, applyStepResponse]);
+  }, [canGoBack, protocolId, removeHistory, applyStepResponse]);
 
   return {
     step,
