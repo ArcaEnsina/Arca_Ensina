@@ -1,9 +1,9 @@
+from django.db.models import Q
+from django.utils import timezone
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Q
-from django.utils import timezone
 
 from .models import Notification
 from .serializers import NotificationSerializer
