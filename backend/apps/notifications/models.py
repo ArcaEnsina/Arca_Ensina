@@ -21,8 +21,9 @@ class Notification(models.Model):
         null=True,
         blank=True,
     )
-    verb = models.CharField(max_length=255, default="")
+    title = models.CharField(max_length=255, default="")
     description = models.TextField(blank=True, default="")
+    level = models.CharField(max_length=20, default="info")  # info, warning, error
     
     is_read = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -35,15 +36,17 @@ class Notification(models.Model):
     )
     target_object_id = models.CharField(max_length=255, null=True, blank=True)
     target = GenericForeignKey("target_content_type", "target_object_id")
+    
+    scheduled_for = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
-        unique_together = [("recipient", "target_content_type", "target_object_id", "verb")]
+        unique_together = [("recipient", "target_content_type", "target_object_id", "title")]
         verbose_name = "Notification"
         verbose_name_plural = "Notifications"
 
     def __str__(self):
         return (
-            f"{self.recipient} - {self.verb} "
+            f"{self.recipient} - {self.title} "
             f"({'lida' if self.is_read else 'não lida'})"
         )
