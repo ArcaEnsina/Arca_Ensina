@@ -4,6 +4,8 @@ import { useAuth } from '@/features/auth'
 import { usePatients } from '@/features/patient/api'
 import { usePatientStore } from '@/features/patient/store'
 import PatientPill from '@/features/patient/components/PatientPill'
+import { useActiveExecution } from '@/features/guidedProtocol/hooks/useActiveExecution'
+import { ActiveProtocolCard } from '@/features/guidedProtocol/components/ActiveProtocolCard'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -70,6 +72,7 @@ export default function Dashboard() {
   const { data: patients = [], isLoading } = usePatients()
   const setActivePatient = usePatientStore((s) => s.setActivePatient)
   const activePatient = usePatientStore((s) => s.activePatient)
+  const { data: activeExecution } = useActiveExecution(activePatient?.id ?? null)
 
   const now = new Date()
   const weekday = WEEKDAYS[now.getDay()]
@@ -240,33 +243,37 @@ export default function Dashboard() {
         )}
       </section>
 
-      {/* ── Protocol suggestion ── */}
+      {/* ── Protocol: in-progress execution (selected patient) or suggestion ── */}
       <section className="mt-6 tablet:mt-8">
         <div className="mb-3 tablet:mb-5">
           <span className="text-caption font-medium tracking-widest text-muted-foreground tablet:text-body-md">
-            PROTOCOLO RECOMENDADO
+            {activeExecution ? 'PROTOCOLO EM EXECUÇÃO' : 'PROTOCOLO RECOMENDADO'}
           </span>
         </div>
 
-        <div className="bg-neutral-900 rounded-2xl shadow-md p-5 tablet:p-6 text-white">
-          <span className="text-caption font-medium tracking-widest text-neutral-400 uppercase">
-            SUGESTÃO BASEADA EM SINTOMAS
-          </span>
-          <h2 className="text-heading-lg font-semibold text-white mt-2">
-            Sugestão automática em desenvolvimento
-          </h2>
-          <p className="text-body-md text-neutral-400 mt-2">
-            O algoritmo de sugestão de protocolo ainda não está pronto. Selecione um protocolo manualmente no catálogo.
-          </p>
-          <div className="mt-5 flex">
-            <Button variant="default" size="lg" className="w-full bg-white text-neutral-900 hover:bg-neutral-100 rounded-full" asChild>
-              <Link to="/protocols/manual" className="inline-flex items-center justify-center gap-2">
-                <BookOpen size={18} />
-                Selecionar protocolo manualmente
-              </Link>
-            </Button>
+        {activeExecution ? (
+          <ActiveProtocolCard data={activeExecution} />
+        ) : (
+          <div className="bg-neutral-900 rounded-2xl shadow-md p-5 tablet:p-6 text-white">
+            <span className="text-caption font-medium tracking-widest text-neutral-400 uppercase">
+              SUGESTÃO BASEADA EM SINTOMAS
+            </span>
+            <h2 className="text-heading-lg font-semibold text-white mt-2">
+              Sugestão automática em desenvolvimento
+            </h2>
+            <p className="text-body-md text-neutral-400 mt-2">
+              O algoritmo de sugestão de protocolo ainda não está pronto. Selecione um protocolo manualmente no catálogo.
+            </p>
+            <div className="mt-5 flex">
+              <Button variant="default" size="lg" className="w-full bg-white text-neutral-900 hover:bg-neutral-100 rounded-full" asChild>
+                <Link to="/protocols/manual" className="inline-flex items-center justify-center gap-2">
+                  <BookOpen size={18} />
+                  Selecionar protocolo manualmente
+                </Link>
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </section>
     </div>
   )

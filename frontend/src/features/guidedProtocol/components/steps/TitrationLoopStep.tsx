@@ -23,6 +23,11 @@ export function TitrationLoopStep({
   const continueLabel = step.choice?.continueLabel ?? 'Iniciar outro bolus';
   const stopLabel = step.choice?.stopLabel ?? 'Esperar HCT';
 
+  // On the last allowed cycle the engine force-exits instead of looping, so
+  // offering "iniciar outro" here is misleading — show the cap and only "stop".
+  const atMax =
+    step.maxIterations != null && currentIteration >= step.maxIterations;
+
   // Two-stage flow: congestion is a safety gate; only when absent do we offer
   // the explicit "start another / wait" decision.
   const [noCongestion, setNoCongestion] = useState(false);
@@ -68,35 +73,57 @@ export function TitrationLoopStep({
       ) : (
         <Card>
           <CardContent className="flex flex-col gap-4">
-            <StepHeading
-              title="Conduta"
-              description="Sem sinais de congestão. Iniciar novo bolus ou aguardar o resultado do HCT?"
-            />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Button
-                size="xl"
-                className="gap-2 rounded-2xl"
-                disabled={submitting}
-                onClick={() =>
-                  onAnswer({ congestion: false, decision: 'iniciar_outro' })
-                }
-              >
-                <RotateCw className="size-5" aria-hidden="true" />
-                {continueLabel}
-              </Button>
-              <Button
-                size="xl"
-                variant="outline"
-                className="gap-2 rounded-2xl"
-                disabled={submitting}
-                onClick={() =>
-                  onAnswer({ congestion: false, decision: 'esperar_hct' })
-                }
-              >
-                <Hourglass className="size-5" aria-hidden="true" />
-                {stopLabel}
-              </Button>
-            </div>
+            {atMax ? (
+              <>
+                <StepHeading
+                  title="Máximo de expansões atingido"
+                  description="Não iniciar novo bolus. Aguardar o resultado do Hct para reavaliar a conduta."
+                />
+                <Button
+                  size="xl"
+                  className="gap-2 rounded-2xl"
+                  disabled={submitting}
+                  onClick={() =>
+                    onAnswer({ congestion: false, decision: 'esperar_hct' })
+                  }
+                >
+                  <Hourglass className="size-5" aria-hidden="true" />
+                  {stopLabel}
+                </Button>
+              </>
+            ) : (
+              <>
+                <StepHeading
+                  title="Conduta"
+                  description="Sem sinais de congestão. Iniciar novo bolus ou aguardar o resultado do HCT?"
+                />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Button
+                    size="xl"
+                    className="gap-2 rounded-2xl"
+                    disabled={submitting}
+                    onClick={() =>
+                      onAnswer({ congestion: false, decision: 'iniciar_outro' })
+                    }
+                  >
+                    <RotateCw className="size-5" aria-hidden="true" />
+                    {continueLabel}
+                  </Button>
+                  <Button
+                    size="xl"
+                    variant="outline"
+                    className="gap-2 rounded-2xl"
+                    disabled={submitting}
+                    onClick={() =>
+                      onAnswer({ congestion: false, decision: 'esperar_hct' })
+                    }
+                  >
+                    <Hourglass className="size-5" aria-hidden="true" />
+                    {stopLabel}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
