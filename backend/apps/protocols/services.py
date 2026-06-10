@@ -263,12 +263,12 @@ class ProtocolExecutionEngine:
             execution.save(update_fields=["current_step_key", "current_step"])
 
         return state
-    
+
     def _agendar_lembrete_wait_reassess(self, execution, step):
         duration = step.get("duration_hours", 0)
         if duration <= 0:
             return
-        
+
         scheduled_time = timezone.now() + timedelta(hours=duration)
         Notification.objects.create(
             recipient=execution.physician,
@@ -282,9 +282,9 @@ class ProtocolExecutionEngine:
                 f"Por favor, reavalie o caso."
             ),
             level="warning",
-            scheduled_for=scheduled_time
+            scheduled_for=scheduled_time,
         )
-        
+
     def _historico_json(self, execution):
         return [
             {
