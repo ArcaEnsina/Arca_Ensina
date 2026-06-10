@@ -184,6 +184,12 @@ function scenarioBGroupDFullPath(stepsData: Record<string, unknown>): ScenarioRe
       { step_key: 'step_d_exames', values: { ack: true } },
       { step_key: 'step_d_peso', values: { peso_kg: 10 } },
       { step_key: 'step_d_expansao', values: { peso_kg: '10' } },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      {
+        step_key: 'step_d_repeticao',
+        values: { congestion: false, decision: 'esperar_hct' },
+        loop_count: 0,
+      },
       { step_key: 'step_d_avaliacao1', values: { answer: false } },
       { step_key: 'step_d_hct_direcao', values: { answer: true } },
       { step_key: 'step_d_albumina', values: { accepted: true } },
@@ -255,7 +261,14 @@ function scenarioEGroupDNoShock(stepsData: Record<string, unknown>): ScenarioRes
       { step_key: 'step_d_exames', values: { ack: true } },
       { step_key: 'step_d_peso', values: { peso_kg: 20 } },
       { step_key: 'step_d_expansao', values: { peso_kg: '20' } },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      {
+        step_key: 'step_d_repeticao',
+        values: { congestion: false, decision: 'esperar_hct' },
+        loop_count: 0,
+      },
       { step_key: 'step_d_avaliacao1', values: { answer: true } },
+      { step_key: 'step_d_para_c', values: { ack: true } },
       { step_key: 'step_c_manutencao', values: { peso_kg: '20' } },
       { step_key: 'step_fases_dengue', values: { monitorado: true } },
       { step_key: 'step_diagnostico_laboratorial', values: { ack: true } },
@@ -264,23 +277,39 @@ function scenarioEGroupDNoShock(stepsData: Record<string, unknown>): ScenarioRes
 }
 
 function scenarioFTitrationMaxReached(stepsData: Record<string, unknown>): ScenarioResult {
+  // Group D loop reaching max_iterations (3 boluses) → forced exit to avaliacao1.
   return runScenario(
     'titration_max_reached',
     stepsData,
     [
       { step_key: 'step_0', values: { ack: true } },
-      { step_key: 'step_1_gravidade', values: { checked_items: [] } },
-      { step_key: 'step_1b_alerta', values: { checked_items: ['a1'] } },
-      { step_key: 'step_c_exames', values: { ack: true } },
-      { step_key: 'step_c_peso', values: { peso_kg: 15 } },
-      { step_key: 'step_c_expansao', values: { peso_kg: '15' } },
-      { step_key: 'step_c_avaliacao1', values: { answer: false } },
-      { step_key: 'step_c_repeticao', values: { congestion: false }, loop_count: 0 },
-      { step_key: 'step_c_repeticao', values: { congestion: false }, loop_count: 1 },
-      { step_key: 'step_c_repeticao', values: { congestion: false }, loop_count: 2 },
-      { step_key: 'step_c_avaliacao_horaria', values: { diurese: 'adequada' } },
-      { step_key: 'step_c_avaliacao2', values: { answer: true } },
-      { step_key: 'step_c_manutencao', values: { peso_kg: '15' } },
+      { step_key: 'step_1_gravidade', values: { checked_items: ['g1'] } },
+      { step_key: 'step_d_exames', values: { ack: true } },
+      { step_key: 'step_d_peso', values: { peso_kg: 15 } },
+      { step_key: 'step_d_expansao', values: { peso_kg: '15' } },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      {
+        step_key: 'step_d_repeticao',
+        values: { congestion: false, decision: 'iniciar_outro' },
+        loop_count: 0,
+      },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      {
+        step_key: 'step_d_repeticao',
+        values: { congestion: false, decision: 'iniciar_outro' },
+        loop_count: 1,
+      },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      {
+        step_key: 'step_d_repeticao',
+        values: { congestion: false, decision: 'iniciar_outro' },
+        loop_count: 2,
+      },
+      { step_key: 'step_d_avaliacao1', values: { answer: false } },
+      { step_key: 'step_d_hct_direcao', values: { answer: false } },
+      { step_key: 'step_d_hemorragia', values: { ack: true } },
+      { step_key: 'step_d_persiste_choque', values: { answer: false } },
+      { step_key: 'step_d_hiperhidratacao_check', values: { answer: false } },
       { step_key: 'step_fases_dengue', values: { monitorado: true } },
       { step_key: 'step_diagnostico_laboratorial', values: { ack: true } },
     ],
@@ -288,23 +317,56 @@ function scenarioFTitrationMaxReached(stepsData: Record<string, unknown>): Scena
 }
 
 function scenarioGTitrationCongestion(stepsData: Record<string, unknown>): ScenarioResult {
+  // Group D loop with congestion present → safety stop to avaliacao1.
   return runScenario(
     'titration_congestion',
     stepsData,
     [
       { step_key: 'step_0', values: { ack: true } },
-      { step_key: 'step_1_gravidade', values: { checked_items: [] } },
-      { step_key: 'step_1b_alerta', values: { checked_items: ['a1'] } },
-      { step_key: 'step_c_exames', values: { ack: true } },
-      { step_key: 'step_c_peso', values: { peso_kg: 10 } },
-      { step_key: 'step_c_expansao', values: { peso_kg: '10' } },
-      { step_key: 'step_c_avaliacao1', values: { answer: false } },
-      { step_key: 'step_c_repeticao', values: { congestion: true }, loop_count: 0 },
-      { step_key: 'step_c_avaliacao_horaria', values: { diurese: 'baixa' } },
-      { step_key: 'step_c_avaliacao2', values: { answer: false } },
-      { step_key: 'step_c_conduzir_d', values: { ack: true } },
+      { step_key: 'step_1_gravidade', values: { checked_items: ['g1'] } },
+      { step_key: 'step_d_exames', values: { ack: true } },
+      { step_key: 'step_d_peso', values: { peso_kg: 10 } },
+      { step_key: 'step_d_expansao', values: { peso_kg: '10' } },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      { step_key: 'step_d_repeticao', values: { congestion: true }, loop_count: 0 },
+      { step_key: 'step_d_avaliacao1', values: { answer: false } },
+      { step_key: 'step_d_hct_direcao', values: { answer: true } },
+      { step_key: 'step_d_albumina', values: { accepted: true } },
       { step_key: 'step_d_persiste_choque', values: { answer: false } },
       { step_key: 'step_d_hiperhidratacao_check', values: { answer: false } },
+      { step_key: 'step_fases_dengue', values: { monitorado: true } },
+      { step_key: 'step_diagnostico_laboratorial', values: { ack: true } },
+    ],
+  );
+}
+
+function scenarioHGroupDLoopBack(stepsData: Record<string, unknown>): ScenarioResult {
+  // Group D bolus loop: start another bolus (iniciar_outro) → back to timer,
+  // then wait for HCT (esperar_hct) → avaliacao.
+  return runScenario(
+    'group_d_titration_loop_back',
+    stepsData,
+    [
+      { step_key: 'step_0', values: { ack: true } },
+      { step_key: 'step_1_gravidade', values: { checked_items: ['g1'] } },
+      { step_key: 'step_d_exames', values: { ack: true } },
+      { step_key: 'step_d_peso', values: { peso_kg: 10 } },
+      { step_key: 'step_d_expansao', values: { peso_kg: '10' } },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      {
+        step_key: 'step_d_repeticao',
+        values: { congestion: false, decision: 'iniciar_outro' },
+        loop_count: 0,
+      },
+      { step_key: 'step_d_bolus_timer', values: { monitorado: true } },
+      {
+        step_key: 'step_d_repeticao',
+        values: { congestion: false, decision: 'esperar_hct' },
+        loop_count: 1,
+      },
+      { step_key: 'step_d_avaliacao1', values: { answer: true } },
+      { step_key: 'step_d_para_c', values: { ack: true } },
+      { step_key: 'step_c_manutencao', values: { peso_kg: '10' } },
       { step_key: 'step_fases_dengue', values: { monitorado: true } },
       { step_key: 'step_diagnostico_laboratorial', values: { ack: true } },
     ],
@@ -339,6 +401,7 @@ function main(): void {
   results.push(scenarioEGroupDNoShock(stepsData));
   results.push(scenarioFTitrationMaxReached(stepsData));
   results.push(scenarioGTitrationCongestion(stepsData));
+  results.push(scenarioHGroupDLoopBack(stepsData));
 
   const output = normalise({
     engine: 'javascript',

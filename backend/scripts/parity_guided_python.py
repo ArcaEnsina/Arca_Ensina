@@ -198,8 +198,16 @@ def scenario_b_group_d_full_path(steps_data):
             {"step_key": "step_d_exames", "values": {"ack": True}},
             # step_d_peso: numeric_input
             {"step_key": "step_d_peso", "values": {"peso_kg": 10}},
-            # step_d_expansao: derived_calc
+            # step_d_expansao: derived_calc → bolus timer
             {"step_key": "step_d_expansao", "values": {"peso_kg": "10"}},
+            # step_d_bolus_timer: wait_reassess (20 min) → repeticao
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
+            # step_d_repeticao: titration_loop — esperar_hct → avaliacao1
+            {
+                "step_key": "step_d_repeticao",
+                "values": {"congestion": False, "decision": "esperar_hct"},
+                "loop_count": 0,
+            },
             # step_d_avaliacao1: yes_no — False → hct_direcao
             {"step_key": "step_d_avaliacao1", "values": {"answer": False}},
             # step_d_hct_direcao: yes_no — True → albumina
@@ -328,8 +336,15 @@ def scenario_e_group_d_no_shock(steps_data):
             {"step_key": "step_d_exames", "values": {"ack": True}},
             {"step_key": "step_d_peso", "values": {"peso_kg": 20}},
             {"step_key": "step_d_expansao", "values": {"peso_kg": "20"}},
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
+            {
+                "step_key": "step_d_repeticao",
+                "values": {"congestion": False, "decision": "esperar_hct"},
+                "loop_count": 0,
+            },
             # True → para_c (conduzir como grupo C)
             {"step_key": "step_d_avaliacao1", "values": {"answer": True}},
+            {"step_key": "step_d_para_c", "values": {"ack": True}},
             # step_c_manutencao: derived_calc
             {"step_key": "step_c_manutencao", "values": {"peso_kg": "20"}},
             # step_fases_dengue: wait_reassess
@@ -344,51 +359,43 @@ def scenario_e_group_d_no_shock(steps_data):
 
 
 def scenario_f_titration_max_reached(steps_data):
-    """Titration loop hitting max iterations."""
+    """Group D loop reaching max_iterations (3 boluses) → forced exit."""
     return run_scenario(
         "titration_max_reached",
         steps_data,
         [
             {"step_key": "step_0", "values": {"ack": True}},
+            {"step_key": "step_1_gravidade", "values": {"checked_items": ["g1"]}},
+            {"step_key": "step_d_exames", "values": {"ack": True}},
+            {"step_key": "step_d_peso", "values": {"peso_kg": 15}},
+            {"step_key": "step_d_expansao", "values": {"peso_kg": "15"}},
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
             {
-                "step_key": "step_1_gravidade",
-                "values": {"checked_items": []},
-            },
-            {
-                "step_key": "step_1b_alerta",
-                "values": {"checked_items": ["a1"]},
-            },
-            {"step_key": "step_c_exames", "values": {"ack": True}},
-            {"step_key": "step_c_peso", "values": {"peso_kg": 15}},
-            {"step_key": "step_c_expansao", "values": {"peso_kg": "15"}},
-            # No → repeticao
-            {"step_key": "step_c_avaliacao1", "values": {"answer": False}},
-            # Loop iteration 1 — no congestion
-            {
-                "step_key": "step_c_repeticao",
-                "values": {"congestion": False},
+                "step_key": "step_d_repeticao",
+                "values": {"congestion": False, "decision": "iniciar_outro"},
                 "loop_count": 0,
             },
-            # Loop iteration 2 — no congestion
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
             {
-                "step_key": "step_c_repeticao",
-                "values": {"congestion": False},
+                "step_key": "step_d_repeticao",
+                "values": {"congestion": False, "decision": "iniciar_outro"},
                 "loop_count": 1,
             },
-            # Loop iteration 3 — at max (max_iterations=3), no congestion
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
+            # At max (max_iterations=3) → step_d_avaliacao1
             {
-                "step_key": "step_c_repeticao",
-                "values": {"congestion": False},
+                "step_key": "step_d_repeticao",
+                "values": {"congestion": False, "decision": "iniciar_outro"},
                 "loop_count": 2,
             },
-            # After max → step_c_avaliacao_horaria
+            {"step_key": "step_d_avaliacao1", "values": {"answer": False}},
+            {"step_key": "step_d_hct_direcao", "values": {"answer": False}},
+            {"step_key": "step_d_hemorragia", "values": {"ack": True}},
+            {"step_key": "step_d_persiste_choque", "values": {"answer": False}},
             {
-                "step_key": "step_c_avaliacao_horaria",
-                "values": {"diurese": "adequada"},
+                "step_key": "step_d_hiperhidratacao_check",
+                "values": {"answer": False},
             },
-            # step_c_avaliacao2: True → manutencao
-            {"step_key": "step_c_avaliacao2", "values": {"answer": True}},
-            {"step_key": "step_c_manutencao", "values": {"peso_kg": "15"}},
             {"step_key": "step_fases_dengue", "values": {"monitorado": True}},
             {
                 "step_key": "step_diagnostico_laboratorial",
@@ -399,46 +406,66 @@ def scenario_f_titration_max_reached(steps_data):
 
 
 def scenario_g_titration_congestion(steps_data):
-    """Titration loop with congestion detected early."""
+    """Group D loop with congestion present → safety stop to avaliacao1."""
     return run_scenario(
         "titration_congestion",
         steps_data,
         [
             {"step_key": "step_0", "values": {"ack": True}},
+            {"step_key": "step_1_gravidade", "values": {"checked_items": ["g1"]}},
+            {"step_key": "step_d_exames", "values": {"ack": True}},
+            {"step_key": "step_d_peso", "values": {"peso_kg": 10}},
+            {"step_key": "step_d_expansao", "values": {"peso_kg": "10"}},
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
+            # Congestion detected → safety stop
             {
-                "step_key": "step_1_gravidade",
-                "values": {"checked_items": []},
-            },
-            {
-                "step_key": "step_1b_alerta",
-                "values": {"checked_items": ["a1"]},
-            },
-            {"step_key": "step_c_exames", "values": {"ack": True}},
-            {"step_key": "step_c_peso", "values": {"peso_kg": 10}},
-            {"step_key": "step_c_expansao", "values": {"peso_kg": "10"}},
-            {"step_key": "step_c_avaliacao1", "values": {"answer": False}},
-            # Loop iteration 1 — congestion detected
-            {
-                "step_key": "step_c_repeticao",
+                "step_key": "step_d_repeticao",
                 "values": {"congestion": True},
                 "loop_count": 0,
             },
-            # → step_c_avaliacao_horaria
-            {
-                "step_key": "step_c_avaliacao_horaria",
-                "values": {"diurese": "baixa"},
-            },
-            # step_c_avaliacao2: False → conduzir_d
-            {"step_key": "step_c_avaliacao2", "values": {"answer": False}},
-            # step_c_conduzir_d: info → step_d_persiste_choque
-            {"step_key": "step_c_conduzir_d", "values": {"ack": True}},
-            # step_d_persiste_choque: False → hiperhidratacao_check
+            {"step_key": "step_d_avaliacao1", "values": {"answer": False}},
+            {"step_key": "step_d_hct_direcao", "values": {"answer": True}},
+            {"step_key": "step_d_albumina", "values": {"accepted": True}},
             {"step_key": "step_d_persiste_choque", "values": {"answer": False}},
-            # step_d_hiperhidratacao_check: False → fases_dengue
             {
                 "step_key": "step_d_hiperhidratacao_check",
                 "values": {"answer": False},
             },
+            {"step_key": "step_fases_dengue", "values": {"monitorado": True}},
+            {
+                "step_key": "step_diagnostico_laboratorial",
+                "values": {"ack": True},
+            },
+        ],
+    )
+
+
+def scenario_h_group_d_loop_back(steps_data):
+    """Group D bolus loop: iniciar_outro → back to timer, then esperar_hct."""
+    return run_scenario(
+        "group_d_titration_loop_back",
+        steps_data,
+        [
+            {"step_key": "step_0", "values": {"ack": True}},
+            {"step_key": "step_1_gravidade", "values": {"checked_items": ["g1"]}},
+            {"step_key": "step_d_exames", "values": {"ack": True}},
+            {"step_key": "step_d_peso", "values": {"peso_kg": 10}},
+            {"step_key": "step_d_expansao", "values": {"peso_kg": "10"}},
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
+            {
+                "step_key": "step_d_repeticao",
+                "values": {"congestion": False, "decision": "iniciar_outro"},
+                "loop_count": 0,
+            },
+            {"step_key": "step_d_bolus_timer", "values": {"monitorado": True}},
+            {
+                "step_key": "step_d_repeticao",
+                "values": {"congestion": False, "decision": "esperar_hct"},
+                "loop_count": 1,
+            },
+            {"step_key": "step_d_avaliacao1", "values": {"answer": True}},
+            {"step_key": "step_d_para_c", "values": {"ack": True}},
+            {"step_key": "step_c_manutencao", "values": {"peso_kg": "10"}},
             {"step_key": "step_fases_dengue", "values": {"monitorado": True}},
             {
                 "step_key": "step_diagnostico_laboratorial",
@@ -494,6 +521,9 @@ def main():
 
     # Scenario G: Titration congestion
     results.append(scenario_g_titration_congestion(steps_data))
+
+    # Scenario H: Group D titration loop-back (iniciar_outro)
+    results.append(scenario_h_group_d_loop_back(steps_data))
 
     output = normalise(
         {
