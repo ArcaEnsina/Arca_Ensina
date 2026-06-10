@@ -2,8 +2,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useRegisterSW } from 'virtual:pwa-register/react'
 import App from './App'
+import { UpdatePromptToast } from './components/UpdatePromptToast'
 import { AuthProvider } from './features/auth'
 import { startSyncListener } from './lib/offline'
 import './index.css'
@@ -20,12 +20,6 @@ const queryClient = new QueryClient({
   },
 })
 
-// eslint-disable-next-line react-refresh/only-export-components
-function SWRegistration() {
-  useRegisterSW()
-  return null
-}
-
 const rootElement = document.getElementById('root')
 if (!rootElement) {
   throw new Error('Root element #root not found in index.html')
@@ -34,7 +28,7 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <SWRegistration />
+      <UpdatePromptToast />
       <AuthProvider>
         <App />
       </AuthProvider>
