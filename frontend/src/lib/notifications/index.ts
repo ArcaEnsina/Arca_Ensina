@@ -113,6 +113,7 @@ async function rearm(): Promise<void> {
   for (const { clientUuid, reminder } of items) {
     const key = reminderKey(clientUuid, reminder)
     if (notified.has(key) || scheduled.has(key)) continue
+    if (!reminder.dueAt) continue
 
     const delay = new Date(reminder.dueAt).getTime() - now
     if (delay <= 0) {

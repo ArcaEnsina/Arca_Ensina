@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useGuidedProtocolStore } from '../store';
@@ -12,6 +13,7 @@ import {
   useSubmitAnswer,
 } from '../api';
 import {
+  concludeExecutionsFor,
   loadExecutionState,
   saveExecutionState,
 } from '@/lib/offline/executionState';
@@ -60,6 +62,7 @@ export function useProtocolExecution({
   const ensureClientUuid = useGuidedProtocolStore((s) => s.ensureClientUuid);
   const reset = useGuidedProtocolStore((s) => s.reset);
   const setProtocolId = useGuidedProtocolStore((s) => s.setProtocolId);
+  const queryClient = useQueryClient();
 
   const [step, setStepState] = useState<Step | null>(null);
   const [gateWarnings, setGateWarnings] = useState<GateWarning[]>([]);
@@ -93,34 +96,42 @@ export function useProtocolExecution({
     }
   }, []);
 
-  /** Persist execution state to IndexedDB (write-through). */
-  const persistState = useCallback(
-    (exec: Execution) => {
-      const clientUuid = useGuidedProtocolStore.getState().clientUuid;
-      if (!clientUuid) return;
-      void saveExecutionState({
-        clientUuid,
-        currentStepKey: exec.currentStepKey ?? '',
-        history: useGuidedProtocolStore.getState().history.map((h) => ({
-          stepKey: h.stepKey,
-          stepType: h.stepType,
-          title: h.title,
-          values: h.values,
-          answeredAt: h.answeredAt,
-        })),
-        values: {},
-        protocolVersionId: '',
-        protocolId: String(protocolId),
-        patientName,
-        patientId: patientId != null ? String(patientId) : undefined,
-        status: exec.status,
-        updatedAt: new Date().toISOString(),
-      }).catch((err: unknown) => {
-        console.error('[execution] Falha ao salvar estado local:', err);
-      });
-    },
-    [protocolId, patientName, patientId],
-  );
+  /**
+   * Persiste o estado atual da execução. 
+   * Chamado em toda transição (resposta, avançar, voltar).
+   */
+  const persistCurrentState = useCallback(() => {
+    const snapshot = useGuidedProtocolStore.getState();
+    const clientUuid = snapshot.clientUuid;
+    if (!clientUuid) return;
+    void saveExecutionState({
+      clientUuid,
+      currentStepKey: snapshot.currentStepKey ?? '',
+      history: snapshot.history.map((h) => ({
+        stepKey: h.stepKey,
+        stepType: h.stepType,
+        title: h.title,
+        values: h.values,
+        answeredAt: h.answeredAt,
+      })),
+      values: {},
+      protocolVersionId: '',
+      protocolId: String(protocolId),
+      patientName,
+      patientId: patientId != null ? String(patientId) : undefined,
+      status: snapshot.status ?? 'em_andamento',
+      updatedAt: new Date().toISOString(),
+    }).catch((err: unknown) => {
+      console.error('[execution] Falha ao salvar estado local:', err);
+    });
+  }, [protocolId, patientName, patientId]);
+  
+  const invalidateExecutionQueries = useCallback(() => {
+    void queryClient.invalidateQueries({
+      queryKey: ['protocols', protocolId, 'reminders'],
+    });
+    void queryClient.invalidateQueries({ queryKey: ['activeExecution'] });
+  }, [queryClient, protocolId]);
 
   /** Enqueue sync snapshot when using local executor online. */
   const enqueueSync = useCallback(
@@ -156,11 +167,19 @@ export function useProtocolExecution({
         setStep(exec.currentStepData);
       }
       // Write-through to IndexedDB
-      persistState(exec);
-      // Re-arm reminder timers for the freshly persisted state.
+      persistCurrentState();
+      // Re-arm reminder timers and refresh the live reminder / dashboard views.
       refreshReminderScheduler();
+      invalidateExecutionQueries();
     },
-    [setExecutionId, setStatus, setCurrentStepKey, setStep, persistState],
+    [
+      setExecutionId,
+      setStatus,
+      setCurrentStepKey,
+      setStep,
+      persistCurrentState,
+      invalidateExecutionQueries,
+    ],
   );
 
   const applyStepResponse = useCallback(
@@ -189,7 +208,7 @@ export function useProtocolExecution({
     bootstrappedRef.current = true;
 
     // Clear stale run state so a finished execution (or a switch to a different
-    // protocol) starts fresh instead of idempotently resuming the old, already
+    // protocol) starts fr  /** Refetch the live reminders and the dashboard "em execução" card. */esh instead of idempotently resuming the old, already
     // "concluído" execution via its retained client_uuid.
     const stored = useGuidedProtocolStore.getState();
     const isFinished =
@@ -343,6 +362,17 @@ export function useProtocolExecution({
     appendHistory,
   ]);
 
+  // When the run reaches completion (any path), mark every in-progress record
+  // for this patient+protocol as concluido so the dashboard card clears — even
+  // if the finishing transition persisted under a different clientUuid.
+  useEffect(() => {
+    if (!completed) return;
+    void concludeExecutionsFor(
+      patientId != null ? String(patientId) : undefined,
+      String(protocolId),
+    ).finally(() => invalidateExecutionQueries());
+  }, [completed, patientId, protocolId, invalidateExecutionQueries]);
+
   /** Answer the current answerable step — exactly one /answer/ call (fix3 #1). */
   const submitAnswer = useCallback(
     async (values: AnswerValues) => {
@@ -386,13 +416,23 @@ export function useProtocolExecution({
         answeredAt: new Date().toISOString(),
       });
       applyStepResponse(res);
+      persistCurrentState();
+      refreshReminderScheduler();
+      invalidateExecutionQueries();
       if (res.status === 'concluido') {
         toast.success('Protocolo concluído.');
       }
     } catch {
       toast.error('Erro ao avançar. Tente novamente.');
     }
-  }, [step, protocolId, appendHistory, applyStepResponse]);
+  }, [
+    step,
+    protocolId,
+    appendHistory,
+    applyStepResponse,
+    persistCurrentState,
+    invalidateExecutionQueries,
+  ]);
 
   /** Revert to the previous visited step so a past decision can be redone. */
   const goBack = useCallback(async () => {
@@ -404,10 +444,20 @@ export function useProtocolExecution({
       // recorded decision from the timeline to keep it in sync with the engine.
       if (res.step) removeHistory(res.step.id);
       applyStepResponse(res);
+      persistCurrentState();
+      refreshReminderScheduler();
+      invalidateExecutionQueries();
     } catch {
       toast.error('Erro ao voltar. Tente novamente.');
     }
-  }, [canGoBack, protocolId, removeHistory, applyStepResponse]);
+  }, [
+    canGoBack,
+    protocolId,
+    removeHistory,
+    applyStepResponse,
+    persistCurrentState,
+    invalidateExecutionQueries,
+  ]);
 
   return {
     step,

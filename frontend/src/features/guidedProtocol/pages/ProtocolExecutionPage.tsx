@@ -110,6 +110,8 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
     <ProtocolExecutionShell
       patient={activePatient}
       showStepper={!bootstrapping && !error && !completed && !!step}
+      reminders={reminders}
+      currentStepId={step?.id}
     >
       {bootstrapping ? (
         <LoadingState />

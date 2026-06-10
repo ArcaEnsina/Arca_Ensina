@@ -17,6 +17,15 @@ interface GuidedProtocolState {
   /** Drop a step's decision from the timeline (e.g. when going back to redo it). */
   removeHistory: (stepKey: string) => void;
   ensureClientUuid: () => string;
+  /**
+   * Seed state para resumir uma execução existente.
+   */
+  primeResume: (args: {
+    clientUuid: string;
+    protocolId: number;
+    currentStepKey: string | null;
+    history: HistoryEntry[];
+  }) => void;
   /** Reset all execution state (e.g. when switching protocols). */
   reset: () => void;
 }
@@ -49,6 +58,15 @@ export const useGuidedProtocolStore = create<GuidedProtocolState>((set, get) => 
     set({ clientUuid: uuid });
     return uuid;
   },
+  primeResume: ({ clientUuid, protocolId, currentStepKey, history }) =>
+    set({
+      executionId: null,
+      clientUuid,
+      protocolId,
+      status: 'em_andamento',
+      currentStepKey,
+      history,
+    }),
   reset: () =>
     set({
       executionId: null,

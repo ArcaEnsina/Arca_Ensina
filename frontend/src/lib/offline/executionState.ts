@@ -43,6 +43,24 @@ export async function listActiveExecutions(): Promise<ExecutionStateRecord[]> {
   return all.filter((s) => s.status !== 'concluido')
 }
 
+/**
+ * Safeguard para concluir todas as execuções em andamento para um paciente+protocolo.
+ */
+export async function concludeExecutionsFor(
+  patientId: string | undefined,
+  protocolId: string,
+): Promise<void> {
+  const db = await getDB()
+  const all = await db.getAll('guidedExecutionStates')
+  const now = new Date().toISOString()
+  for (const rec of all) {
+    if (rec.status !== 'em_andamento') continue
+    if (String(rec.protocolId) !== String(protocolId)) continue
+    if (patientId != null && String(rec.patientId) !== String(patientId)) continue
+    await db.put('guidedExecutionStates', { ...rec, status: 'concluido', updatedAt: now })
+  }
+}
+
 /** Delete execution state after sync confirmed. */
 export async function deleteExecutionState(clientUuid: string): Promise<void> {
   const db = await getDB()
