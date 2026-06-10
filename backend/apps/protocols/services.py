@@ -359,29 +359,24 @@ class ProtocolExecutionEngine:
 
         for state in execution.states.filter(step_key__isnull=False):
             step = interpreter.get_step(state.step_key)
-            if step and step.get("type") == "wait_reassess":
-                duration = step.get("duration_hours", 0)
-                due_at = (
-                    state.answered_at + timezone.timedelta(hours=duration)
-                    if duration
-                    else None
-                )
+            if step and step.get("type") in ("wait_reassess", "titration_loop"):
+                duration = step.get("duration_minutes", 0)
+                if not duration:
+                    continue
+                due_at = state.answered_at + timezone.timedelta(minutes=duration)
 
-                status = "info"
-                if due_at:
-                    if now > due_at:
-                        status = "overdue"
-                    else:
-                        status = "pending"
+                status = "pending"
+                if now > due_at:
+                    status = "overdue"
 
                 reminders.append(
                     {
                         "step_id": state.step_key,
                         "step_title": step.get("title", ""),
                         "answered_at": state.answered_at.isoformat(),
-                        "due_at": due_at.isoformat() if due_at else None,
+                        "due_at": due_at.isoformat(),
                         "status": status,
-                        "duration_hours": duration,
+                        "duration_minutes": duration,
                         "reassess_fields": step.get("reassess_fields", []),
                         "phases": step.get("phases", []),
                     }

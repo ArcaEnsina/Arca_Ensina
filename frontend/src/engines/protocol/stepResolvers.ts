@@ -107,19 +107,27 @@ function resolveTitrationLoop(
   const maxIterations = step.maxIterations ?? 1;
   const congestionCheck = step.congestionCheck;
 
-  // Congestion check
+  // 1. Congestion is a safety gate: presence stops the loop regardless of choice.
   if (values.congestion === true && congestionCheck?.trueNext) {
     return { nextStepId: congestionCheck.trueNext, state: newState };
   }
 
-  // Max iterations reached
+  // 2. Max iterations reached → forced exit.
   if (loopCount >= maxIterations) {
     return { nextStepId: step.maxReachedNext ?? null, state: newState };
   }
 
-  // Continue loop
+  // 3. Explicit decision to start another iteration → loop back (e.g. to timer).
+  if (values.decision === 'iniciar_outro') {
+    return {
+      nextStepId: step.loopNext ?? congestionCheck?.falseNext ?? null,
+      state: newState,
+    };
+  }
+
+  // 4. Otherwise the user chose to stop/wait (e.g. esperar HCT).
   return {
-    nextStepId: congestionCheck?.falseNext ?? step.loopNext ?? null,
+    nextStepId: step.stopNext ?? congestionCheck?.falseNext ?? null,
     state: newState,
   };
 }

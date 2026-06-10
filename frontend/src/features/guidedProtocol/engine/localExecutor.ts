@@ -7,6 +7,7 @@ import type {
   StepResponse,
 } from '../types';
 import { GuidedProtocolInterpreter } from '@/engines/protocol';
+import { buildReminders } from './reminders';
 import {
   saveExecutionState,
   loadExecutionState,
@@ -350,44 +351,6 @@ export const localExecutor: IProtocolExecutor = {
     if (!localState) return [];
 
     const { engine, state } = localState;
-    const now = Date.now();
-    const reminders: Reminder[] = [];
-
-    // Find wait_reassess entries in history
-    for (const entry of state.history) {
-      if (entry.stepType !== 'wait_reassess') continue;
-
-      const step = engine.getStep(entry.stepKey);
-      if (!step || step.type !== 'wait_reassess') continue;
-
-      const answeredAt = new Date(entry.answeredAt).getTime();
-      const durationHours = step.durationHours ?? 0;
-      const dueAt = durationHours > 0
-        ? new Date(answeredAt + durationHours * 3600_000).toISOString()
-        : null;
-      const dueAtTime = dueAt ? new Date(dueAt).getTime() : null;
-
-      let status: Reminder['status'] = 'pending';
-      if (dueAtTime !== null) {
-        if (now > dueAtTime) {
-          status = 'overdue';
-        }
-      } else {
-        status = 'info';
-      }
-
-      reminders.push({
-        stepId: entry.stepKey,
-        stepTitle: entry.title,
-        answeredAt: entry.answeredAt,
-        dueAt,
-        status,
-        durationHours,
-        reassessFields: step.reassessFields ?? [],
-        phases: step.phases ?? [],
-      });
-    }
-
-    return reminders;
+    return buildReminders(state.history, (id) => engine.getStep(id));
   },
 };

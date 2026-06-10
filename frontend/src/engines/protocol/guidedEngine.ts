@@ -29,7 +29,9 @@ interface RawStep {
   congestion_check?: Record<string, unknown>;
   max_reached_next?: string;
   loop_next?: string;
-  duration_hours?: number;
+  stop_next?: string;
+  choice?: Record<string, unknown>;
+  duration_minutes?: number;
   reassess_fields?: string[];
   [key: string]: unknown;
 }
@@ -60,6 +62,35 @@ export interface ExecutionState {
   clientUuid: string;
 }
 
+/**
+ * Normaliza as chaves snake_case de um objeto `rule`/`congestion_check` para
+ * camelCase. Os resolvers (stepResolvers.ts) leem `trueNext`/`falseNext`/
+ * `minChecked`, mas o JSON do servidor usa `true_next`/`false_next`/
+ * `min_checked`. Sem isso, `rule.trueNext` fica `undefined` e o passo resolve
+ * para `null`, encerrando o protocolo prematuramente.
+ */
+function normalizeBranchRule(
+  raw: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!raw) return raw;
+  const out: Record<string, unknown> = { ...raw };
+  if ('true_next' in raw) out.trueNext = raw.true_next;
+  if ('false_next' in raw) out.falseNext = raw.false_next;
+  if ('min_checked' in raw) out.minChecked = raw.min_checked;
+  return out;
+}
+
+/** Normaliza as chaves snake_case do bloco `choice` de um titration_loop. */
+function normalizeChoice(
+  raw: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  if (!raw) return raw;
+  const out: Record<string, unknown> = { ...raw };
+  if ('continue_label' in raw) out.continueLabel = raw.continue_label;
+  if ('stop_label' in raw) out.stopLabel = raw.stop_label;
+  return out;
+}
+
 function normalizeStep(raw: RawStep): Step {
   const base: Record<string, unknown> = {
     id: raw.id,
@@ -71,7 +102,7 @@ function normalizeStep(raw: RawStep): Step {
   if (raw.true_next !== undefined) base.trueNext = raw.true_next;
   if (raw.false_next !== undefined) base.falseNext = raw.false_next;
   if (raw.choices_next !== undefined) base.choicesNext = raw.choices_next;
-  if (raw.rule !== undefined) base.rule = raw.rule;
+  if (raw.rule !== undefined) base.rule = normalizeBranchRule(raw.rule);
   if (raw.gate !== undefined) base.gate = raw.gate;
   if (raw.description !== undefined) base.description = raw.description;
   if (raw.content !== undefined) base.content = raw.content;
@@ -83,10 +114,12 @@ function normalizeStep(raw: RawStep): Step {
   if (raw.inputs !== undefined) base.inputs = raw.inputs;
   if (raw.max_iterations !== undefined) base.maxIterations = raw.max_iterations;
   if (raw.counter_field !== undefined) base.counterField = raw.counter_field;
-  if (raw.congestion_check !== undefined) base.congestionCheck = raw.congestion_check;
+  if (raw.congestion_check !== undefined) base.congestionCheck = normalizeBranchRule(raw.congestion_check);
   if (raw.max_reached_next !== undefined) base.maxReachedNext = raw.max_reached_next;
   if (raw.loop_next !== undefined) base.loopNext = raw.loop_next;
-  if (raw.duration_hours !== undefined) base.durationHours = raw.duration_hours;
+  if (raw.stop_next !== undefined) base.stopNext = raw.stop_next;
+  if (raw.choice !== undefined) base.choice = normalizeChoice(raw.choice);
+  if (raw.duration_minutes !== undefined) base.durationMinutes = raw.duration_minutes;
   if (raw.reassess_fields !== undefined) base.reassessFields = raw.reassess_fields;
   if (raw.min_value !== undefined) base.minValue = raw.min_value;
   if (raw.max_value !== undefined) base.maxValue = raw.max_value;

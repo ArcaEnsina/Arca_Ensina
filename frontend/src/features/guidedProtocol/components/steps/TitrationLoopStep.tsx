@@ -1,13 +1,15 @@
-import { RotateCw } from 'lucide-react';
+import { useState } from 'react';
+import { RotateCw, Hourglass } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { StepHeading } from '../StepHeading';
 import { BinaryChoice } from '../BinaryChoice';
-import type { TitrationLoopStepData } from '../../types';
+import type { AnswerValues, TitrationLoopStepData } from '../../types';
 
 interface TitrationLoopStepProps {
   step: TitrationLoopStepData;
   currentIteration: number;
-  onAnswer: (values: { congestion: boolean }) => void;
+  onAnswer: (values: AnswerValues) => void;
   submitting: boolean;
 }
 
@@ -18,6 +20,21 @@ export function TitrationLoopStep({
   submitting,
 }: TitrationLoopStepProps) {
   const congestion = step.congestionCheck;
+  const continueLabel = step.choice?.continueLabel ?? 'Iniciar outro bolus';
+  const stopLabel = step.choice?.stopLabel ?? 'Esperar HCT';
+
+  // Two-stage flow: congestion is a safety gate; only when absent do we offer
+  // the explicit "start another / wait" decision.
+  const [noCongestion, setNoCongestion] = useState(false);
+
+  function handleCongestion(value: boolean) {
+    if (value) {
+      // Congestion present → safety stop, decision is irrelevant.
+      onAnswer({ congestion: true });
+      return;
+    }
+    setNoCongestion(true);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -34,19 +51,55 @@ export function TitrationLoopStep({
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent className="flex flex-col gap-4">
-          <StepHeading
-            title={congestion?.title ?? 'Sinais de congestão?'}
-            description={congestion?.description}
-          />
-          <BinaryChoice
-            label={congestion?.title ?? 'Sinais de congestão?'}
-            disabled={submitting}
-            onChoose={(congestionValue) => onAnswer({ congestion: congestionValue })}
-          />
-        </CardContent>
-      </Card>
+      {!noCongestion ? (
+        <Card>
+          <CardContent className="flex flex-col gap-4">
+            <StepHeading
+              title={congestion?.title ?? 'Sinais de congestão?'}
+              description={congestion?.description}
+            />
+            <BinaryChoice
+              label={congestion?.title ?? 'Sinais de congestão?'}
+              disabled={submitting}
+              onChoose={handleCongestion}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="flex flex-col gap-4">
+            <StepHeading
+              title="Conduta"
+              description="Sem sinais de congestão. Iniciar novo bolus ou aguardar o resultado do HCT?"
+            />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Button
+                size="xl"
+                className="gap-2 rounded-2xl"
+                disabled={submitting}
+                onClick={() =>
+                  onAnswer({ congestion: false, decision: 'iniciar_outro' })
+                }
+              >
+                <RotateCw className="size-5" aria-hidden="true" />
+                {continueLabel}
+              </Button>
+              <Button
+                size="xl"
+                variant="outline"
+                className="gap-2 rounded-2xl"
+                disabled={submitting}
+                onClick={() =>
+                  onAnswer({ congestion: false, decision: 'esperar_hct' })
+                }
+              >
+                <Hourglass className="size-5" aria-hidden="true" />
+                {stopLabel}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
