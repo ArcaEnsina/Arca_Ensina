@@ -13,6 +13,11 @@ interface WaitReassessStepProps {
   submitting: boolean;
 }
 
+function formatDuration(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${minutes}min`;
+}
+
 function formatRemaining(ms: number): string {
   if (ms <= 0) return '00:00:00';
   const totalSeconds = Math.floor(ms / 1000);
@@ -75,13 +80,13 @@ export function WaitReassessStep({
                 <span className="text-body-sm text-muted-foreground">
                   {overdue
                     ? 'Reavaliação devida'
-                    : `Reavaliar em ${step.durationHours ?? 0}h`}
+                    : `Reavaliar em ${formatDuration(step.durationMinutes ?? 0)}`}
                 </span>
               </>
             ) : (
               <span className="text-body-md text-muted-foreground">
-                {step.durationHours
-                  ? `Reavaliar em ${step.durationHours}h`
+                {step.durationMinutes
+                  ? `Reavaliar em ${formatDuration(step.durationMinutes)}`
                   : 'Reavaliação contínua'}
               </span>
             )}

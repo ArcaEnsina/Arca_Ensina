@@ -99,7 +99,7 @@ export interface ReassessPhase {
 
 export interface WaitReassessStepData extends BaseStep {
   type: 'wait_reassess';
-  durationHours?: number;
+  durationMinutes?: number;
   reassessFields?: string[];
   phases?: ReassessPhase[];
 }
@@ -111,6 +111,13 @@ export interface CongestionCheck {
   falseNext?: string;
 }
 
+export interface TitrationChoice {
+  /** Label for the "continue / start another iteration" option. */
+  continueLabel?: string;
+  /** Label for the "stop / wait" option. */
+  stopLabel?: string;
+}
+
 export interface TitrationLoopStepData extends BaseStep {
   type: 'titration_loop';
   maxIterations?: number;
@@ -118,6 +125,11 @@ export interface TitrationLoopStepData extends BaseStep {
   congestionCheck?: CongestionCheck;
   maxReachedNext?: string;
   loopNext?: string;
+  /** Where to go when the user chooses to stop iterating (e.g. wait for HCT). */
+  stopNext?: string;
+  /** Optional labels for the explicit continue/stop decision. */
+  durationMinutes?: number;
+  choice?: TitrationChoice;
 }
 
 export type Step =
@@ -176,7 +188,7 @@ export interface Reminder {
   answeredAt: string;
   dueAt: string | null;
   status: 'pending' | 'overdue' | 'info';
-  durationHours: number;
+  durationMinutes: number;
   reassessFields: string[];
   phases: ReassessPhase[];
 }
