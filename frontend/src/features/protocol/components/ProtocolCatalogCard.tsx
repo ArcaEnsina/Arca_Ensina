@@ -8,6 +8,8 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DownloadOfflineButton } from '@/components/offline'
+import { useDownloadProtocol, useProtocolCacheStatus } from '../api'
 import type { ProtocolListItem } from '../types'
 
 interface ProtocolCatalogCardProps {
@@ -21,6 +23,9 @@ export default function ProtocolCatalogCard({
   onPreview,
   onStart,
 }: ProtocolCatalogCardProps) {
+  const { data: cacheStatus } = useProtocolCacheStatus(protocol)
+  const download = useDownloadProtocol()
+
   return (
     <Card size="sm" className="shadow-sm transition-shadow hover:shadow-md">
       <div
@@ -90,6 +95,11 @@ export default function ProtocolCatalogCard({
         >
           Iniciar
         </Button>
+        <DownloadOfflineButton
+          initialCached={cacheStatus === 'current'}
+          onDownload={() => download.mutateAsync(protocol.id).then(() => undefined)}
+          className="ml-auto"
+        />
       </CardFooter>
     </Card>
   )

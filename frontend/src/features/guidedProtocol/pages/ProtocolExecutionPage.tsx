@@ -1,5 +1,5 @@
 import { useParams, useNavigate, Navigate } from 'react-router';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePatientStore } from '@/features/patient/store';
@@ -45,6 +45,46 @@ function CompletionView() {
   );
 }
 
+function ErrorState() {
+  const navigate = useNavigate();
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+        <span
+          className="flex size-16 items-center justify-center rounded-full bg-danger/10 text-danger"
+          aria-hidden="true"
+        >
+          <AlertTriangle className="size-9" />
+        </span>
+        <h2 className="text-display-sm text-arca-blue-900">
+          Não foi possível iniciar o protocolo
+        </h2>
+        <p className="text-body-md max-w-sm text-muted-foreground">
+          Verifique se o protocolo foi baixado para uso offline. Se o problema
+          persistir, baixe-o novamente com conexão à internet.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button
+            size="lg"
+            variant="outline"
+            className="rounded-2xl"
+            onClick={() => window.location.reload()}
+          >
+            Tentar novamente
+          </Button>
+          <Button
+            size="lg"
+            className="rounded-2xl"
+            onClick={() => navigate('/guided-protocol')}
+          >
+            Voltar aos protocolos
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ExecutionRunner({ protocolId }: { protocolId: number }) {
   const activePatient = usePatientStore((s) => s.activePatient)!;
   const {
@@ -54,6 +94,7 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
     currentIteration,
     completed,
     bootstrapping,
+    error,
     submitting,
     canGoBack,
     submitAnswer,
@@ -68,10 +109,12 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
   return (
     <ProtocolExecutionShell
       patient={activePatient}
-      showStepper={!bootstrapping && !completed && !!step}
+      showStepper={!bootstrapping && !error && !completed && !!step}
     >
       {bootstrapping ? (
         <LoadingState />
+      ) : error ? (
+        <ErrorState />
       ) : completed || !step ? (
         <CompletionView />
       ) : (

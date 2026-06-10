@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Download, Loader2, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,15 @@ export function DownloadOfflineButton({
   className,
 }: DownloadOfflineButtonProps) {
   const [state, setState] = useState<DownloadState>(initialCached ? 'downloaded' : 'idle')
+
+  // O status de cache chega de forma assíncrona (IndexedDB) e pode mudar
+  // depois do mount (ex.: auto-update da versão baixada) — manter em sincronia.
+  useEffect(() => {
+    setState((prev) => {
+      if (prev === 'downloading') return prev
+      return initialCached ? 'downloaded' : 'idle'
+    })
+  }, [initialCached])
 
   async function handleClick(e: React.MouseEvent) {
     e.stopPropagation()

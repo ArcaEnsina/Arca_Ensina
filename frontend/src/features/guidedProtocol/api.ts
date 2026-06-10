@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import api from '@/lib/api/client';
 import { deepToCamelCase, apiExecutor } from './engine/apiExecutor';
+import type { IProtocolExecutor } from './engine/executor';
 import type { AnswerValues, GuidedProtocol, Reminder } from './types';
 
 /** List protocols, filtered to the guided (`guiado`) runner type. */
@@ -70,10 +71,15 @@ export function useGoBack() {
 }
 
 /** Poll in-execution reminders for the live wait_reassess countdown. */
-export function useExecutionReminders(protocolId: number | null, enabled = true) {
+export function useExecutionReminders(
+  protocolId: number | null,
+  enabled = true,
+  getExecutor: () => IProtocolExecutor = () => apiExecutor,
+) {
   return useQuery<Reminder[]>({
     queryKey: ['protocols', protocolId, 'reminders'],
-    queryFn: () => apiExecutor.getReminders(protocolId as number),
+    // Resolve o executor a cada poll: apiExecutor online, localExecutor offline
+    queryFn: () => getExecutor().getReminders(protocolId as number),
     enabled: enabled && protocolId != null,
     refetchInterval: 30_000,
     retry: 0,
