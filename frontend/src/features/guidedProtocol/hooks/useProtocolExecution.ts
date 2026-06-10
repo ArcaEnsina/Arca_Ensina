@@ -16,6 +16,10 @@ import {
   saveExecutionState,
 } from '@/lib/offline/executionState';
 import { enqueue } from '@/lib/offline/executionQueue';
+import {
+  refreshReminderScheduler,
+  requestNotificationPermission,
+} from '@/lib/notifications';
 import type {
   AnswerValues,
   Execution,
@@ -71,7 +75,11 @@ export function useProtocolExecution({
   const answerMutation = useSubmitAnswer();
   const advanceMutation = useAdvanceStep();
   const backMutation = useGoBack();
-  const reminders = useExecutionReminders(protocolId, !completed);
+  const reminders = useExecutionReminders(
+    protocolId,
+    !completed,
+    () => executorRef.current,
+  );
 
   /** Set the active step, tracking titration loop iterations. */
   const setStep = useCallback((next: Step | null) => {
@@ -149,6 +157,8 @@ export function useProtocolExecution({
       }
       // Write-through to IndexedDB
       persistState(exec);
+      // Re-arm reminder timers for the freshly persisted state.
+      refreshReminderScheduler();
     },
     [setExecutionId, setStatus, setCurrentStepKey, setStep, persistState],
   );
@@ -190,6 +200,9 @@ export function useProtocolExecution({
       reset();
     }
     setProtocolId(protocolId);
+
+    // Ask for notification permission so reminder timers can surface alerts.
+    void requestNotificationPermission();
 
     (async () => {
       setBootstrapping(true);

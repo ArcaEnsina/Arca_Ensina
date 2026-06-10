@@ -5,10 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
 import { UpdatePromptToast } from './components/UpdatePromptToast'
 import { AuthProvider } from './features/auth'
-import { startSyncListener } from './lib/offline'
+import { startSyncListener, startProtocolAutoUpdate } from './lib/offline'
+import { startReminderScheduler } from './lib/notifications'
 import './index.css'
 
 startSyncListener()
+startProtocolAutoUpdate()
+startReminderScheduler()
 
 const queryClient = new QueryClient({
   defaultOptions: {
