@@ -87,6 +87,13 @@ const router = createBrowserRouter([
             Component: m.default,
           })),
       },
+            {
+        path: "/emergency",
+        lazy: () =>
+          import("@/features/emergency/pages/EmergencyPage").then((m) => ({
+            Component: m.default,
+          })),
+      },
     ],
   },
   {

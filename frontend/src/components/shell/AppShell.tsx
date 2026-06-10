@@ -3,6 +3,7 @@ import { ClipboardNav } from "./ClipboardNav";
 import { DesktopNav } from "./DesktopNav";
 import { EmergencyButton } from "./EmergencyButton";
 import { OfflineIndicator } from "./OfflineIndicator";
+import { useNavigate } from "react-router";
 
 /**
  * Estrutura global de todas as rotas autenticadas (CORE-013 / UX-DR6):
@@ -10,6 +11,7 @@ import { OfflineIndicator } from "./OfflineIndicator";
  * Landmarks `<nav>` e `<main>`.
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   return (
     <div className="relative min-h-screen bg-background">
       <a
@@ -28,7 +30,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      <EmergencyButton />
+      <EmergencyButton
+        onActivate={() => navigate("/emergency")}
+      />
     </div>
   );
 }
