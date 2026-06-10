@@ -9,13 +9,12 @@ from .models import Notification
 
 User = get_user_model()
 
+
 class NotificationScheduleTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
-            email="doctor@example.com",
-            password="password123",
-            profile="medico"
+            email="doctor@example.com", password="password123", profile="medico"
         )
         self.client.force_authenticate(user=self.user)
         self.url = "/api/v1/notifications/"
@@ -82,11 +81,9 @@ class NotificationScheduleTests(TestCase):
         """
         future_time = timezone.now() + timedelta(hours=1)
         future_notif = Notification.objects.create(
-            recipient=self.user,
-            title="Escondida",
-            scheduled_for=future_time
+            recipient=self.user, title="Escondida", scheduled_for=future_time
         )
-        
+
         Notification.objects.create(recipient=self.user, title="Visível")
 
         # Marcar todas como lidas
