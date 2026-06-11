@@ -6,6 +6,7 @@ import {
   markError,
   markRetry,
   peek,
+  upsertQueueEntry,
 } from '../executionQueue'
 
 describe('executionQueue', () => {
@@ -47,5 +48,45 @@ describe('executionQueue', () => {
     expect(entry!.id).toBe(id)
     expect(entry!.type).toBe('test')
     expect(entry!.status).toBe('pending')
+  })
+
+  describe('upsertQueueEntry', () => {
+    it('replaces the pending entry for the same type + clientUuid instead of appending', async () => {
+      const first = await upsertQueueEntry('guided:execution-upsert', 'uuid-a', {
+        clientUuid: 'uuid-a',
+        currentStepKey: 'step_1',
+      })
+      const second = await upsertQueueEntry('guided:execution-upsert', 'uuid-a', {
+        clientUuid: 'uuid-a',
+        currentStepKey: 'step_2',
+      })
+
+      expect(second).toBe(first) // same row reused
+      const pending = await listPending()
+      expect(pending).toHaveLength(1)
+      expect(
+        (pending[0].payload as { currentStepKey: string }).currentStepKey,
+      ).toBe('step_2')
+    })
+
+    it('keeps separate entries for different clientUuids', async () => {
+      await upsertQueueEntry('guided:execution-upsert', 'uuid-a', {
+        clientUuid: 'uuid-a',
+      })
+      await upsertQueueEntry('guided:execution-upsert', 'uuid-b', {
+        clientUuid: 'uuid-b',
+      })
+
+      expect(await listPending()).toHaveLength(2)
+    })
+
+    it('does not dedup across different queue types', async () => {
+      await enqueue('calculator.calculate', { clientUuid: 'uuid-a' })
+      await upsertQueueEntry('guided:execution-upsert', 'uuid-a', {
+        clientUuid: 'uuid-a',
+      })
+
+      expect(await listPending()).toHaveLength(2)
+    })
   })
 })

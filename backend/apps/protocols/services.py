@@ -1,10 +1,10 @@
 import ast
 import operator
-from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from apps.notifications.models import Notification
 
@@ -235,10 +235,6 @@ class ProtocolExecutionEngine:
             valores,
             {"loop_count": state.loop_count},
         )
-        if next_step_key:
-            next_step = interpreter.get_step(next_step_key)
-            if next_step and next_step.get("type") == "wait_reassess":
-                self._agendar_lembrete_wait_reassess(execution, next_step)
 
         if step and step.get("type") == "titration_loop":
             state.loop_count += 1
@@ -263,27 +259,6 @@ class ProtocolExecutionEngine:
             execution.save(update_fields=["current_step_key", "current_step"])
 
         return state
-
-    def _agendar_lembrete_wait_reassess(self, execution, step):
-        duration = step.get("duration_hours", 0)
-        if duration <= 0:
-            return
-
-        scheduled_time = timezone.now() + timedelta(hours=duration)
-        Notification.objects.create(
-            recipient=execution.physician,
-            target_content_type=ContentType.objects.get_for_model(execution),
-            target_object_id=str(execution.pk),
-            title="Reavaliação necessária",
-            description=(
-                f"O tempo de espera de {duration}h para o paciente {execution.patient} "
-                f"no passo '{step.get('title', '')}' do protocolo "
-                f"'{execution.version.protocol.title}' acabou. "
-                f"Por favor, reavalie o caso."
-            ),
-            level="warning",
-            scheduled_for=scheduled_time,
-        )
 
     def _historico_json(self, execution):
         return [
@@ -388,32 +363,77 @@ class ProtocolExecutionEngine:
 
         for state in execution.states.filter(step_key__isnull=False):
             step = interpreter.get_step(state.step_key)
-            if step and step.get("type") == "wait_reassess":
-                duration = step.get("duration_hours", 0)
-                due_at = (
-                    state.answered_at + timezone.timedelta(hours=duration)
-                    if duration
-                    else None
-                )
+            if step and step.get("type") in ("wait_reassess", "titration_loop"):
+                duration = step.get("duration_minutes", 0)
+                if not duration:
+                    continue
+                due_at = state.answered_at + timezone.timedelta(minutes=duration)
 
-                status = "info"
-                if due_at:
-                    if now > due_at:
-                        status = "overdue"
-                    else:
-                        status = "pending"
+                status = "pending"
+                if now > due_at:
+                    status = "overdue"
 
                 reminders.append(
                     {
                         "step_id": state.step_key,
                         "step_title": step.get("title", ""),
                         "answered_at": state.answered_at.isoformat(),
-                        "due_at": due_at.isoformat() if due_at else None,
+                        "due_at": due_at.isoformat(),
                         "status": status,
-                        "duration_hours": duration,
+                        "duration_minutes": duration,
                         "reassess_fields": step.get("reassess_fields", []),
                         "phases": step.get("phases", []),
                     }
                 )
 
         return reminders
+
+    def sync_reavaliacao_notifications(self, execution):
+        """Cria/atualiza a notificação durável de reavaliação para uma execução.
+
+        Reaproveita ``get_reminders`` como fonte de verdade do timing
+        e materializa uma ``Notification`` agendada que o sino revela no due-time.
+        """
+        target_ct = ContentType.objects.get_for_model(execution)
+        target_id = str(execution.pk)
+        title = "Reavaliação necessária"
+
+        finished = execution.status in (
+            execution.Status.CONCLUIDO,
+            execution.Status.ABANDONADO,
+        )
+        if finished:
+            # Execuções encerradas param de cobrar reavaliação pendente.
+            Notification.objects.filter(
+                recipient=execution.physician,
+                target_content_type=target_ct,
+                target_object_id=target_id,
+                title=title,
+                is_read=False,
+            ).delete()
+            return
+
+        reminders = self.get_reminders(execution)
+        if not reminders:
+            return
+
+        reminder = sorted(reminders, key=lambda r: r["due_at"])[-1]
+        protocol_title = execution.version.protocol.title
+        description = (
+            f"Reavalie o paciente {execution.patient_name} no passo "
+            f"'{reminder['step_title']}' do protocolo '{protocol_title}'."
+        )
+
+        Notification.objects.update_or_create(
+            recipient=execution.physician,
+            target_content_type=target_ct,
+            target_object_id=target_id,
+            title=title,
+            defaults={
+                "protocol_version": execution.version,
+                "description": description,
+                "level": "warning",
+                "scheduled_for": parse_datetime(reminder["due_at"]),
+                "is_read": False,
+            },
+        )

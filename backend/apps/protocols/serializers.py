@@ -247,3 +247,30 @@ class ProtocolExecutionStateSerializer(serializers.ModelSerializer):
             "answered_at",
         ]
         read_only_fields = ["id", "answered_at"]
+
+
+class ProtocolSyncStateSerializer(serializers.Serializer):
+    """Serializer para cada state dentro do payload de sync."""
+
+    step_key = serializers.CharField(max_length=100)
+    values = serializers.JSONField(required=False, default=dict)
+    loop_count = serializers.IntegerField(required=False, default=0, min_value=0)
+    gate_warnings = serializers.JSONField(required=False, default=list)
+    answered_at = serializers.DateTimeField(required=False, allow_null=True)
+
+
+class ProtocolExecutionSyncSerializer(serializers.Serializer):
+    """Serializer para o endpoint de sync (full snapshot)."""
+
+    client_uuid = serializers.UUIDField()
+    protocol_version_id = serializers.IntegerField()
+    patient_name = serializers.CharField(max_length=255)
+    patient_id = serializers.IntegerField(required=False, allow_null=True)
+    status = serializers.ChoiceField(
+        choices=ProtocolExecution.Status.choices,
+        default=ProtocolExecution.Status.EM_ANDAMENTO,
+    )
+    current_step_key = serializers.CharField(
+        max_length=100, required=False, allow_null=True, allow_blank=True
+    )
+    states = ProtocolSyncStateSerializer(many=True)

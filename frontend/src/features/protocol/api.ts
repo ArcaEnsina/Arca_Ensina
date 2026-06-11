@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api/client'
 import { protocolCache, isOffline } from '@/lib/offline'
 import type { Protocol, ProtocolListItem } from './types'
@@ -78,7 +78,26 @@ export function useProtocol(id: string) {
   })
 }
 
+export type ProtocolCacheStatus = 'none' | 'stale' | 'current'
+
+/**
+ * Status do protocolo no cache offline: 'current' quando a versão baixada
+ * corresponde à versão atual no servidor, 'stale' quando há versão mais nova.
+ */
+export function useProtocolCacheStatus(protocol: ProtocolListItem) {
+  return useQuery<ProtocolCacheStatus>({
+    queryKey: ['protocol-cache-status', protocol.id, protocol.updated_at],
+    queryFn: async () => {
+      const cached = await protocolCache.getProtocol(protocol.id)
+      if (!cached) return 'none'
+      return cached.updated_at === protocol.updated_at ? 'current' : 'stale'
+    },
+    staleTime: 0,
+  })
+}
+
 export function useDownloadProtocol() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
       const { data } = await api.get<Protocol>(`protocols/${id}/`)
@@ -109,6 +128,9 @@ export function useDownloadProtocol() {
         downloaded_at: Date.now(),
       })
       return data
+    },
+    onSuccess: (_data, id) => {
+      void queryClient.invalidateQueries({ queryKey: ['protocol-cache-status', id] })
     },
   })
 }

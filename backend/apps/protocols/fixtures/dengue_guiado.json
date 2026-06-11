@@ -21,7 +21,7 @@
     "pk": 1,
     "fields": {
       "protocol": 1,
-      "version_number": 2,
+      "version_number": 3,
       "protocol_type": "guiado",
       "steps_data": {
         "steps": [
@@ -131,6 +131,7 @@
             "description": "Repetir bolus de SF 0,9% (10 ml/kg em 1h). Total adicional máximo: +30 ml/kg (até 3 repetições). Vigiar sinais de congestão antes de cada bolus.",
             "max_iterations": 3,
             "counter_field": "expansao_c_count",
+            "duration_minutes": 60,
             "congestion_check": {
               "title": "Sinais de Congestão?",
               "description": "Avalie antes de cada novo bolus: estertores pulmonares, hepatomegalia progressiva, edema periférico, distensão jugular.",
@@ -145,7 +146,7 @@
             "type": "wait_reassess",
             "title": "Grupo C — Avaliação Horária",
             "description": "Avaliar a cada hora: Débito urinário (DU), Pressão arterial (PA), Sinais vitais (SSVV). Hematócrito a cada 2h.",
-            "duration_hours": 2,
+            "duration_minutes": 120,
             "reassess_fields": ["diurese", "pressao_arterial", "ssvv", "hematocrito"],
             "next_step": "step_c_avaliacao2"
           },
@@ -212,7 +213,40 @@
             "output_label": "Volume de SF 0,9% por bolus",
             "output_unit": "ml",
             "notes": "Administrar em 20 minutos. Avaliar congestão antes de cada repetição. Máximo de 3 bolus (60 ml/kg total). Coletar Hct após as expansões.",
-            "next_step": "step_d_avaliacao1"
+            "next_step": "step_d_bolus_timer"
+          },
+
+          {
+            "id": "step_d_bolus_timer",
+            "type": "wait_reassess",
+            "title": "Grupo D — Infusão do Bolus (20 min)",
+            "description": "Infundir o bolus de SF 0,9% (20 ml/kg) em 20 minutos. O cronômetro avisa ao término para decidir a conduta. Coletar Hct após a expansão.",
+            "duration_minutes": 20,
+            "reassess_fields": ["hematocrito", "pressao_arterial", "diurese", "perfusao"],
+            "next_step": "step_d_repeticao"
+          },
+
+          {
+            "id": "step_d_repeticao",
+            "type": "titration_loop",
+            "title": "Grupo D — Conduta após o Bolus (até 3x)",
+            "description": "Bolus concluído. Na ausência de congestão, é possível iniciar novo bolus (critério médico) até o máximo de 3 (60 ml/kg total) ou aguardar o resultado do Hct para reavaliar.",
+            "max_iterations": 3,
+            "counter_field": "expansao_d_count",
+            "duration_minutes": 20,
+            "congestion_check": {
+              "title": "Sinais de congestão?",
+              "description": "Avalie antes de novo bolus: estertores pulmonares, hepatomegalia progressiva, edema periférico, distensão jugular. Se presentes, interromper a expansão.",
+              "true_next": "step_d_avaliacao1",
+              "false_next": "step_d_avaliacao1"
+            },
+            "choice": {
+              "continue_label": "Iniciar outro bolus",
+              "stop_label": "Esperar HCT"
+            },
+            "loop_next": "step_d_bolus_timer",
+            "stop_next": "step_d_avaliacao1",
+            "max_reached_next": "step_d_avaliacao1"
           },
 
           {
@@ -398,7 +432,7 @@
         "source": "Protocolo ARCA — Manejo da Dengue (fluxograma PDF institucional)",
         "target_population": "Adultos e crianças",
         "severity_groups": ["C", "D"],
-        "version_notes": "Versão 2 — corrigida integralmente com base no PDF. Correções aplicadas: (1) Grupo C redefinido como 'com sinais de alerta, sem sinais de gravidade'; (2) conduta de Grupo C alterada de hidratação oral para expansão IV com SF 0,9% 10 ml/kg em 1h; (3) velocidade de infusão corrigida (1h para Grupo C vs 20min para Grupo D); (4) fase de manutenção do Grupo C adicionada (25 ml/kg em 6h + 25 ml/kg em 8h); (5) doses das DVA corrigidas (Dobutamina 5–10, Adrenalina 0,05–0,3, Noradrenalina 0,05–1 mcg/kg/min); (6) critério de transfusão de plaquetas corrigido (sem indicação profilática; somente com hemorragia persistente + trombocitopenia + INR > 1,5x VN após correção de coagulopatia e choque); (7) manejo de hiperhidratação adicionado (Dobutamina + Furosemida + restrição hídrica, sem albumina); (8) pesquisa sorológica (NS1 até D5; IgM/IgG D6–D15) adicionada; (9) fluxo de 2 etapas de triagem adicionado (gravidade → alerta)."
+        "version_notes": "Versão 3 — expansão do Grupo D modelada como timer de bolus (20 min) + titration_loop com escolha 'iniciar outro bolus' / 'esperar HCT' (até 3x, com checagem de congestão como gate de segurança); timer migrado de horas para minutos (duration_minutes); timer por bolus de 60 min adicionado ao Grupo C. Versão 2 — corrigida integralmente com base no PDF. Correções aplicadas: (1) Grupo C redefinido como 'com sinais de alerta, sem sinais de gravidade'; (2) conduta de Grupo C alterada de hidratação oral para expansão IV com SF 0,9% 10 ml/kg em 1h; (3) velocidade de infusão corrigida (1h para Grupo C vs 20min para Grupo D); (4) fase de manutenção do Grupo C adicionada (25 ml/kg em 6h + 25 ml/kg em 8h); (5) doses das DVA corrigidas (Dobutamina 5–10, Adrenalina 0,05–0,3, Noradrenalina 0,05–1 mcg/kg/min); (6) critério de transfusão de plaquetas corrigido (sem indicação profilática; somente com hemorragia persistente + trombocitopenia + INR > 1,5x VN após correção de coagulopatia e choque); (7) manejo de hiperhidratação adicionado (Dobutamina + Furosemida + restrição hídrica, sem albumina); (8) pesquisa sorológica (NS1 até D5; IgM/IgG D6–D15) adicionada; (9) fluxo de 2 etapas de triagem adicionado (gravidade → alerta)."
       },
 
       "created_at": "2026-05-19T00:00:00Z",

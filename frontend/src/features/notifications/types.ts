@@ -6,5 +6,6 @@ export interface Notification {
   message: string
   target_type: string | null
   target_id: string | null
+  protocol_id: number | null
   level: 'info' | 'warning' | 'error' | 'success'
 }

@@ -1,5 +1,8 @@
+import logging
+
 import django_filters
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -11,17 +14,20 @@ from apps.audit.mixins import AuditableMixin
 from apps.pacientes.models import Paciente
 
 from .engine.interpreter import GuidedProtocolInterpreter
-from .models import Protocol, ProtocolExecution, ProtocolVersion
+from .models import Protocol, ProtocolExecution, ProtocolExecutionState, ProtocolVersion
 from .serializers import (
     ProtocolExecutionAnswerSerializer,
     ProtocolExecutionSerializer,
     ProtocolExecutionStartSerializer,
+    ProtocolExecutionSyncSerializer,
     ProtocolListSerializer,
     ProtocolSerializer,
     ProtocolVersionCreateSerializer,
     ProtocolVersionSerializer,
 )
 from .services import ProtocolExecutionEngine
+
+logger = logging.getLogger(__name__)
 
 
 class ProtocolFilter(django_filters.FilterSet):
@@ -401,3 +407,152 @@ class ProtocolExecutionViewSet(AuditableMixin, ModelViewSet):
             "physician",
             "current_step",
         ).filter(physician=self.request.user)
+
+    @action(detail=False, methods=["post"], url_path="sync")
+    def sync(self, request, **kwargs):
+        """Execução "Upsert" + states a partir de um snapshot do cliente.
+
+        Re-roda o interpretador Python sobre o histórico para detectardivergências.
+        O estado do cliente é a fonte de verdade para os dados persistidos.
+        """
+        serializer = ProtocolExecutionSyncSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        # Resolve version
+        try:
+            version = ProtocolVersion.objects.get(pk=data["protocol_version_id"])
+        except ProtocolVersion.DoesNotExist:
+            raise NotFound("ProtocolVersion não encontrada.")
+
+        # Resolve patient (optional, scoped to physician)
+        patient = None
+        patient_id = data.get("patient_id")
+        if patient_id:
+            patient = Paciente.objects.filter(
+                pk=patient_id, created_by=request.user
+            ).first()
+            if patient is None:
+                raise NotFound("Paciente não encontrado.")
+
+        client_uuid = data["client_uuid"]
+        current_step_key = data.get("current_step_key") or None
+
+        is_created = False
+        execution = ProtocolExecution.objects.filter(
+            physician=request.user,
+            client_uuid=client_uuid,
+        ).first()
+
+        if execution:
+            # Update existing
+            execution.version = version
+            execution.patient_name = data["patient_name"]
+            execution.status = data["status"]
+            execution.current_step_key = current_step_key
+            execution.current_step = None
+            if patient is not None:
+                execution.patient = patient
+            if (
+                data["status"] == ProtocolExecution.Status.CONCLUIDO
+                and not execution.finished_at
+            ):
+                execution.finished_at = timezone.now()
+            execution.save()
+        else:
+            is_created = True
+            execution = ProtocolExecution.objects.create(
+                version=version,
+                physician=request.user,
+                patient=patient,
+                patient_name=data["patient_name"],
+                client_uuid=client_uuid,
+                status=data["status"],
+                current_step_key=current_step_key,
+            )
+            if data["status"] == ProtocolExecution.Status.CONCLUIDO:
+                execution.finished_at = timezone.now()
+                execution.save(update_fields=["finished_at"])
+
+        # Upsert states — delete existing and recreate from snapshot
+        execution.states.all().delete()
+        states_data = data.get("states", [])
+        state_objects = []
+        provided_answered_at = []
+        for s in states_data:
+            answered_at = s.get("answered_at")
+            provided_answered_at.append(answered_at)
+            state_objects.append(
+                ProtocolExecutionState(
+                    execution=execution,
+                    step_key=s.get("step_key"),
+                    values=s.get("values", {}),
+                    loop_count=s.get("loop_count", 0),
+                    gate_warnings=s.get("gate_warnings", []),
+                    answered_at=answered_at or timezone.now(),
+                )
+            )
+        if state_objects:
+            ProtocolExecutionState.objects.bulk_create(state_objects)
+            # answered_at é auto_now_add, então bulk_create sobrescreve o valor
+            # do cliente com "agora". Restaura o timestamp offline informado no
+            # snapshot para que get_reminders calcule o due_at correto (e o
+            # lembrete vencido offline apareça no sino ao reconectar).
+            to_restore = [
+                obj
+                for obj, answered_at in zip(state_objects, provided_answered_at)
+                if answered_at
+            ]
+            if to_restore:
+                for obj, answered_at in zip(state_objects, provided_answered_at):
+                    if answered_at:
+                        obj.answered_at = answered_at
+                ProtocolExecutionState.objects.bulk_update(to_restore, ["answered_at"])
+
+        # Teste de paridade re-executa o interpretador
+        if version.steps_data and version.steps_data.get("steps"):
+            interpreter = GuidedProtocolInterpreter(version.steps_data)
+            history = [
+                {"step_key": s.step_key, "values": s.values, "loop_count": s.loop_count}
+                for s in execution.states.filter(step_key__isnull=False).order_by(
+                    "answered_at"
+                )
+            ]
+
+            server_step_key = interpreter.get_first_step_id()
+            for i, h in enumerate(history):
+                resolved = interpreter.resolve_next_step_id(
+                    h["step_key"],
+                    h["values"],
+                    {"loop_count": h["loop_count"]},
+                )
+                if resolved is not None:
+                    server_step_key = resolved
+                else:
+                    # Protocol ended at this step
+                    server_step_key = None
+                    break
+
+            if server_step_key != current_step_key:
+                logger.critical(
+                    "divergência detectada em paridade engine em produção: "
+                    "client_uuid=%s execution_id=%s server_step=%s client_step=%s",
+                    client_uuid,
+                    execution.pk,
+                    server_step_key,
+                    current_step_key,
+                )
+
+        # Materializa a notificação durável de reavaliação (sino) a partir do
+        # estado sincronizado
+        ProtocolExecutionEngine().sync_reavaliacao_notifications(execution)
+
+        # Audit log
+        action_name = "sync.created" if is_created else "sync.updated"
+        self._log(request, action_name, execution)
+
+        status_code = 201 if is_created else 200
+        return Response(
+            ProtocolExecutionSerializer(execution).data,
+            status=status_code,
+        )
