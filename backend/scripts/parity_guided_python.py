@@ -32,6 +32,7 @@ FIXTURE_PATH = BACKEND_DIR / "apps" / "protocols" / "fixtures" / "dengue_guiado.
 
 # Helpers
 
+
 def decimal_default(obj):
     """JSON serialiser hook for Decimal."""
     if isinstance(obj, Decimal):
@@ -114,7 +115,9 @@ def run_scenario(name, steps_data, actions):
         }
     )
 
+
 # Scenarios
+
 
 def scenario_a_group_c_full_path(steps_data):
     """Group C full path: info → checklist(0) → checklist(1+) → info →

@@ -33,7 +33,9 @@ class TitrationLoopResolutionTest(TestCase):
         self.interp = GuidedProtocolInterpreter({"steps": [self.step]})
 
     def _resolve(self, values, loop_count=0):
-        return self.interp.resolve_next_step_id("loop", values, {"loop_count": loop_count})
+        return self.interp.resolve_next_step_id(
+            "loop", values, {"loop_count": loop_count}
+        )
 
     def test_congestion_stops_loop(self):
         self.assertEqual(self._resolve({"congestion": True}), "stop_congest")
@@ -117,7 +119,8 @@ class GetRemindersTimerTest(TestCase):
         self.assertIn("due_at", by_id["wait"])
 
     def test_single_reminder_per_step_key(self):
-        # The loop step is upserted by (execution, step_key): one row, latest answered_at.
+        # The loop step is upserted by (execution, step_key): one row,
+        # latest answered_at.
         self._state("loop", minutes_ago=90)
         reminders = self.engine.get_reminders(self.execution)
         loop_reminders = [r for r in reminders if r["step_id"] == "loop"]
