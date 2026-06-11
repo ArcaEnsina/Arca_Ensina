@@ -211,4 +211,6 @@ export interface HistoryEntry {
   title: string;
   values: AnswerValues;
   answeredAt: string;
+  /** Engine loop counter at the moment this step was resolved (titration loops). */
+  loopCount?: number;
 }

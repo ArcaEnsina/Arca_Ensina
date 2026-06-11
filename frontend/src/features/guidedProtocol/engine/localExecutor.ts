@@ -21,6 +21,30 @@ interface LocalExecutionState {
 }
 
 const engines = new Map<string, LocalExecutionState>();
+/**
+ * O clientUuid ativo para cada protocolId. Torna a busca por operação
+ * determinística (a última execução iniciada prevalece).
+ */
+const activeByProtocol = new Map<string, string>();
+
+/** Obtém a execução ativa de um protocolo usando o mapeamento activeByProtocol → engines. */
+function resolveActive(
+  protocolId: number,
+): { clientUuid: string; entry: LocalExecutionState } | undefined {
+  const clientUuid = activeByProtocol.get(String(protocolId));
+  if (!clientUuid) return undefined;
+  const entry = engines.get(clientUuid);
+  if (!entry) return undefined;
+  return { clientUuid, entry };
+}
+
+/** Descarta uma execução concluída para impedir que ela sobreponha uma nova inicialização do mesmo protocolo. */
+function purgeRun(protocolId: number, clientUuid: string): void {
+  engines.delete(clientUuid);
+  if (activeByProtocol.get(String(protocolId)) === clientUuid) {
+    activeByProtocol.delete(String(protocolId));
+  }
+}
 
 function getStepsData(cachedProtocol: CachedProtocol): Record<string, unknown> | null {
   return cachedProtocol.current_version?.steps_data ?? null;
@@ -74,8 +98,20 @@ export const localExecutor: IProtocolExecutor = {
         throw new Error('Protocolo nao encontrado no cache local');
       }
       const engine = new GuidedProtocolInterpreter(getStepsData(cachedProtocol));
-      engines.set(clientUuid, { engine, state: existingState });
-      return buildExecutionFromState(existingState, engine);
+      // A run that started online and is now falling back may have persisted an
+      // empty protocolVersionId; refresh it from the cache so sync has a valid id.
+      const resumedState: ExecutionStateRecord = {
+        ...existingState,
+        protocolVersionId:
+          existingState.protocolVersionId ||
+          String(cachedProtocol.current_version?.id ?? ''),
+      };
+      if (resumedState.protocolVersionId !== existingState.protocolVersionId) {
+        await saveExecutionState(resumedState);
+      }
+      engines.set(clientUuid, { engine, state: resumedState });
+      activeByProtocol.set(String(protocolId), clientUuid);
+      return buildExecutionFromState(resumedState, engine);
     }
 
     // Fetch protocol from IndexedDB cache
@@ -107,28 +143,19 @@ export const localExecutor: IProtocolExecutor = {
 
     await saveExecutionState(initialState);
     engines.set(clientUuid, { engine, state: initialState });
+    activeByProtocol.set(String(protocolId), clientUuid);
 
     const gateWarnings = engine.evaluateEntryGates({});
     return buildExecutionFromState(initialState, engine, gateWarnings);
   },
 
   async getStep(protocolId: number): Promise<StepResponse> {
-    // We need a clientUuid to look up state. Try to find it from engines map.
-    // Fallback: scan IndexedDB for active executions matching this protocol.
-    let localState: LocalExecutionState | undefined;
-
-    for (const [, entry] of engines) {
-      if (entry.state.protocolId === String(protocolId)) {
-        localState = entry;
-        break;
-      }
-    }
-
-    if (!localState) {
+    const active = resolveActive(protocolId);
+    if (!active) {
       throw new Error('Nao ha estado local ativo para este protocolo');
     }
 
-    const { engine, state } = localState;
+    const { engine, state } = active.entry;
     if (state.status === 'concluido') {
       return { step: null, gateWarnings: [], status: 'concluido' };
     }
@@ -138,22 +165,13 @@ export const localExecutor: IProtocolExecutor = {
   },
 
   async answer(protocolId: number, values: AnswerValues): Promise<Execution> {
-    let localState: LocalExecutionState | undefined;
-    let clientUuid: string | undefined;
-
-    for (const [uuid, entry] of engines) {
-      if (entry.state.protocolId === String(protocolId)) {
-        localState = entry;
-        clientUuid = uuid;
-        break;
-      }
-    }
-
-    if (!localState || !clientUuid) {
+    const active = resolveActive(protocolId);
+    if (!active) {
       throw new Error('Nao ha estado local ativo para este protocolo');
     }
+    const { clientUuid, entry } = active;
 
-    const { engine, state } = localState;
+    const { engine, state } = entry;
     const currentStep = engine.getStep(state.currentStepKey);
 
     if (!currentStep) {
@@ -171,6 +189,11 @@ export const localExecutor: IProtocolExecutor = {
       );
     }
 
+    // Loop counter in effect when this step is resolved — recorded on the
+    // history entry so the synced state's loop_count matches the server's
+    // parity replay (views.py resolve_next_step_id).
+    const loopCount = (state.values.__loopCount as number) ?? 0;
+
     // Record history entry
     const historyEntry = {
       stepKey: state.currentStepKey,
@@ -178,6 +201,7 @@ export const localExecutor: IProtocolExecutor = {
       title: currentStep.title,
       values: resolvedValues,
       answeredAt: new Date().toISOString(),
+      loopCount,
     };
 
     // Build context for gate evaluation on next step
@@ -186,7 +210,6 @@ export const localExecutor: IProtocolExecutor = {
     const context = engine.buildContext(updatedHistory, {});
 
     // Resolve next step
-    const loopCount = (state.values.__loopCount as number) ?? 0;
     const { nextStepId, state: newEngineState } = engine.resolveNextStepId(
       state.currentStepKey,
       resolvedValues,
@@ -196,12 +219,10 @@ export const localExecutor: IProtocolExecutor = {
     // Update values with loop count
     updatedValues.__loopCount = newEngineState.loopCount;
 
-    let newStatus: ExecutionStateRecord['status'] = 'em_andamento';
-    let finalStepKey = nextStepId ?? '';
-
-    if (!nextStepId) {
-      newStatus = 'concluido';
-    }
+    const finalStepKey = nextStepId ?? '';
+    const newStatus: ExecutionStateRecord['status'] = nextStepId
+      ? 'em_andamento'
+      : 'concluido';
 
     const newState: ExecutionStateRecord = {
       ...state,
@@ -213,7 +234,11 @@ export const localExecutor: IProtocolExecutor = {
     };
 
     await saveExecutionState(newState);
-    engines.set(clientUuid, { engine, state: newState });
+    if (newStatus === 'concluido') {
+      purgeRun(protocolId, clientUuid);
+    } else {
+      engines.set(clientUuid, { engine, state: newState });
+    }
 
     // Gate warnings for the new current step
     const gateWarnings = nextStepId
@@ -224,27 +249,20 @@ export const localExecutor: IProtocolExecutor = {
   },
 
   async advance(protocolId: number): Promise<StepResponse> {
-    let localState: LocalExecutionState | undefined;
-    let clientUuid: string | undefined;
-
-    for (const [uuid, entry] of engines) {
-      if (entry.state.protocolId === String(protocolId)) {
-        localState = entry;
-        clientUuid = uuid;
-        break;
-      }
-    }
-
-    if (!localState || !clientUuid) {
+    const active = resolveActive(protocolId);
+    if (!active) {
       throw new Error('Nao ha estado local ativo para este protocolo');
     }
+    const { clientUuid, entry } = active;
 
-    const { engine, state } = localState;
+    const { engine, state } = entry;
     const currentStep = engine.getStep(state.currentStepKey);
 
     if (!currentStep) {
       return { step: null, gateWarnings: [], status: 'concluido' };
     }
+
+    const loopCount = (state.values.__loopCount as number) ?? 0;
 
     // Record history entry for the display-only step
     const historyEntry = {
@@ -253,21 +271,20 @@ export const localExecutor: IProtocolExecutor = {
       title: currentStep.title,
       values: {},
       answeredAt: new Date().toISOString(),
+      loopCount,
     };
 
     // Resolve next step (display-only steps have simple next_step)
     const { nextStepId } = engine.resolveNextStepId(
       state.currentStepKey,
       {},
-      { loopCount: (state.values.__loopCount as number) ?? 0 },
+      { loopCount },
     );
 
-    let newStatus: ExecutionStateRecord['status'] = 'em_andamento';
-    let finalStepKey = nextStepId ?? '';
-
-    if (!nextStepId) {
-      newStatus = 'concluido';
-    }
+    const finalStepKey = nextStepId ?? '';
+    const newStatus: ExecutionStateRecord['status'] = nextStepId
+      ? 'em_andamento'
+      : 'concluido';
 
     const newState: ExecutionStateRecord = {
       ...state,
@@ -278,7 +295,11 @@ export const localExecutor: IProtocolExecutor = {
     };
 
     await saveExecutionState(newState);
-    engines.set(clientUuid, { engine, state: newState });
+    if (newStatus === 'concluido') {
+      purgeRun(protocolId, clientUuid);
+    } else {
+      engines.set(clientUuid, { engine, state: newState });
+    }
 
     if (!nextStepId) {
       return { step: null, gateWarnings: [], status: 'concluido' };
@@ -289,20 +310,11 @@ export const localExecutor: IProtocolExecutor = {
   },
 
   async back(protocolId: number): Promise<StepResponse> {
-    let localState: LocalExecutionState | undefined;
-    let clientUuid: string | undefined;
-
-    for (const [uuid, entry] of engines) {
-      if (entry.state.protocolId === String(protocolId)) {
-        localState = entry;
-        clientUuid = uuid;
-        break;
-      }
-    }
-
-    if (!localState || !clientUuid) {
+    const active = resolveActive(protocolId);
+    if (!active) {
       throw new Error('Nao ha estado local ativo para este protocolo');
     }
+    const { clientUuid, entry: localState } = active;
 
     const { engine, state } = localState;
 
@@ -321,6 +333,9 @@ export const localExecutor: IProtocolExecutor = {
     for (const entry of newHistory) {
       Object.assign(remainingValues, entry.values);
     }
+    // Restore the loop counter to what it was when the step we're returning to
+    // was resolved, so re-answering it branches identically.
+    remainingValues.__loopCount = lastEntry.loopCount ?? 0;
 
     const newState: ExecutionStateRecord = {
       ...state,
@@ -339,18 +354,16 @@ export const localExecutor: IProtocolExecutor = {
   },
 
   async getReminders(protocolId: number): Promise<Reminder[]> {
-    let localState: LocalExecutionState | undefined;
+    const active = resolveActive(protocolId);
+    if (!active) return [];
 
-    for (const [, entry] of engines) {
-      if (entry.state.protocolId === String(protocolId)) {
-        localState = entry;
-        break;
-      }
-    }
-
-    if (!localState) return [];
-
-    const { engine, state } = localState;
+    const { engine, state } = active.entry;
     return buildReminders(state.history, (id) => engine.getStep(id));
   },
 };
+
+/** Test-only: clear all in-memory engine state between cases. */
+export function __resetLocalEngines(): void {
+  engines.clear();
+  activeByProtocol.clear();
+}
