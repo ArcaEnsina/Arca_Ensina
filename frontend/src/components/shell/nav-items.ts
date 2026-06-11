@@ -2,6 +2,8 @@ import { BookMarked, Home, Cross, type LucideIcon } from "lucide-react";
 
 /** Destino de navegação do AppShell. CORE-013 — 3 destinos no MVP. */
 export interface NavItem {
+  /** Identificador estável para destinos com comportamento dinâmico (ex.: "protocols"). */
+  id?: string;
   to: string;
   label: string;
   icon: LucideIcon;
@@ -23,9 +25,13 @@ export const NAV_ITEMS: NavItem[] = [
     match: (p) => p.startsWith("/medications") || p.startsWith("/calculator"),
   },
   {
-    to: "/repositorio",
-    label: "Repositório acadêmico",
+    id: "protocols",
+    to: "/protocols/manual",
+    label: "Protocolos",
     icon: BookMarked,
-    match: (p) => p.startsWith("/repositorio"),
+    match: (p) =>
+      p.startsWith("/protocols") ||
+      p.startsWith("/guided-protocol") ||
+      p.startsWith("/sedation"),
   },
 ];
