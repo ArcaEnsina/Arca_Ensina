@@ -2,11 +2,29 @@ import api from '@/lib/api/client'
 
 import type { Notification } from './types'
 
+interface PaginatedNotifications {
+  results: Notification[]
+}
+
+function normalizeNotifications(
+  data: Notification[] | PaginatedNotifications,
+): Notification[] {
+  if (Array.isArray(data)) {
+    return data
+  }
+
+  return Array.isArray(data.results) ? data.results : []
+}
+
 export async function fetchUnread(): Promise<Notification[]> {
-  const { data } = await api.get<Notification[]>('notifications/', {
-    params: { is_read: false },
-  })
-  return data
+  const { data } = await api.get<Notification[] | PaginatedNotifications>(
+    'notifications/',
+    {
+      params: { is_read: false },
+    },
+  )
+
+  return normalizeNotifications(data)
 }
 
 export async function markAsRead(id: string): Promise<void> {
