@@ -6,7 +6,6 @@ from apps.pacientes.models import Paciente, Sintoma
 
 
 class EmergencySerializer(serializers.Serializer):
-
     peso = serializers.DecimalField(max_digits=5, decimal_places=2)
     idade_anos = serializers.IntegerField(min_value=0, max_value=120)
     sintomas = serializers.ListField(

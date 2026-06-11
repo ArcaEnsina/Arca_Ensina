@@ -11,17 +11,19 @@ from apps.protocols.services import ProtocolExecutionEngine
 
 from .serializers import EmergencySerializer
 
-class EmergencyView(AuditableMixin, APIView):
 
+class EmergencyView(AuditableMixin, APIView):
     permission_classes = [IsAuthenticated]
     audit_resource_type = "emergency"
 
     def post(self, request, *args, **kwargs):
         serializer = EmergencySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
-        #quase esqueci como faz comentário em python
-        patient = serializer.create_patient(serializer.validated_data, request.user)    #criação do paciente de emergencia 
+
+        # quase esqueci como faz comentário em python
+        patient = serializer.create_patient(
+            serializer.validated_data, request.user
+        )  # criação do paciente de emergencia
 
         protocol_version_id = serializer.validated_data.get("protocol_version_id")
         if protocol_version_id:
@@ -44,7 +46,7 @@ class EmergencyView(AuditableMixin, APIView):
                 {"detail": "Nenhum protocolo guiado ativo encontrado."},
                 status=status.HTTP_404_NOT_FOUND,
             )
-        execution = ProtocolExecution.objects.create(   #exec do protocolo
+        execution = ProtocolExecution.objects.create(  # exec do protocolo
             version=version,
             physician=request.user,
             patient=patient,
