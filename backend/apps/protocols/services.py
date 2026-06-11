@@ -2,7 +2,11 @@ import ast
 import operator
 from decimal import Decimal
 
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+
+from apps.notifications.models import Notification
 
 from .engine.interpreter import GuidedProtocolInterpreter
 from .models import ProtocolExecutionState
@@ -383,3 +387,52 @@ class ProtocolExecutionEngine:
                 )
 
         return reminders
+
+    def sync_reavaliacao_notifications(self, execution):
+        """Cria/atualiza a notificação durável de reavaliação para uma execução.
+
+        Reaproveita ``get_reminders`` como fonte de verdade do timing
+        e materializa uma ``Notification`` agendada que o sino revela no due-time.
+        """
+        target_ct = ContentType.objects.get_for_model(execution)
+        target_id = str(execution.pk)
+        title = "Reavaliação necessária"
+
+        finished = execution.status in (
+            execution.Status.CONCLUIDO,
+            execution.Status.ABANDONADO,
+        )
+        if finished:
+            # Execuções encerradas param de cobrar reavaliação pendente.
+            Notification.objects.filter(
+                recipient=execution.physician,
+                target_content_type=target_ct,
+                target_object_id=target_id,
+                title=title,
+                is_read=False,
+            ).delete()
+            return
+
+        reminders = self.get_reminders(execution)
+        if not reminders:
+            return
+
+        reminder = sorted(reminders, key=lambda r: r["due_at"])[-1]
+        protocol_title = execution.version.protocol.title
+        description = (
+            f"Reavalie o paciente {execution.patient_name} no passo "
+            f"'{reminder['step_title']}' do protocolo '{protocol_title}'."
+        )
+
+        Notification.objects.update_or_create(
+            recipient=execution.physician,
+            target_content_type=target_ct,
+            target_object_id=target_id,
+            title=title,
+            defaults={
+                "description": description,
+                "level": "warning",
+                "scheduled_for": parse_datetime(reminder["due_at"]),
+                "is_read": False,
+            },
+        )
