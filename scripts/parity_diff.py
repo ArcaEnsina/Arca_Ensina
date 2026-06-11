@@ -68,7 +68,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Diff Python vs JS parity output.")
-    parser.add_argument("--python", default=str(DEFAULT_PYTHON), help="Python JSON path")
+    parser.add_argument(
+        "--python", default=str(DEFAULT_PYTHON), help="Python JSON path"
+    )
     parser.add_argument("--js", default=str(DEFAULT_JS), help="JS JSON path")
     args = parser.parse_args()
 
@@ -77,12 +79,18 @@ def main():
 
     if not python_path.exists():
         print(f"ERROR: Python output not found: {python_path}", file=sys.stderr)
-        print("Run: python backend/scripts/parity_guided_python.py -o parity-output/guided.python.json", file=sys.stderr)
+        print(
+            "Run: python backend/scripts/parity_guided_python.py -o parity-output/guided.python.json",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     if not js_path.exists():
         print(f"ERROR: JS output not found: {js_path}", file=sys.stderr)
-        print("Run: npx tsx frontend/scripts/parity_guided_js.ts -o parity-output/guided.js.json", file=sys.stderr)
+        print(
+            "Run: npx tsx frontend/scripts/parity_guided_js.ts -o parity-output/guided.js.json",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     python_data = json.loads(python_path.read_text(encoding="utf-8"))
@@ -90,7 +98,9 @@ def main():
 
     # Compare engine metadata
     if python_data.get("engine") != "python":
-        print(f"WARNING: Python file engine={python_data.get('engine')}", file=sys.stderr)
+        print(
+            f"WARNING: Python file engine={python_data.get('engine')}", file=sys.stderr
+        )
     if js_data.get("engine") != "javascript":
         print(f"WARNING: JS file engine={js_data.get('engine')}", file=sys.stderr)
 

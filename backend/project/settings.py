@@ -95,6 +95,7 @@ INSTALLED_APPS = [
     "apps.protocols",
     "apps.research",
     "apps.sedation",
+    "apps.emergency",
     "apps.notifications",
 ]
 
