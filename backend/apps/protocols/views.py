@@ -23,7 +23,6 @@ from .serializers import (
 )
 from .services import ProtocolExecutionEngine
 
-
 class ProtocolFilter(django_filters.FilterSet):
     gender = django_filters.CharFilter(method="filter_gender")
     search = django_filters.CharFilter(method="filter_search")
