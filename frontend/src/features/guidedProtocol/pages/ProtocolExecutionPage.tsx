@@ -2,17 +2,19 @@ import { useParams, useNavigate, Navigate } from 'react-router';
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { usePatientStore } from '@/features/patient/store';
 import PatientSelector from '@/features/calculator/components/PatientSelector';
 import { useProtocolExecution } from '../hooks/useProtocolExecution';
+import { useDelayedFlag } from '../hooks/useDelayedFlag';
 import { ProtocolExecutionShell } from '../components/ProtocolExecutionShell';
 import { StepRenderer } from '../components/StepRenderer';
 
-function LoadingState() {
+function LoadingSkeleton() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-16">
-      <div className="size-8 animate-spin rounded-full border-4 border-arca-blue-200 border-t-arca-blue-700" />
-      <p className="text-sm text-muted-foreground">Carregando protocolo…</p>
+    <div className="flex flex-col gap-4" aria-hidden>
+      <Skeleton className="h-40 rounded-4xl" />
+      <Skeleton className="h-28 rounded-4xl" />
     </div>
   );
 }
@@ -106,6 +108,10 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
     patientId: Number(activePatient.id),
   });
 
+  // Só revela o skeleton se o bootstrap demorar — retomar um protocolo já em
+  // cache resolve em poucos ms e não deve piscar nada.
+  const showSkeleton = useDelayedFlag(bootstrapping);
+
   return (
     <ProtocolExecutionShell
       patient={activePatient}
@@ -114,7 +120,9 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
       currentStepId={step?.id}
     >
       {bootstrapping ? (
-        <LoadingState />
+        showSkeleton ? (
+          <LoadingSkeleton />
+        ) : null
       ) : error ? (
         <ErrorState />
       ) : completed || !step ? (
