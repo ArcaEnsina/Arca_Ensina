@@ -1,4 +1,3 @@
-import logging
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
@@ -213,6 +212,7 @@ class SyncEndpointTest(TestCase):
     def test_sync_with_patient_link(self):
         patient = Paciente.objects.create(
             nome="Paciente Vinculado",
+            data_nascimento="2000-01-01",
             created_by=self.doctor,
         )
         response = self.client.post(
@@ -236,6 +236,7 @@ class SyncEndpointTest(TestCase):
         """Patient belongs to other_doctor; doctor cannot link it."""
         patient = Paciente.objects.create(
             nome="Paciente Outro",
+            data_nascimento="2000-01-01",
             created_by=self.other_doctor,
         )
         response = self.client.post(
@@ -297,9 +298,7 @@ class SyncEndpointTest(TestCase):
             format="json",
         )
         self.assertTrue(
-            AuditLog.objects.filter(
-                user=self.doctor, action="sync.created"
-            ).exists()
+            AuditLog.objects.filter(user=self.doctor, action="sync.created").exists()
         )
 
         # Update
@@ -309,9 +308,7 @@ class SyncEndpointTest(TestCase):
             format="json",
         )
         self.assertTrue(
-            AuditLog.objects.filter(
-                user=self.doctor, action="sync.updated"
-            ).exists()
+            AuditLog.objects.filter(user=self.doctor, action="sync.updated").exists()
         )
 
 
@@ -373,13 +370,11 @@ class SyncEndpointParityDivergenceTest(TestCase):
         # Client step is persisted (client is source of truth)
         self.assertEqual(response.data["current_step_key"], "s3")
         # Divergence was logged
-        self.assertTrue(
-            any("divergência detectada" in msg for msg in cm.output)
-        )
+        self.assertTrue(any("divergência detectada" in msg for msg in cm.output))
 
     def test_no_divergence_when_consistent(self):
         """Client says s3 and answer=True → engine resolves s3 → no divergence."""
-        with self.assertLogs("apps.protocols.views", level="CRITICAL") as cm:
+        with self.assertNoLogs("apps.protocols.views", level="CRITICAL"):
             response = self.client.post(
                 "/api/v1/protocol-executions/sync/",
                 {
@@ -397,11 +392,7 @@ class SyncEndpointParityDivergenceTest(TestCase):
             )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # No CRITICAL log about divergence
-        divergence_logs = [
-            msg for msg in cm.output if "divergência detectada" in msg
-        ]
-        self.assertEqual(len(divergence_logs), 0)
+        # assertNoLogs above already guarantees no CRITICAL divergence log fired.
 
 
 class SyncEndpointEmptyStatesTest(TestCase):
