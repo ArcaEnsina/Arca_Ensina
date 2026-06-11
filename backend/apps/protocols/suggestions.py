@@ -22,9 +22,7 @@ class ProtocolSuggester:
     def suggest(self, patient: Paciente, limit: int = 5) -> list[ProtocolSuggestion]:
         symptoms = list(patient.sintomas.values_list("descricao", flat=True))
         normalized_symptoms = {
-            self._normalize(symptom): symptom
-            for symptom in symptoms
-            if symptom.strip()
+            self._normalize(symptom): symptom for symptom in symptoms if symptom.strip()
         }
 
         patient_age_months = self._age_in_months(patient.data_nascimento)

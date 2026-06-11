@@ -23,6 +23,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
     @action(detail=True, methods=["get"], url_path="suggested-protocols")
     def suggested_protocols(self, request, pk=None, **kwargs):
         patient = self.get_object()
