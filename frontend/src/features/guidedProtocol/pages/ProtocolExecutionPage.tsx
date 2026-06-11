@@ -1,18 +1,20 @@
 import { useParams, useNavigate, Navigate } from 'react-router';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { usePatientStore } from '@/features/patient/store';
 import PatientSelector from '@/features/calculator/components/PatientSelector';
 import { useProtocolExecution } from '../hooks/useProtocolExecution';
+import { useDelayedFlag } from '../hooks/useDelayedFlag';
 import { ProtocolExecutionShell } from '../components/ProtocolExecutionShell';
 import { StepRenderer } from '../components/StepRenderer';
 
-function LoadingState() {
+function LoadingSkeleton() {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 py-16">
-      <div className="size-8 animate-spin rounded-full border-4 border-arca-blue-200 border-t-arca-blue-700" />
-      <p className="text-sm text-muted-foreground">Carregando protocolo…</p>
+    <div className="flex flex-col gap-4" aria-hidden>
+      <Skeleton className="h-40 rounded-4xl" />
+      <Skeleton className="h-28 rounded-4xl" />
     </div>
   );
 }
@@ -45,6 +47,46 @@ function CompletionView() {
   );
 }
 
+function ErrorState() {
+  const navigate = useNavigate();
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
+        <span
+          className="flex size-16 items-center justify-center rounded-full bg-danger/10 text-danger"
+          aria-hidden="true"
+        >
+          <AlertTriangle className="size-9" />
+        </span>
+        <h2 className="text-display-sm text-arca-blue-900">
+          Não foi possível iniciar o protocolo
+        </h2>
+        <p className="text-body-md max-w-sm text-muted-foreground">
+          Verifique se o protocolo foi baixado para uso offline. Se o problema
+          persistir, baixe-o novamente com conexão à internet.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button
+            size="lg"
+            variant="outline"
+            className="rounded-2xl"
+            onClick={() => window.location.reload()}
+          >
+            Tentar novamente
+          </Button>
+          <Button
+            size="lg"
+            className="rounded-2xl"
+            onClick={() => navigate('/guided-protocol')}
+          >
+            Voltar aos protocolos
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ExecutionRunner({ protocolId }: { protocolId: number }) {
   const activePatient = usePatientStore((s) => s.activePatient)!;
   const {
@@ -54,6 +96,7 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
     currentIteration,
     completed,
     bootstrapping,
+    error,
     submitting,
     canGoBack,
     submitAnswer,
@@ -65,13 +108,23 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
     patientId: Number(activePatient.id),
   });
 
+  // Só revela o skeleton se o bootstrap demorar — retomar um protocolo já em
+  // cache resolve em poucos ms e não deve piscar nada.
+  const showSkeleton = useDelayedFlag(bootstrapping);
+
   return (
     <ProtocolExecutionShell
       patient={activePatient}
-      showStepper={!bootstrapping && !completed && !!step}
+      showStepper={!bootstrapping && !error && !completed && !!step}
+      reminders={reminders}
+      currentStepId={step?.id}
     >
       {bootstrapping ? (
-        <LoadingState />
+        showSkeleton ? (
+          <LoadingSkeleton />
+        ) : null
+      ) : error ? (
+        <ErrorState />
       ) : completed || !step ? (
         <CompletionView />
       ) : (

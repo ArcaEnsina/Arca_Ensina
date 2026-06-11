@@ -23,6 +23,34 @@ export async function enqueue(type: string, payload: unknown): Promise<number> {
   return id as number
 }
 
+/**
+ * Enfileira (ou substitui) uma operação idempotente identificada por `clientUuid`.
+ *
+ * Cada transição de uma mesma execução offline gera um snapshot completo; sem
+ * dedup a fila cresceria sem limite com versões obsoletas do mesmo run. Aqui,
+ * se já houver uma entrada `pending` do mesmo `type`+`clientUuid`, o payload é
+ * sobrescrito (mantém o backoff/retry da entrada existente) em vez de criar
+ * uma nova. Caso contrário, enfileira normalmente.
+ */
+export async function upsertQueueEntry(
+  type: string,
+  clientUuid: string,
+  payload: { clientUuid?: string } & Record<string, unknown>,
+): Promise<number> {
+  const db = await getDB()
+  const pending = await db.getAllFromIndex('syncQueue', 'by-status', 'pending')
+  const existing = pending.find(
+    (entry) =>
+      entry.type === type &&
+      (entry.payload as { clientUuid?: string } | null)?.clientUuid === clientUuid,
+  )
+  if (existing && existing.id != null) {
+    await db.put('syncQueue', { ...existing, payload })
+    return existing.id
+  }
+  return enqueue(type, payload)
+}
+
 export async function dequeue(): Promise<QueueEntry | undefined> {
   const db = await getDB()
   const tx = db.transaction('syncQueue', 'readwrite')

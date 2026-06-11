@@ -27,12 +27,16 @@ export interface CachedProtocol {
 
 export async function putProtocol(protocol: CachedProtocol): Promise<void> {
   const db = await getDB()
-  await db.put('protocols', protocol)
+  // O PK do protocolo é um inteiro no backend, então `id` chega como número no
+  // JSON. O IndexedDB diferencia chaves numéricas de strings (2 !== "2"), e a
+  // execução offline busca via `String(protocolId)`. Normalizamos a chave para
+  // string na escrita para que ambos os lados batam sempre.
+  await db.put('protocols', { ...protocol, id: String(protocol.id) })
 }
 
 export async function getProtocol(id: string): Promise<CachedProtocol | undefined> {
   const db = await getDB()
-  return db.get('protocols', id)
+  return db.get('protocols', String(id))
 }
 
 export async function getProtocolsBySpecialty(specialty: string): Promise<CachedProtocol[]> {
@@ -47,12 +51,12 @@ export async function getAllProtocols(): Promise<CachedProtocol[]> {
 
 export async function deleteProtocol(id: string): Promise<void> {
   const db = await getDB()
-  await db.delete('protocols', id)
+  await db.delete('protocols', String(id))
 }
 
 export async function isCached(id: string): Promise<boolean> {
   const db = await getDB()
-  const count = await db.count('protocols', id)
+  const count = await db.count('protocols', String(id))
   return count > 0
 }
 

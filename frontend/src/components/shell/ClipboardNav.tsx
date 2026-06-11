@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
+import { useActiveProtocolNav } from "@/features/guidedProtocol/hooks/useActiveProtocolNav";
 import { NAV_ITEMS } from "./nav-items";
 
 /**
@@ -12,6 +13,7 @@ const TAB_STEP = 75;
 
 export function ClipboardNav() {
   const { pathname } = useLocation();
+  const protocolNav = useActiveProtocolNav();
   const activeIndex = NAV_ITEMS.findIndex((item) => item.match(pathname));
   const hasActive = activeIndex >= 0;
   const domeOffset = Math.max(activeIndex, 0) - 1; // -1 | 0 | 1
@@ -51,10 +53,19 @@ export function ClipboardNav() {
         {NAV_ITEMS.map((item, i) => {
           const active = i === activeIndex;
           const Icon = item.icon;
+          const isProtocols = item.id === "protocols";
           return (
             <Link
               key={item.to}
-              to={item.to}
+              to={isProtocols ? protocolNav.to : item.to}
+              onClick={
+                isProtocols
+                  ? (e) => {
+                      e.preventDefault();
+                      protocolNav.go();
+                    }
+                  : undefined
+              }
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
               className={cn(

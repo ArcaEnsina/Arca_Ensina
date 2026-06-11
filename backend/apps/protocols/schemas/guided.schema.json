@@ -141,7 +141,7 @@
             }
           },
 
-          "duration_hours": { "type": "integer", "minimum": 0 },
+          "duration_minutes": { "type": "integer", "minimum": 0 },
           "reassess_fields": {
             "type": "array",
             "items": { "type": "string" }
@@ -171,7 +171,16 @@
             }
           },
           "max_reached_next": { "type": "string" },
-          "loop_next": { "type": "string" }
+          "loop_next": { "type": "string" },
+          "stop_next": { "type": "string" },
+          "choice": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "continue_label": { "type": "string" },
+              "stop_label": { "type": "string" }
+            }
+          }
         }
       }
     },

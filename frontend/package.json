@@ -10,7 +10,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "parity:guided:js": "tsx scripts/parity_guided_js.ts -o parity-output/guided.js.json",
+    "parity:guided:diff": "python3 ../scripts/parity_diff.py"
   },
   "engines": {
     "node": ">=20.19.0"
@@ -61,6 +63,7 @@
     "@testing-library/user-event": "^14.6.0",
     "@testing-library/jest-dom": "^6.6.0",
     "jsdom": "^26.0.0",
-    "workbox-window": "^7.4.1"
+    "workbox-window": "^7.4.1",
+    "tsx": "^4.19.0"
   }
 }

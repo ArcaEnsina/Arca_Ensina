@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     "apps.research",
     "apps.sedation",
     "apps.emergency",
+    "apps.notifications",
 ]
 
 if DEBUG:

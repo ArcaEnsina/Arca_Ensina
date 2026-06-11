@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeading } from '../StepHeading';
+import { formatRemaining } from '../ReminderCountdown';
 import type { Reminder, WaitReassessStepData } from '../../types';
 
 interface WaitReassessStepProps {
@@ -13,13 +14,9 @@ interface WaitReassessStepProps {
   submitting: boolean;
 }
 
-function formatRemaining(ms: number): string {
-  if (ms <= 0) return '00:00:00';
-  const totalSeconds = Math.floor(ms / 1000);
-  const h = Math.floor(totalSeconds / 3600);
-  const m = Math.floor((totalSeconds % 3600) / 60);
-  const s = totalSeconds % 60;
-  return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
+function formatDuration(minutes: number): string {
+  if (minutes >= 60 && minutes % 60 === 0) return `${minutes / 60}h`;
+  return `${minutes}min`;
 }
 
 export function WaitReassessStep({
@@ -75,13 +72,13 @@ export function WaitReassessStep({
                 <span className="text-body-sm text-muted-foreground">
                   {overdue
                     ? 'Reavaliação devida'
-                    : `Reavaliar em ${step.durationHours ?? 0}h`}
+                    : `Reavaliar em ${formatDuration(step.durationMinutes ?? 0)}`}
                 </span>
               </>
             ) : (
               <span className="text-body-md text-muted-foreground">
-                {step.durationHours
-                  ? `Reavaliar em ${step.durationHours}h`
+                {step.durationMinutes
+                  ? `Reavaliar em ${formatDuration(step.durationMinutes)}`
                   : 'Reavaliação contínua'}
               </span>
             )}
