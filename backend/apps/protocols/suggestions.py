@@ -60,7 +60,7 @@ class ProtocolSuggester:
                 score += self.GENDER_MATCH_WEIGHT
                 reasons.append("Gênero compatível.")
 
-            if score > 0:
+            if matched_symptoms:
                 suggestions.append(
                     ProtocolSuggestion(
                         protocol=protocol,
