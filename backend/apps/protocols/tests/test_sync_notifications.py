@@ -129,6 +129,8 @@ class SyncReavaliacaoNotificationTest(TestCase):
         results = response.data.get("results", response.data)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["title"], TITLE)
+        # Routing target: the panel resolves the guided-protocol route from this.
+        self.assertEqual(results[0]["protocol_id"], self.protocol.pk)
 
     def test_concluding_execution_deletes_pending_notification(self):
         self._sync(self._payload(timezone.now()))

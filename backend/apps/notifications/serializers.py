@@ -7,6 +7,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     message = serializers.CharField(source="description", read_only=True)
     target_type = serializers.SerializerMethodField()
     target_id = serializers.SerializerMethodField()
+    protocol_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
@@ -18,6 +19,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "message",
             "target_type",
             "target_id",
+            "protocol_id",
             "level",
             "scheduled_for",
         ]
@@ -28,6 +30,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             "message",
             "target_type",
             "target_id",
+            "protocol_id",
             "level",
             "scheduled_for",
         ]
@@ -40,4 +43,10 @@ class NotificationSerializer(serializers.ModelSerializer):
     def get_target_id(self, obj):
         if obj.target_object_id:
             return obj.target_object_id
+        return None
+
+    def get_protocol_id(self, obj):
+        """Protocol pk for routing"""
+        if obj.protocol_version_id:
+            return obj.protocol_version.protocol_id
         return None

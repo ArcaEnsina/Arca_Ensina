@@ -430,6 +430,7 @@ class ProtocolExecutionEngine:
             target_object_id=target_id,
             title=title,
             defaults={
+                "protocol_version": execution.version,
                 "description": description,
                 "level": "warning",
                 "scheduled_for": parse_datetime(reminder["due_at"]),
