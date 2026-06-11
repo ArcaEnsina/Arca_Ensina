@@ -1,7 +1,7 @@
 ![Logo arca](docs/imgs/arca-branding.png)
-<center>
-
 ---
+
+<center>
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)
 ![Python](https://img.shields.io/badge/Python-14354C?style=for-the-badge&logo=python&logoColor=white)
@@ -21,8 +21,8 @@ Aplicação web multiplataforma para centralizar protocolos médicos e oferecer 
 Público-alvo: pediatras intensivistas recém-formados.
 
 🔗[arcaapp.lat](https://arcaapp.lat/)
-</center>
 
+</center>
 
 ## Stack
 
