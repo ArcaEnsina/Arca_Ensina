@@ -6,7 +6,7 @@ import {
 } from '@/lib/offline/executionState';
 import { getProtocol } from '@/lib/offline/protocolCache';
 import { buildReminders } from '../engine/reminders';
-import type { Reminder } from '../types';
+import type { HistoryEntry, Reminder, StepType } from '../types';
 
 export interface ActiveExecutionSummary {
   clientUuid: string;
@@ -66,6 +66,32 @@ export function useActiveExecution(patientId: string | null) {
     refetchOnMount: 'always',
     refetchInterval: 30_000,
   });
+}
+
+/**
+ * Converte um resumo de execução ativa nos argumentos esperados por
+ * `useGuidedProtocolStore.primeResume`, para retomar a execução no passo atual.
+ */
+export function buildResumeArgs(data: ActiveExecutionSummary): {
+  clientUuid: string;
+  protocolId: number;
+  currentStepKey: string | null;
+  history: HistoryEntry[];
+} {
+  return {
+    clientUuid: data.clientUuid,
+    protocolId: Number(data.protocolId),
+    currentStepKey: data.currentStepKey || null,
+    history: data.history.map(
+      (h): HistoryEntry => ({
+        stepKey: h.stepKey,
+        stepType: h.stepType as StepType,
+        title: h.title,
+        values: h.values,
+        answeredAt: h.answeredAt,
+      }),
+    ),
+  };
 }
 
 export function getSoonestReminder(reminders: Reminder[]): Reminder | null {

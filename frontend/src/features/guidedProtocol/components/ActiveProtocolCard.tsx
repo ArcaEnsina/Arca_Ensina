@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 import { useGuidedProtocolStore } from '../store';
 import { ReminderCountdown } from './ReminderCountdown';
 import {
+  buildResumeArgs,
   getSoonestReminder,
   type ActiveExecutionSummary,
 } from '../hooks/useActiveExecution';
-import type { HistoryEntry, StepType } from '../types';
 
 interface ActiveProtocolCardProps {
   data: ActiveExecutionSummary;
@@ -27,20 +27,7 @@ export function ActiveProtocolCard({ data }: ActiveProtocolCardProps) {
   const overdue = reminder?.status === 'overdue';
 
   const handleResume = () => {
-    primeResume({
-      clientUuid: data.clientUuid,
-      protocolId: Number(data.protocolId),
-      currentStepKey: data.currentStepKey || null,
-      history: data.history.map(
-        (h): HistoryEntry => ({
-          stepKey: h.stepKey,
-          stepType: h.stepType as StepType,
-          title: h.title,
-          values: h.values,
-          answeredAt: h.answeredAt,
-        }),
-      ),
-    });
+    primeResume(buildResumeArgs(data));
     navigate(`/guided-protocol/${data.protocolId}`);
   };
 

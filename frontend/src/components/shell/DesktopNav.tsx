@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import arcaLogo from "@/assets/arca-logo.png";
 import { NAV_ITEMS } from "./nav-items";
+import { useActiveProtocolNav } from "@/features/guidedProtocol/hooks/useActiveProtocolNav";
 import { NotificationBell } from "@/features/notifications";
 
 /**
@@ -17,6 +18,7 @@ import { NotificationBell } from "@/features/notifications";
  */
 export function DesktopNav() {
   const { pathname } = useLocation();
+  const protocolNav = useActiveProtocolNav();
   const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
 
   useEffect(() => {
@@ -49,10 +51,19 @@ export function DesktopNav() {
         <ul className="flex items-center gap-1">
           {NAV_ITEMS.map((item) => {
             const active = item.match(pathname);
+            const isProtocols = item.id === "protocols";
             return (
               <li key={item.to}>
                 <Link
-                  to={item.to}
+                  to={isProtocols ? protocolNav.to : item.to}
+                  onClick={
+                    isProtocols
+                      ? (e) => {
+                          e.preventDefault();
+                          protocolNav.go();
+                        }
+                      : undefined
+                  }
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     // diferenciação só por opacidade — sem fundo, sem contorno
