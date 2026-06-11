@@ -73,36 +73,47 @@ async function processPendingQueue(): Promise<void> {
   await scheduleNextRun()
 }
 
-async function handleGuidedExecutionSync(payload: unknown): Promise<void> {
-  const data = payload as {
-    protocolId: number
-    clientUuid?: string
-    status?: string
-    currentStepKey?: string
-    history?: Array<Record<string, unknown>>
-    patientName?: string
-    patientId?: number | null
-  }
+interface GuidedSyncState {
+  stepKey?: string
+  values?: Record<string, unknown>
+  loopCount?: number
+  gateWarnings?: unknown[]
+  answeredAt?: string
+}
 
-  const snakeHistory = (data.history ?? []).map((entry) => ({
-    step_key: entry.stepKey,
-    step_type: entry.stepType,
-    title: entry.title,
-    values: entry.values,
-    answered_at: entry.answeredAt,
+interface GuidedSyncPayload {
+  clientUuid?: string
+  protocolVersionId?: string | number
+  status?: string
+  currentStepKey?: string | null
+  states?: GuidedSyncState[]
+  patientName?: string
+  patientId?: number | null
+}
+
+async function handleGuidedExecutionSync(payload: unknown): Promise<void> {
+  const data = payload as GuidedSyncPayload
+
+  const states = (data.states ?? []).map((s) => ({
+    step_key: s.stepKey,
+    values: s.values ?? {},
+    loop_count: s.loopCount ?? 0,
+    gate_warnings: s.gateWarnings ?? [],
+    answered_at: s.answeredAt,
   }))
 
   await api.post('protocol-executions/sync/', {
-    protocol_id: data.protocolId,
     client_uuid: data.clientUuid,
-    status: data.status,
-    current_step_key: data.currentStepKey,
-    history: snakeHistory,
+    protocol_version_id:
+      data.protocolVersionId != null ? Number(data.protocolVersionId) : undefined,
     patient_name: data.patientName,
     patient_id: data.patientId,
+    status: data.status,
+    current_step_key: data.currentStepKey,
+    states,
   })
 
-  if (data.clientUuid) {
+  if (data.clientUuid && data.status === 'concluido') {
     try {
       await deleteExecutionState(data.clientUuid)
     } catch (err) {
@@ -123,6 +134,16 @@ async function scheduleNextRun(): Promise<void> {
     retryTimer = null
     void processPendingQueue()
   }, delay)
+}
+
+/**
+ * Descarrega a fila imediatamente, se online. Usado quando uma transição local
+ * enfileira um upsert enquanto já há conexão (reconexão durante o protocolo),
+ * sem esperar por um novo evento `online`.
+ */
+export function flushSyncQueue(): void {
+  if (!navigator.onLine) return
+  void processPendingQueue()
 }
 
 export function startSyncListener(): void {
