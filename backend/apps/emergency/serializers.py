@@ -1,15 +1,12 @@
-import uuid
 from datetime import date
 
 from rest_framework import serializers
 
 from apps.pacientes.models import Paciente, Sintoma
 
-count = Paciente.objects.filter(nome__startswith="Emergência").count() + 1
-
 
 class EmergencySerializer(serializers.Serializer):
-    
+
     peso = serializers.DecimalField(max_digits=5, decimal_places=2)
     idade_anos = serializers.IntegerField(min_value=0, max_value=120)
     sintomas = serializers.ListField(
@@ -26,6 +23,8 @@ class EmergencySerializer(serializers.Serializer):
             nascimento = hoje.replace(year=hoje.year - idade_anos)
         except ValueError:
             nascimento = hoje.replace(year=hoje.year - idade_anos, day=28)
+
+        count = Paciente.objects.filter(nome__startswith="Emergência").count() + 1
 
         patient = Paciente.objects.create(
             nome=f"Emergência {count}",
