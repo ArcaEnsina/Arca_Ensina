@@ -2,7 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api/client';
 import { toSnakeCase, toCamelCase } from '@/lib/api/case';
 import type { PatientCreateInput } from './schemas';
-import type { Patient, ProtocolHistoryEvent, Symptom } from './types';
+import type {
+  Patient,
+  ProtocolHistoryEvent,
+  ProtocolSuggestion,
+  Symptom,
+} from './types';
 
 export const usePatients = () =>
   useQuery({
@@ -71,6 +76,21 @@ export const usePatientHistory = (patientId: string | number | null) =>
       );
       return res.data.events.map(
         (item) => toCamelCase(item) as unknown as ProtocolHistoryEvent,
+      );
+    },
+    enabled: !!patientId,
+    staleTime: 30_000,
+  });
+
+export const useSuggestedProtocols = (patientId: string | number | null) =>
+  useQuery({
+    queryKey: ['patients', 'suggested-protocols', patientId],
+    queryFn: async () => {
+      const res = await api.get<Record<string, unknown>[]>(
+        `pacientes/${patientId}/suggested-protocols/`,
+      );
+      return res.data.map(
+        (item) => toCamelCase(item) as unknown as ProtocolSuggestion,
       );
     },
     enabled: !!patientId,

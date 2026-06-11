@@ -28,3 +28,13 @@ export interface ProtocolHistoryEvent {
   protocolVersion?: string;
   details: Record<string, unknown>;
 }
+
+export interface ProtocolSuggestion {
+  id: string;
+  title: string;
+  cid: string;
+  specialty: string;
+  score: number;
+  matchedSymptoms: string[];
+  reasons: string[];
+}

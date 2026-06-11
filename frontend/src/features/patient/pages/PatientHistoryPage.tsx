@@ -1,6 +1,7 @@
 import { useParams, Link } from 'react-router'
 import { ArrowLeft, BookOpen, Syringe } from 'lucide-react'
-import { usePatientHistory } from '@/features/patient/api'
+import { usePatientHistory, useSuggestedProtocols } from '@/features/patient/api'
+import ProtocolSuggestionCard from '@/features/patient/components/ProtocolSuggestionCard'
 import type { ProtocolHistoryEvent } from '@/features/patient/types'
 
 function formatTimestamp(iso: string): string {
@@ -86,6 +87,11 @@ function SkeletonCard() {
 export default function PatientHistoryPage() {
   const { id } = useParams<{ id: string }>()
   const { data: events = [], isLoading, isError } = usePatientHistory(id ?? null)
+  const {
+    data: suggestions = [],
+    isLoading: isLoadingSuggestions,
+    isError: isSuggestionsError,
+  } = useSuggestedProtocols(id ?? null)
 
   return (
     <div className="flex flex-col gap-6 px-5 py-4">
@@ -100,6 +106,12 @@ export default function PatientHistoryPage() {
         </Link>
         <h1 className="text-heading-lg">Histórico de Protocolos</h1>
       </div>
+
+      <ProtocolSuggestionCard
+        suggestions={suggestions}
+        isLoading={isLoadingSuggestions}
+        isError={isSuggestionsError}
+      />
 
       {/* Loading skeleton */}
       {isLoading && (
