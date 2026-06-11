@@ -39,7 +39,8 @@ function makeCached(id: string, versionNumber: number, updatedAt: string): Cache
 }
 
 function makeServer(id: string, versionNumber: number, updatedAt: string) {
-  const { downloaded_at: _omit, ...rest } = makeCached(id, versionNumber, updatedAt)
+  const rest = { ...makeCached(id, versionNumber, updatedAt) }
+  delete (rest as { downloaded_at?: number }).downloaded_at
   return rest
 }
 
