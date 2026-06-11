@@ -1,4 +1,7 @@
 ![Logo arca](docs/imgs/arca-branding.png)
+<center>
+
+---
 
 ![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=green)
 ![Python](https://img.shields.io/badge/Python-14354C?style=for-the-badge&logo=python&logoColor=white)
@@ -12,15 +15,14 @@
 
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
 
----
-
-## Descrição
 
 Aplicação web multiplataforma para centralizar protocolos médicos e oferecer ferramentas de apoio à prática clínica. Reúne conteúdos da equipe **ARCA Ensina** com funcionalidades que auxiliam na tomada de decisão e organização do fluxo de trabalho médico.
 
 Público-alvo: pediatras intensivistas recém-formados.
 
----
+🔗[arcaapp.lat](https://arcaapp.lat/)
+</center>
+
 
 ## Stack
 
