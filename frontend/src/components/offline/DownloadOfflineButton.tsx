@@ -16,17 +16,22 @@ export function DownloadOfflineButton({
   initialCached = false,
   className,
 }: DownloadOfflineButtonProps) {
-  const [state, setState] = useState<DownloadState>(initialCached ? 'downloaded' : 'idle')
+  // Estado transitório da ação do usuário (clique). Quando ausente, o estado
+  // exibido é derivado de initialCached — que chega de forma assíncrona
+  // (IndexedDB) e pode mudar depois do mount (ex.: auto-update da versão
+  // baixada). Derivar no render evita sincronizar via setState em efeito.
+  const [action, setAction] = useState<DownloadState | null>(null)
+  const state: DownloadState = action ?? (initialCached ? 'downloaded' : 'idle')
 
   async function handleClick(e: React.MouseEvent) {
     e.stopPropagation()
     if (state === 'downloading' || state === 'downloaded') return
-    setState('downloading')
+    setAction('downloading')
     try {
       await onDownload()
-      setState('downloaded')
+      setAction('downloaded')
     } catch {
-      setState('error')
+      setAction('error')
     }
   }
 

@@ -1,5 +1,6 @@
 import { isAxiosError } from 'axios'
 import { listPending, markDone, markError, markRetry } from './executionQueue'
+import { deleteExecutionState } from './executionState'
 import api from '@/lib/api/client'
 
 const BASE_RETRY_DELAY_MS = 2_000
@@ -45,6 +46,8 @@ async function processPendingQueue(): Promise<void> {
       try {
         if (entry.type === 'calculator.calculate') {
           await api.post('calculator/calculate/', entry.payload)
+        } else if (entry.type === 'guided:execution-upsert') {
+          await handleGuidedExecutionSync(entry.payload)
         } else {
           console.log(`[sync] tipo desconhecido ${entry.type}, ignorando`)
         }
@@ -70,6 +73,55 @@ async function processPendingQueue(): Promise<void> {
   await scheduleNextRun()
 }
 
+interface GuidedSyncState {
+  stepKey?: string
+  values?: Record<string, unknown>
+  loopCount?: number
+  gateWarnings?: unknown[]
+  answeredAt?: string
+}
+
+interface GuidedSyncPayload {
+  clientUuid?: string
+  protocolVersionId?: string | number
+  status?: string
+  currentStepKey?: string | null
+  states?: GuidedSyncState[]
+  patientName?: string
+  patientId?: number | null
+}
+
+async function handleGuidedExecutionSync(payload: unknown): Promise<void> {
+  const data = payload as GuidedSyncPayload
+
+  const states = (data.states ?? []).map((s) => ({
+    step_key: s.stepKey,
+    values: s.values ?? {},
+    loop_count: s.loopCount ?? 0,
+    gate_warnings: s.gateWarnings ?? [],
+    answered_at: s.answeredAt,
+  }))
+
+  await api.post('protocol-executions/sync/', {
+    client_uuid: data.clientUuid,
+    protocol_version_id:
+      data.protocolVersionId != null ? Number(data.protocolVersionId) : undefined,
+    patient_name: data.patientName,
+    patient_id: data.patientId,
+    status: data.status,
+    current_step_key: data.currentStepKey,
+    states,
+  })
+
+  if (data.clientUuid && data.status === 'concluido') {
+    try {
+      await deleteExecutionState(data.clientUuid)
+    } catch (err) {
+      console.warn('[sync] Falha ao limpar estado local apos sync:', err)
+    }
+  }
+}
+
 /** Re-agenda o processamento para a entrada pendente mais próxima de vencer. */
 async function scheduleNextRun(): Promise<void> {
   if (retryTimer || !onlineHandler || !navigator.onLine) return
@@ -82,6 +134,16 @@ async function scheduleNextRun(): Promise<void> {
     retryTimer = null
     void processPendingQueue()
   }, delay)
+}
+
+/**
+ * Descarrega a fila imediatamente, se online. Usado quando uma transição local
+ * enfileira um upsert enquanto já há conexão (reconexão durante o protocolo),
+ * sem esperar por um novo evento `online`.
+ */
+export function flushSyncQueue(): void {
+  if (!navigator.onLine) return
+  void processPendingQueue()
 }
 
 export function startSyncListener(): void {

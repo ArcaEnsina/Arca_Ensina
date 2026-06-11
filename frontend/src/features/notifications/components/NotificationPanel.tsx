@@ -20,7 +20,13 @@ export default function NotificationPanel({
 
   const handleNotificationClick = (n: Notification) => {
     onMarkAsRead(n.id)
-    if (n.target_type === 'protocol' && n.target_id) {
+    // The guided-protocol route is keyed on the Protocol id. A reevaluation
+    // notification targets a ProtocolExecution, so route via protocol_id
+    // (resume picks up the active execution by client_uuid, as the reminder
+    // UI does); a protocol-targeted notification carries the id in target_id.
+    if (n.target_type === 'protocolexecution' && n.protocol_id != null) {
+      navigate(`/guided-protocol/${n.protocol_id}`)
+    } else if (n.target_type === 'protocol' && n.target_id) {
       navigate(`/guided-protocol/${n.target_id}`)
     }
     onClose?.()

@@ -84,6 +84,92 @@ describe('syncOrchestrator', () => {
     expect(await listPending()).toHaveLength(0)
   })
 
+  it('posts guided execution sync in the serializer contract shape', async () => {
+    mockPost.mockResolvedValue({ data: {} })
+    const id = await enqueue('guided:execution-upsert', {
+      clientUuid: 'uuid-123',
+      protocolVersionId: '42',
+      status: 'em_andamento',
+      currentStepKey: 'step_2',
+      patientName: 'Maria',
+      patientId: 7,
+      states: [
+        {
+          stepKey: 'step_1',
+          values: { answer: true },
+          loopCount: 0,
+          answeredAt: '2026-06-10T12:00:00.000Z',
+        },
+      ],
+    })
+
+    startSyncListener()
+
+    await vi.waitFor(async () => {
+      expect((await getEntry(id))!.status).toBe('done')
+    })
+    expect(mockPost).toHaveBeenCalledWith('protocol-executions/sync/', {
+      client_uuid: 'uuid-123',
+      protocol_version_id: 42, // coerced to number
+      patient_name: 'Maria',
+      patient_id: 7,
+      status: 'em_andamento',
+      current_step_key: 'step_2',
+      states: [
+        {
+          step_key: 'step_1',
+          values: { answer: true },
+          loop_count: 0,
+          gate_warnings: [],
+          answered_at: '2026-06-10T12:00:00.000Z',
+        },
+      ],
+    })
+  })
+
+  it('keeps the local state for an in-progress guided sync but clears it on concluido', async () => {
+    const db = await getDB()
+    const baseState = {
+      currentStepKey: 'step_2',
+      history: [],
+      values: {},
+      protocolVersionId: '42',
+      protocolId: '1',
+      patientName: 'Maria',
+      status: 'em_andamento' as const,
+      updatedAt: '2026-06-10T12:00:00.000Z',
+    }
+    await db.put('guidedExecutionStates', { ...baseState, clientUuid: 'uuid-live' })
+    await db.put('guidedExecutionStates', {
+      ...baseState,
+      clientUuid: 'uuid-done',
+      status: 'concluido',
+    })
+
+    mockPost.mockResolvedValue({ data: {} })
+    await enqueue('guided:execution-upsert', {
+      clientUuid: 'uuid-live',
+      protocolVersionId: '42',
+      status: 'em_andamento',
+      states: [],
+    })
+    await enqueue('guided:execution-upsert', {
+      clientUuid: 'uuid-done',
+      protocolVersionId: '42',
+      status: 'concluido',
+      states: [],
+    })
+
+    startSyncListener()
+
+    await vi.waitFor(async () => {
+      expect(mockPost).toHaveBeenCalledTimes(2)
+    })
+    // in-progress run survives for continued offline use; finished one is purged
+    expect(await db.get('guidedExecutionStates', 'uuid-live')).toBeDefined()
+    expect(await db.get('guidedExecutionStates', 'uuid-done')).toBeUndefined()
+  })
+
   it('does not resend an entry before its nextAttemptAt is due', async () => {
     mockPost.mockResolvedValue({ data: {} })
     const db = await getDB()

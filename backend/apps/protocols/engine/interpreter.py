@@ -48,13 +48,20 @@ class GuidedProtocolInterpreter:
             max_iterations = step.get("max_iterations", 1)
 
             congestion_check = step.get("congestion_check", {})
+            # 1. Congestion is a safety gate: stops the loop regardless of choice.
             if values.get("congestion") is True:
                 return congestion_check.get("true_next")
 
+            # 2. Max iterations reached -> forced exit.
             if loop_count >= max_iterations:
                 return step.get("max_reached_next")
 
-            return congestion_check.get("false_next") or step.get("loop_next")
+            # 3. Explicit decision to start another iteration -> loop back.
+            if values.get("decision") == "iniciar_outro":
+                return step.get("loop_next") or congestion_check.get("false_next")
+
+            # 4. Otherwise the user chose to stop/wait (e.g. esperar HCT).
+            return step.get("stop_next") or congestion_check.get("false_next")
 
         if step_type == "multiple_choice":
             choice = values.get("choice")

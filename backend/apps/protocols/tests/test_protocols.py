@@ -8,15 +8,15 @@ from rest_framework.test import APIClient
 
 from apps.pacientes.models import Paciente, Sintoma
 
-from .models import (
+from ..models import (
     Protocol,
     ProtocolExecution,
     ProtocolExecutionState,
     ProtocolStep,
     ProtocolVersion,
 )
-from .services import ProtocolExecutionEngine
-from .suggestions import ProtocolSuggester
+from ..services import ProtocolExecutionEngine
+from ..suggestions import ProtocolSuggester
 
 User = get_user_model()
 
@@ -145,7 +145,7 @@ class ProtocolSerializerTest(TestCase):
         self.version = self.protocol.versions.first()
 
     def test_protocol_serializer_current_version(self):
-        from .serializers import ProtocolSerializer
+        from ..serializers import ProtocolSerializer
 
         serializer = ProtocolSerializer(self.protocol)
         data = serializer.data
@@ -153,7 +153,7 @@ class ProtocolSerializerTest(TestCase):
         self.assertEqual(data["current_version"]["version_number"], 1)
 
     def test_protocol_list_serializer_no_heavy_fields(self):
-        from .serializers import ProtocolListSerializer
+        from ..serializers import ProtocolListSerializer
 
         serializer = ProtocolListSerializer(self.protocol)
         data = serializer.data
@@ -161,7 +161,7 @@ class ProtocolSerializerTest(TestCase):
         self.assertNotIn("panel_data", data)
 
     def test_version_create_serializer_auto_increment(self):
-        from .serializers import ProtocolVersionCreateSerializer
+        from ..serializers import ProtocolVersionCreateSerializer
 
         data = {
             "protocol": self.protocol.pk,
@@ -174,7 +174,7 @@ class ProtocolSerializerTest(TestCase):
         self.assertEqual(version.version_number, 2)
 
     def test_version_create_serializer_copies_previous_data(self):
-        from .serializers import ProtocolVersionCreateSerializer
+        from ..serializers import ProtocolVersionCreateSerializer
 
         ProtocolVersion.objects.create(
             protocol=self.protocol,
@@ -497,7 +497,7 @@ class FixtureLoadTest(TestCase):
         import json
         from pathlib import Path
 
-        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -527,7 +527,7 @@ class FixtureLoadTest(TestCase):
         import json
         from pathlib import Path
 
-        fixture_path = Path(__file__).parent / "fixtures" / "sedacao_painel.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "sedacao_painel.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -550,7 +550,7 @@ class ProtocolVersionSchemaValidationTest(TestCase):
         import json
         from pathlib import Path
 
-        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -1326,7 +1326,7 @@ class EngineTest(TestCase):
 
 class GuidedProtocolInterpreterTest(TestCase):
     def test_get_first_step_id_from_steps_data(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1343,9 +1343,9 @@ class GuidedProtocolInterpreterTest(TestCase):
         import json
         from pathlib import Path
 
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
-        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -1358,7 +1358,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(step["true_next"], "step_c_manutencao")
 
     def test_resolve_next_step_linear_from_json(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1383,9 +1383,9 @@ class GuidedProtocolInterpreterTest(TestCase):
         import json
         from pathlib import Path
 
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
-        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -1405,9 +1405,9 @@ class GuidedProtocolInterpreterTest(TestCase):
         import json
         from pathlib import Path
 
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
-        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -1429,9 +1429,9 @@ class GuidedProtocolInterpreterTest(TestCase):
         import json
         from pathlib import Path
 
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
-        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
@@ -1467,7 +1467,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         )
 
     def test_resolve_multiple_choice_from_json(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1495,7 +1495,7 @@ class GuidedProtocolInterpreterTest(TestCase):
     def test_evaluate_formula_returns_decimal(self):
         from decimal import Decimal
 
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         interpreter = GuidedProtocolInterpreter({"steps": []})
 
@@ -1504,7 +1504,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(result, Decimal("125.0"))
 
     def test_evaluate_formula_rejects_unknown_variable(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         interpreter = GuidedProtocolInterpreter({"steps": []})
 
@@ -1512,7 +1512,7 @@ class GuidedProtocolInterpreterTest(TestCase):
             interpreter.evaluate_formula("peso_kg * 10", {})
 
     def test_apply_derived_calculation_from_json(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1537,7 +1537,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(values["volume_ml"], "120")
 
     def test_apply_derived_calculation_uses_previous_context(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1562,7 +1562,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(values["volume_ml"], "240")
 
     def test_build_context_from_json_history(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         interpreter = GuidedProtocolInterpreter({"steps": []})
         history = [
@@ -1585,7 +1585,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(context["hematocrito"], "40")
 
     def test_resolve_numeric_input_next_step(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1608,7 +1608,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         )
 
     def test_resolve_medication_prescription_next_step(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1631,7 +1631,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         )
 
     def test_resolve_wait_reassess_next_step(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1639,7 +1639,7 @@ class GuidedProtocolInterpreterTest(TestCase):
                     "id": "reavaliacao",
                     "type": "wait_reassess",
                     "title": "Reavaliacao",
-                    "duration_hours": 6,
+                    "duration_minutes": 6,
                     "reassess_fields": ["diurese"],
                     "next_step": "fim",
                 },
@@ -1655,7 +1655,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         )
 
     def test_evaluate_gate_passes(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         interpreter = GuidedProtocolInterpreter({"steps": []})
         gate = {
@@ -1669,7 +1669,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertIsNone(result)
 
     def test_evaluate_gate_fails(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         interpreter = GuidedProtocolInterpreter({"steps": []})
         gate = {
@@ -1685,7 +1685,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(result["level"], "warning")
 
     def test_evaluate_step_gates_with_multiple_gates(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1722,7 +1722,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(warnings[0]["level"], "warning")
 
     def test_evaluate_entry_gates(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         steps_data = {
             "steps": [
@@ -1747,7 +1747,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertEqual(len(warnings), 1)
 
     def test_evaluate_boolean_expression_with_and_or(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         interpreter = GuidedProtocolInterpreter({"steps": []})
         gate_and = {
@@ -1771,7 +1771,7 @@ class GuidedProtocolInterpreterTest(TestCase):
         self.assertIsNone(interpreter.evaluate_gate(gate_or, {"peso_kg": 150}))
 
     def test_evaluate_boolean_expression_with_in(self):
-        from .engine.interpreter import GuidedProtocolInterpreter
+        from ..engine.interpreter import GuidedProtocolInterpreter
 
         interpreter = GuidedProtocolInterpreter({"steps": []})
         gate = {"expression": "'febre' in sintomas", "level": "warning", "message": ""}
@@ -1865,7 +1865,7 @@ class JsonProtocolExecutionServiceTest(TestCase):
                     "id": "wait_reassess",
                     "type": "wait_reassess",
                     "title": "Reavaliacao",
-                    "duration_hours": 6,
+                    "duration_minutes": 6,
                     "reassess_fields": ["diurese"],
                     "next_step": "titration",
                 },
@@ -2204,7 +2204,7 @@ class ProtocolExecuteApiTest(TestCase):
 
         self.client = APIClient()
 
-        fixture_path = Path(__file__).parent / "fixtures" / "dengue_guiado.json"
+        fixture_path = Path(__file__).parent.parent / "fixtures" / "dengue_guiado.json"
         with open(fixture_path) as f:
             data = json.load(f)
 
