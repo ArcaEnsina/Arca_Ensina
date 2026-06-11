@@ -453,7 +453,10 @@ class ProtocolExecutionViewSet(AuditableMixin, ModelViewSet):
             execution.current_step = None
             if patient is not None:
                 execution.patient = patient
-            if data["status"] == ProtocolExecution.Status.CONCLUIDO and not execution.finished_at:
+            if (
+                data["status"] == ProtocolExecution.Status.CONCLUIDO
+                and not execution.finished_at
+            ):
                 execution.finished_at = timezone.now()
             execution.save()
         else:
@@ -475,7 +478,10 @@ class ProtocolExecutionViewSet(AuditableMixin, ModelViewSet):
         execution.states.all().delete()
         states_data = data.get("states", [])
         state_objects = []
+        provided_answered_at = []
         for s in states_data:
+            answered_at = s.get("answered_at")
+            provided_answered_at.append(answered_at)
             state_objects.append(
                 ProtocolExecutionState(
                     execution=execution,
@@ -483,11 +489,25 @@ class ProtocolExecutionViewSet(AuditableMixin, ModelViewSet):
                     values=s.get("values", {}),
                     loop_count=s.get("loop_count", 0),
                     gate_warnings=s.get("gate_warnings", []),
-                    answered_at=s.get("answered_at") or timezone.now(),
+                    answered_at=answered_at or timezone.now(),
                 )
             )
         if state_objects:
             ProtocolExecutionState.objects.bulk_create(state_objects)
+            # answered_at é auto_now_add, então bulk_create sobrescreve o valor
+            # do cliente com "agora". Restaura o timestamp offline informado no
+            # snapshot para que get_reminders calcule o due_at correto (e o
+            # lembrete vencido offline apareça no sino ao reconectar).
+            to_restore = [
+                obj
+                for obj, answered_at in zip(state_objects, provided_answered_at)
+                if answered_at
+            ]
+            if to_restore:
+                for obj, answered_at in zip(state_objects, provided_answered_at):
+                    if answered_at:
+                        obj.answered_at = answered_at
+                ProtocolExecutionState.objects.bulk_update(to_restore, ["answered_at"])
 
         # Teste de paridade re-executa o interpretador
         if version.steps_data and version.steps_data.get("steps"):
@@ -522,6 +542,10 @@ class ProtocolExecutionViewSet(AuditableMixin, ModelViewSet):
                     server_step_key,
                     current_step_key,
                 )
+
+        # Materializa a notificação durável de reavaliação (sino) a partir do
+        # estado sincronizado
+        ProtocolExecutionEngine().sync_reavaliacao_notifications(execution)
 
         # Audit log
         action_name = "sync.created" if is_created else "sync.updated"
