@@ -1,9 +1,12 @@
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.protocols.models import ProtocolExecution
+from apps.protocols.serializers import ProtocolSuggestionSerializer
+from apps.protocols.suggestions import ProtocolSuggester
 from apps.sedation.models import SedationConversion
 
 from .models import Paciente, Sintoma
@@ -20,6 +23,13 @@ class PacienteViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=["get"], url_path="suggested-protocols")
+    def suggested_protocols(self, request, pk=None, **kwargs):
+        patient = self.get_object()
+        suggestions = ProtocolSuggester().suggest(patient)
+        serializer = ProtocolSuggestionSerializer(suggestions, many=True)
+        return Response(serializer.data)
 
 
 class SintomaViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,9 +1,12 @@
+from datetime import date
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
+
+from apps.pacientes.models import Paciente, Sintoma
 
 from ..models import (
     Protocol,
@@ -13,6 +16,7 @@ from ..models import (
     ProtocolVersion,
 )
 from ..services import ProtocolExecutionEngine
+from ..suggestions import ProtocolSuggester
 
 User = get_user_model()
 
@@ -28,6 +32,61 @@ class ProtocolModelTest(TestCase):
     def test_protocol_str(self):
         protocol = Protocol.objects.create(title="Dengue")
         self.assertEqual(str(protocol), "Dengue")
+
+
+class ProtocolSuggesterTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="doctor-suggester@test.com",
+            password="testpass123",
+            profile="medico",
+        )
+        self.febre = Sintoma.objects.create(descricao="Febre")
+        self.mialgia = Sintoma.objects.create(descricao="Mialgia")
+
+        self.patient = Paciente.objects.create(
+            nome="Paciente Dengue",
+            data_nascimento=date(2015, 1, 1),
+            telefone="5581999999999",
+            genero="F",
+            cidade="Recife",
+            created_by=self.user,
+        )
+        self.patient.sintomas.set([self.febre, self.mialgia])
+
+    def test_suggests_dengue_when_patient_symptoms_match_protocol_tags(self):
+        Protocol.objects.create(
+            title="Dengue",
+            cid="A90",
+            specialty="Pediatria",
+            tags=["dengue", "febre", "mialgia", "dor retro-orbital"],
+            is_active=True,
+        )
+        Protocol.objects.create(
+            title="Resfriado",
+            specialty="Pediatria",
+            tags=["tosse", "coriza"],
+            is_active=True,
+        )
+
+        suggestions = ProtocolSuggester().suggest(self.patient)
+
+        self.assertEqual(len(suggestions), 1)
+        self.assertEqual(suggestions[0].protocol.title, "Dengue")
+        self.assertEqual(suggestions[0].score, 23)
+        self.assertEqual(suggestions[0].matched_symptoms, ["Febre", "Mialgia"])
+
+    def test_ignores_protocols_without_matching_symptoms(self):
+        Protocol.objects.create(
+            title="Resfriado",
+            specialty="Pediatria",
+            tags=["tosse", "coriza"],
+            is_active=True,
+        )
+
+        suggestions = ProtocolSuggester().suggest(self.patient)
+
+        self.assertEqual(suggestions, [])
 
 
 class ProtocolVersionModelTest(TestCase):

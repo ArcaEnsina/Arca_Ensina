@@ -179,7 +179,7 @@ export class GuidedProtocolInterpreter {
   evaluateFormula(formula: string, context: Record<string, unknown>): string {
     return evaluateFormula(formula, context);
   }
-  
+
   applyDerivedCalculation(
     stepId: string,
     values: AnswerValues,
@@ -204,7 +204,7 @@ export class GuidedProtocolInterpreter {
       [outputField]: result,
     };
   }
-  
+
   buildContext(
     history?: Array<{ values: AnswerValues }>,
     currentValues?: AnswerValues,

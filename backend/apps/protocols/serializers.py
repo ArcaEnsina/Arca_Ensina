@@ -249,6 +249,16 @@ class ProtocolExecutionStateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "answered_at"]
 
 
+class ProtocolSuggestionSerializer(serializers.Serializer):
+    id = serializers.IntegerField(source="protocol.id")
+    title = serializers.CharField(source="protocol.title")
+    cid = serializers.CharField(source="protocol.cid")
+    specialty = serializers.CharField(source="protocol.specialty")
+    score = serializers.IntegerField()
+    matched_symptoms = serializers.ListField(child=serializers.CharField())
+    reasons = serializers.ListField(child=serializers.CharField())
+
+
 class ProtocolSyncStateSerializer(serializers.Serializer):
     """Serializer para cada state dentro do payload de sync."""
 
