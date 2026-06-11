@@ -9,6 +9,7 @@ export interface ExecutionStateRecord {
     title: string
     values: Record<string, unknown>
     answeredAt: string
+    loopCount?: number
   }>
   values: Record<string, unknown>
   protocolVersionId: string

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { AxiosError } from 'axios';
+import { AxiosError, isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useGuidedProtocolStore } from '../store';
 import { apiExecutor } from '../engine/apiExecutor';
@@ -17,7 +17,9 @@ import {
   loadExecutionState,
   saveExecutionState,
 } from '@/lib/offline/executionState';
-import { enqueue } from '@/lib/offline/executionQueue';
+import { upsertQueueEntry } from '@/lib/offline/executionQueue';
+import { flushSyncQueue } from '@/lib/offline/syncOrchestrator';
+import { getProtocol } from '@/lib/offline/protocolCache';
 import {
   refreshReminderScheduler,
   requestNotificationPermission,
@@ -62,6 +64,9 @@ export function useProtocolExecution({
   const ensureClientUuid = useGuidedProtocolStore((s) => s.ensureClientUuid);
   const reset = useGuidedProtocolStore((s) => s.reset);
   const setProtocolId = useGuidedProtocolStore((s) => s.setProtocolId);
+  const setProtocolVersionId = useGuidedProtocolStore(
+    (s) => s.setProtocolVersionId,
+  );
   const queryClient = useQueryClient();
 
   const [step, setStepState] = useState<Step | null>(null);
@@ -97,35 +102,43 @@ export function useProtocolExecution({
   }, []);
 
   /**
-   * Persiste o estado atual da execução. 
+   * Persiste o estado atual da execução.
    * Chamado em toda transição (resposta, avançar, voltar).
    */
   const persistCurrentState = useCallback(() => {
     const snapshot = useGuidedProtocolStore.getState();
     const clientUuid = snapshot.clientUuid;
     if (!clientUuid) return;
-    void saveExecutionState({
-      clientUuid,
-      currentStepKey: snapshot.currentStepKey ?? '',
-      history: snapshot.history.map((h) => ({
-        stepKey: h.stepKey,
-        stepType: h.stepType,
-        title: h.title,
-        values: h.values,
-        answeredAt: h.answeredAt,
-      })),
-      values: {},
-      protocolVersionId: '',
-      protocolId: String(protocolId),
-      patientName,
-      patientId: patientId != null ? String(patientId) : undefined,
-      status: snapshot.status ?? 'em_andamento',
-      updatedAt: new Date().toISOString(),
-    }).catch((err: unknown) => {
+    void (async () => {
+      const existing = await loadExecutionState(clientUuid);
+      const existingByKey = new Map(
+        (existing?.history ?? []).map((h) => [h.stepKey, h]),
+      );
+      await saveExecutionState({
+        clientUuid,
+        currentStepKey: snapshot.currentStepKey ?? '',
+        history: snapshot.history.map((h) => ({
+          stepKey: h.stepKey,
+          stepType: h.stepType,
+          title: h.title,
+          values: h.values,
+          answeredAt: h.answeredAt,
+          loopCount: h.loopCount ?? existingByKey.get(h.stepKey)?.loopCount,
+        })),
+        values: existing?.values ?? {},
+        protocolVersionId:
+          snapshot.protocolVersionId ?? existing?.protocolVersionId ?? '',
+        protocolId: String(protocolId),
+        patientName,
+        patientId: patientId != null ? String(patientId) : undefined,
+        status: snapshot.status ?? 'em_andamento',
+        updatedAt: new Date().toISOString(),
+      });
+    })().catch((err: unknown) => {
       console.error('[execution] Falha ao salvar estado local:', err);
     });
   }, [protocolId, patientName, patientId]);
-  
+
   const invalidateExecutionQueries = useCallback(() => {
     void queryClient.invalidateQueries({
       queryKey: ['protocols', protocolId, 'reminders'],
@@ -133,30 +146,41 @@ export function useProtocolExecution({
     void queryClient.invalidateQueries({ queryKey: ['activeExecution'] });
   }, [queryClient, protocolId]);
 
-  /** Enqueue sync snapshot when using local executor online. */
-  const enqueueSync = useCallback(
-    (exec: Execution) => {
-      if (executorRef.current !== localExecutor) return;
-      if (!navigator.onLine) return;
-      void enqueue('guided:execution-upsert', {
-        protocolId,
-        clientUuid: exec.clientUuid,
-        status: exec.status,
-        currentStepKey: exec.currentStepKey,
-        history: useGuidedProtocolStore.getState().history,
+  const enqueueSync = useCallback(() => {
+    if (executorRef.current !== localExecutor) return;
+    const clientUuid = useGuidedProtocolStore.getState().clientUuid;
+    if (!clientUuid) return;
+    void (async () => {
+      // The persisted record (written by localExecutor) is the source of truth.
+      const record = await loadExecutionState(clientUuid);
+      if (!record) return;
+      const states = record.history.map((h) => ({
+        stepKey: h.stepKey,
+        values: h.values,
+        loopCount: h.loopCount ?? 0,
+        gateWarnings: [] as unknown[],
+        answeredAt: h.answeredAt,
+      }));
+      await upsertQueueEntry('guided:execution-upsert', clientUuid, {
+        clientUuid,
+        protocolVersionId: record.protocolVersionId,
+        status: record.status,
+        currentStepKey: record.currentStepKey,
+        states,
         patientName,
-        patientId,
-      }).catch((err: unknown) => {
-        console.error('[sync] Falha ao enfileirar execution-upsert:', err);
+        patientId: patientId ?? null,
       });
-    },
-    [protocolId, patientName, patientId],
-  );
+      flushSyncQueue();
+    })().catch((err: unknown) => {
+      console.error('[sync] Falha ao enfileirar execution-upsert:', err);
+    });
+  }, [patientName, patientId]);
 
   const applyExecution = useCallback(
     (exec: Execution) => {
       setExecutionId(exec.id);
       setStatus(exec.status);
+      if (exec.version != null) setProtocolVersionId(String(exec.version));
       setCurrentStepKey(exec.currentStepKey ?? null);
       setGateWarnings(exec.gateWarnings ?? []);
       if (exec.status === 'concluido' || !exec.currentStepData) {
@@ -175,6 +199,7 @@ export function useProtocolExecution({
     [
       setExecutionId,
       setStatus,
+      setProtocolVersionId,
       setCurrentStepKey,
       setStep,
       persistCurrentState,
@@ -230,6 +255,14 @@ export function useProtocolExecution({
       // Pick executor: prefer API when online, fall back to local
       executorRef.current = navigator.onLine ? apiExecutor : localExecutor;
 
+      // Seed protocolVersionId from the offline cache up front so a mid-run
+      // outage can sync (the server requires protocol_version_id). Online start
+      // refines this with exec.version via applyExecution.
+      const cached = await getProtocol(String(protocolId));
+      if (cached?.current_version?.id != null) {
+        setProtocolVersionId(String(cached.current_version.id));
+      }
+
       try {
         // Try API first (when online)
         if (navigator.onLine) {
@@ -237,6 +270,8 @@ export function useProtocolExecution({
             const res = await apiExecutor.getStep(protocolId);
             executorRef.current = apiExecutor;
             applyStepResponse(res);
+            // Mirror the resumed step locally so a later outage can fall back.
+            persistCurrentState();
             return;
           } catch (err) {
             if (!isNotFound(err)) {
@@ -357,9 +392,11 @@ export function useProtocolExecution({
     ensureClientUuid,
     reset,
     setProtocolId,
+    setProtocolVersionId,
     setStatus,
     setCurrentStepKey,
     appendHistory,
+    persistCurrentState,
   ]);
 
   // When the run reaches completion (any path), mark every in-progress record
@@ -373,14 +410,47 @@ export function useProtocolExecution({
     ).finally(() => invalidateExecutionQueries());
   }, [completed, patientId, protocolId, invalidateExecutionQueries]);
 
+  /**
+   * Run a mutating op against the active executor. If we're on apiExecutor and
+   * it fails because we've gone offline mid-run, seed localExecutor from the
+   * IndexedDB mirror (same clientUuid → resumes at the current step + history),
+   * switch over for the rest of the run, and retry locally. This is what lets a
+   * run that started online survive an outage without a hard reload.
+   */
+  const runWithFallback = useCallback(
+    async <T>(op: (ex: IProtocolExecutor) => Promise<T>): Promise<T> => {
+      const active = executorRef.current;
+      try {
+        return await op(active);
+      } catch (err) {
+        const offlineShaped =
+          !navigator.onLine || (isAxiosError(err) && !err.response);
+        if (active === apiExecutor && offlineShaped) {
+          const clientUuid = ensureClientUuid();
+          await localExecutor.start(
+            protocolId,
+            patientName,
+            clientUuid,
+            patientId,
+          );
+          executorRef.current = localExecutor;
+          return await op(localExecutor);
+        }
+        throw err;
+      }
+    },
+    [protocolId, patientName, patientId, ensureClientUuid],
+  );
+
   /** Answer the current answerable step — exactly one /answer/ call (fix3 #1). */
   const submitAnswer = useCallback(
     async (values: AnswerValues) => {
       if (!step) return;
       const answered = step;
       try {
-        const executor = executorRef.current;
-        const exec = await executor.answer(protocolId, values);
+        const exec = await runWithFallback((ex) =>
+          ex.answer(protocolId, values),
+        );
         appendHistory({
           stepKey: answered.id,
           stepType: answered.type,
@@ -389,8 +459,8 @@ export function useProtocolExecution({
           answeredAt: new Date().toISOString(),
         });
         applyExecution(exec);
-        // Sync queue when using local executor online
-        enqueueSync(exec);
+        // Sync queue when handled by the local executor (offline or post-fallback).
+        enqueueSync();
         if (exec.status === 'concluido') {
           toast.success('Protocolo concluído.');
         }
@@ -398,7 +468,7 @@ export function useProtocolExecution({
         toast.error('Erro ao registrar resposta. Tente novamente.');
       }
     },
-    [step, protocolId, appendHistory, applyExecution, enqueueSync],
+    [step, protocolId, appendHistory, applyExecution, enqueueSync, runWithFallback],
   );
 
   /** Advance past a display-only step — single /next/ call (fix3 #1). */
@@ -406,8 +476,7 @@ export function useProtocolExecution({
     if (!step) return;
     const leaving = step;
     try {
-      const executor = executorRef.current;
-      const res = await executor.advance(protocolId);
+      const res = await runWithFallback((ex) => ex.advance(protocolId));
       appendHistory({
         stepKey: leaving.id,
         stepType: leaving.type,
@@ -417,6 +486,7 @@ export function useProtocolExecution({
       });
       applyStepResponse(res);
       persistCurrentState();
+      enqueueSync();
       refreshReminderScheduler();
       invalidateExecutionQueries();
       if (res.status === 'concluido') {
@@ -431,6 +501,8 @@ export function useProtocolExecution({
     appendHistory,
     applyStepResponse,
     persistCurrentState,
+    enqueueSync,
+    runWithFallback,
     invalidateExecutionQueries,
   ]);
 
@@ -438,13 +510,13 @@ export function useProtocolExecution({
   const goBack = useCallback(async () => {
     if (!canGoBack) return;
     try {
-      const executor = executorRef.current;
-      const res = await executor.back(protocolId);
+      const res = await runWithFallback((ex) => ex.back(protocolId));
       // The step we return to is reopened for a fresh answer, so drop its
       // recorded decision from the timeline to keep it in sync with the engine.
       if (res.step) removeHistory(res.step.id);
       applyStepResponse(res);
       persistCurrentState();
+      enqueueSync();
       refreshReminderScheduler();
       invalidateExecutionQueries();
     } catch {
@@ -456,6 +528,8 @@ export function useProtocolExecution({
     removeHistory,
     applyStepResponse,
     persistCurrentState,
+    enqueueSync,
+    runWithFallback,
     invalidateExecutionQueries,
   ]);
 

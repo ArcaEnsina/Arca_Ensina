@@ -84,6 +84,7 @@ export interface ArcaDB extends DBSchema {
         title: string
         values: Record<string, unknown>
         answeredAt: string
+        loopCount?: number
       }>
       values: Record<string, unknown>
       protocolVersionId: string
