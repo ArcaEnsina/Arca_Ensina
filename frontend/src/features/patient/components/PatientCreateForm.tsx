@@ -24,6 +24,7 @@ import { patientCreateSchema, type PatientCreateInput } from '../schemas';
 import { useCreatePatient } from '../api';
 import PatientSymptomSelector from './PatientSymptomSelector';
 import PatientAllergyInput from './PatientAllergyInput';
+import DatePicker from '@/components/ui/DatePicker'
 
 type ApiFieldErrors = Record<string, string[]>;
 
@@ -88,6 +89,7 @@ export default function PatientCreateForm() {
   const alergias = useWatch({ name: 'alergias', control });
   const sintomas = useWatch({ name: 'sintomas', control });
   const genero = useWatch({ name: 'genero', control });
+  const dataNascimento = useWatch({ name: 'dataNascimento', control });
 
   const onSubmit = (data: PatientCreateInput) => {
     const sanitized = {
@@ -173,10 +175,10 @@ export default function PatientCreateForm() {
             <label htmlFor="dataNascimento" className={labelClass}>
               Data de Nasc. *
             </label>
-            <Input
+            <DatePicker
               id="dataNascimento"
-              type="date"
-              {...register('dataNascimento')}
+              value={dataNascimento}
+              onChange={(v) => setValue('dataNascimento', v, { shouldValidate: true })}
               aria-invalid={!!errors.dataNascimento}
             />
             {errors.dataNascimento && (
