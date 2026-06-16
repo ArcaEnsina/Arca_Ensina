@@ -65,7 +65,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.0",
-    "vitest": "^3.0.0",
+    "vitest": "^4.1.9",
     "workbox-window": "^7.4.1"
   }
 }
