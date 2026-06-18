@@ -50,10 +50,16 @@ function PreviewContent({
     ? 'Baixando...'
     : isCached
       ? 'Salvo no aparelho'
-      : 'Baixar para offline'
+      : 'Baixar no dispositivo'
 
   return (
-    <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+    <SheetContent
+      side="bottom"
+      className="mx-auto max-h-[80vh] w-full overflow-y-auto rounded-t-3xl border-x border-t bg-white shadow-2xl transition-all duration-300 tablet:bottom-6 tablet:max-w-lg tablet:rounded-3xl tablet:border"
+    >
+      {/* Drag handle/grabber indicator for the pull-up drawer look */}
+      <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-neutral-200" />
+
       <SheetHeader>
         <SheetTitle className="flex items-center gap-2">
           <span>{protocol.title}</span>
