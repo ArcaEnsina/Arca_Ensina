@@ -213,6 +213,7 @@ export default function Dashboard() {
             <Link
               to={`/patients/${activePatient.id}/edit`}
               className="inline-flex items-center gap-1 text-body-md font-medium text-primary transition-colors hover:text-primary/80 tablet:text-body-lg"
+              onClick={() => window.scrollTo(0, 0)}
             >
               Editar Dados
               <ArrowRight size={14} className="tablet:size-4" />
