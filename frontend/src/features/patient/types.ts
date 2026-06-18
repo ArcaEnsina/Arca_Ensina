@@ -34,6 +34,7 @@ export interface ProtocolSuggestion {
   title: string;
   cid: string;
   specialty: string;
+  type: 'guiado' | 'painel' | null;
   score: number;
   matchedSymptoms: string[];
   reasons: string[];

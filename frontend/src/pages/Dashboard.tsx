@@ -1,11 +1,12 @@
 import { useNavigate, Link } from 'react-router'
-import { LogOut, Plus, ArrowRight, History, BookOpen } from 'lucide-react'
+import { LogOut, Plus, ArrowRight, History } from 'lucide-react'
 import { useAuth } from '@/features/auth'
-import { usePatients } from '@/features/patient/api'
+import { usePatients, useSuggestedProtocols } from '@/features/patient/api'
 import { usePatientStore } from '@/features/patient/store'
 import PatientPill from '@/features/patient/components/PatientPill'
 import { useActiveExecution } from '@/features/guidedProtocol/hooks/useActiveExecution'
 import { ActiveProtocolCard } from '@/features/guidedProtocol/components/ActiveProtocolCard'
+import { SuggestedProtocolCard } from '@/features/guidedProtocol/components/SuggestedProtocolCard'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { NotificationBell } from '@/features/notifications'
@@ -74,6 +75,11 @@ export default function Dashboard() {
   const setActivePatient = usePatientStore((s) => s.setActivePatient)
   const activePatient = usePatientStore((s) => s.activePatient)
   const { data: activeExecution } = useActiveExecution(activePatient?.id ?? null)
+  const {
+    data: suggestions = [],
+    isLoading: suggLoading,
+    isError: suggError,
+  } = useSuggestedProtocols(activePatient?.id ?? null)
 
   const now = new Date()
   const weekday = WEEKDAYS[now.getDay()]
@@ -249,25 +255,12 @@ export default function Dashboard() {
         {activeExecution ? (
           <ActiveProtocolCard data={activeExecution} />
         ) : (
-          <div className="bg-neutral-900 rounded-2xl shadow-md p-5 tablet:p-6 text-white">
-            <span className="text-caption font-medium tracking-widest text-neutral-400 uppercase">
-              SUGESTÃO BASEADA EM SINTOMAS
-            </span>
-            <h2 className="text-heading-lg font-semibold text-white mt-2">
-              Sugestão automática em desenvolvimento
-            </h2>
-            <p className="text-body-md text-neutral-400 mt-2">
-              O algoritmo de sugestão de protocolo ainda não está pronto. Selecione um protocolo manualmente no catálogo.
-            </p>
-            <div className="mt-5 flex">
-              <Button variant="default" size="lg" className="w-full bg-white text-neutral-900 hover:bg-neutral-100 rounded-full" asChild>
-                <Link to="/protocols/manual" className="inline-flex items-center justify-center gap-2">
-                  <BookOpen size={18} />
-                  Selecionar protocolo manualmente
-                </Link>
-              </Button>
-            </div>
-          </div>
+          <SuggestedProtocolCard
+            suggestions={suggestions}
+            isLoading={suggLoading}
+            isError={suggError}
+            hasPatient={!!activePatient}
+          />
         )}
       </section>
     </div>
