@@ -8,5 +8,6 @@
   {"model": "pacientes.sintoma", "pk": 7, "fields": {"descricao": "Falta de ar"}},
   {"model": "pacientes.sintoma", "pk": 8, "fields": {"descricao": "Calafrios"}},
   {"model": "pacientes.sintoma", "pk": 9, "fields": {"descricao": "Fadiga"}},
-  {"model": "pacientes.sintoma", "pk": 10, "fields": {"descricao": "Perda de apetite"}}
+  {"model": "pacientes.sintoma", "pk": 10, "fields": {"descricao": "Perda de apetite"}},
+  {"model": "pacientes.sintoma", "pk": 11, "fields": {"descricao": "Sedação"}}
 ]

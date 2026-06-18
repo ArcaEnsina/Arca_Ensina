@@ -254,9 +254,14 @@ class ProtocolSuggestionSerializer(serializers.Serializer):
     title = serializers.CharField(source="protocol.title")
     cid = serializers.CharField(source="protocol.cid")
     specialty = serializers.CharField(source="protocol.specialty")
+    type = serializers.SerializerMethodField()
     score = serializers.IntegerField()
     matched_symptoms = serializers.ListField(child=serializers.CharField())
     reasons = serializers.ListField(child=serializers.CharField())
+
+    def get_type(self, obj):
+        current = obj.protocol.versions.filter(is_current=True).first()
+        return current.protocol_type if current else None
 
 
 class ProtocolSyncStateSerializer(serializers.Serializer):

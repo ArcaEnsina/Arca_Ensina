@@ -23,6 +23,11 @@ class Paciente(models.Model):
         ("F", "Feminino"),
         ("O", "Outro"),
     ]
+
+    class Status(models.TextChoices):
+        ATIVO = "ativo", "Ativo"
+        ALTA = "alta", "Alta"
+
     nome = models.CharField(max_length=100)
     telefone_validator = RegexValidator(
         regex=r"^\d{11,13}$",
@@ -52,6 +57,14 @@ class Paciente(models.Model):
         related_name="pacientes",
         verbose_name="Cadastrado por",
     )
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.ATIVO,
+        db_index=True,
+        verbose_name="Status",
+    )
+    data_alta = models.DateTimeField(null=True, blank=True, verbose_name="Data da alta")
 
     class Meta:
         ordering = ["id"]

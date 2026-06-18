@@ -1,5 +1,7 @@
 export type Gender = 'M' | 'F' | 'O';
 
+export type PatientStatus = 'ativo' | 'alta';
+
 export interface Patient {
   id: string;
   nome: string;
@@ -12,6 +14,8 @@ export interface Patient {
   altura: string; // Decimal string
   alergias: string[];
   sintomas: string[];
+  status: PatientStatus;
+  dataAlta?: string | null;
 }
 
 export interface Symptom {
@@ -34,6 +38,7 @@ export interface ProtocolSuggestion {
   title: string;
   cid: string;
   specialty: string;
+  type: 'guiado' | 'painel' | null;
   score: number;
   matchedSymptoms: string[];
   reasons: string[];
