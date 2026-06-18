@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,9 +20,10 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
 
 import { patientCreateSchema, type PatientCreateInput } from '../schemas';
-import { useCreatePatient } from '../api';
+import { useCreatePatient, useUpdatePatient } from '../api';
 import PatientSymptomSelector from './PatientSymptomSelector';
 import PatientAllergyInput from './PatientAllergyInput';
 import DatePicker from '@/components/ui/DatePicker'
@@ -56,9 +58,42 @@ const BACKEND_FIELD_MAP: Record<string, keyof PatientCreateInput> = {
   nome_responsavel: 'nomeResponsavel',
 };
 
-export default function PatientCreateForm() {
+const EMPTY_DEFAULTS: PatientCreateInput = {
+  nome: '',
+  dataNascimento: '',
+  genero: 'M',
+  nomeResponsavel: '',
+  cidade: '',
+  telefone: '',
+  peso: '',
+  altura: '',
+  alergias: [],
+  sintomas: [],
+};
+
+interface PatientFormProps {
+  mode?: 'create' | 'edit';
+  defaultValues?: Partial<PatientCreateInput>;
+  patientId?: string | number;
+  patientName?: string;
+}
+
+export default function PatientForm({
+  mode = 'create',
+  defaultValues,
+  patientId,
+  patientName,
+}: PatientFormProps) {
   const navigate = useNavigate();
   const createPatient = useCreatePatient();
+  const updatePatient = useUpdatePatient(patientId ?? '');
+  const isEdit = mode === 'edit';
+  const mutation = isEdit ? updatePatient : createPatient;
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingData, setPendingData] = useState<PatientCreateInput | null>(
+    null,
+  );
 
   const {
     register,
@@ -69,27 +104,78 @@ export default function PatientCreateForm() {
     formState: { errors },
   } = useForm<PatientCreateInput>({
     resolver: zodResolver(patientCreateSchema),
-    defaultValues: {
-      nome: '',
-      dataNascimento: '',
-      genero: 'M',
-      nomeResponsavel: '',
-      cidade: '',
-      telefone: '',
-      peso: '',
-      altura: '',
-      alergias: [],
-      sintomas: [],
-    },
+    defaultValues: { ...EMPTY_DEFAULTS, ...defaultValues },
   });
 
   const labelClass =
     "text-xs font-bold text-arca-blue-700 uppercase tracking-wider";
-  
+
   const alergias = useWatch({ name: 'alergias', control });
   const sintomas = useWatch({ name: 'sintomas', control });
   const genero = useWatch({ name: 'genero', control });
   const dataNascimento = useWatch({ name: 'dataNascimento', control });
+
+  const handleError = (error: unknown) => {
+    if (!isApiError(error)) {
+      toast.error('Erro inesperado. Tente novamente.');
+      return;
+    }
+
+    const apiError = error.response?.data?.error;
+    const code = apiError?.code;
+    const details = apiError?.details;
+
+    // Se o backend devolveu erros por campo, seta cada um no formulário
+    if (code === 'validation_error' && details && typeof details === 'object') {
+      let hasFieldError = false;
+
+      for (const [backendField, messages] of Object.entries(details)) {
+        const formField = BACKEND_FIELD_MAP[backendField];
+        if (formField && Array.isArray(messages) && messages.length > 0) {
+          setError(formField, {
+            type: 'server',
+            message: messages[0],
+          });
+          hasFieldError = true;
+        }
+      }
+
+      if (hasFieldError) {
+        toast.error('Corrija os campos destacados antes de continuar.');
+      } else {
+        toast.error(apiError?.message ?? 'Dados inválidos. Verifique os campos.');
+      }
+      return;
+    }
+
+    switch (code) {
+      case 'idempotency_conflict':
+        toast.error('Este registro já foi criado.');
+        break;
+      default:
+        toast.error(apiError?.message ?? 'Erro inesperado. Tente novamente.');
+    }
+  };
+
+  const submitCreate = (data: PatientCreateInput) => {
+    createPatient.mutate(data, {
+      onSuccess: () => {
+        toast.success('Paciente cadastrado com sucesso!');
+        navigate('/dashboard');
+      },
+      onError: handleError,
+    });
+  };
+
+  const submitEdit = (data: PatientCreateInput) => {
+    updatePatient.mutate(data, {
+      onSuccess: () => {
+        toast.success('Paciente atualizado com sucesso!');
+        navigate('/dashboard');
+      },
+      onError: handleError,
+    });
+  };
 
   const onSubmit = (data: PatientCreateInput) => {
     const sanitized = {
@@ -97,60 +183,27 @@ export default function PatientCreateForm() {
       telefone: data.telefone.replace(/\D/g, ''),
     };
 
-    createPatient.mutate(sanitized, {
-      onSuccess: () => {
-        toast.success('Paciente cadastrado com sucesso!');
-        navigate('/dashboard');
-      },
-      onError: (error: unknown) => {
-        if (!isApiError(error)) {
-          toast.error('Erro inesperado. Tente novamente.');
-          return;
-        }
+    if (isEdit) {
+      // Prevenção de erros: confirma antes de aplicar a edição.
+      setPendingData(sanitized);
+      setConfirmOpen(true);
+      return;
+    }
 
-        const apiError = error.response?.data?.error;
-        const code = apiError?.code;
-        const details = apiError?.details;
+    submitCreate(sanitized);
+  };
 
-        // Se o backend devolveu erros por campo, seta cada um no formulário
-        if (code === 'validation_error' && details && typeof details === 'object') {
-          let hasFieldError = false;
-
-          for (const [backendField, messages] of Object.entries(details)) {
-            const formField = BACKEND_FIELD_MAP[backendField];
-            if (formField && Array.isArray(messages) && messages.length > 0) {
-              setError(formField, {
-                type: 'server',
-                message: messages[0],
-              });
-              hasFieldError = true;
-            }
-          }
-
-          if (hasFieldError) {
-            toast.error('Corrija os campos destacados antes de continuar.');
-          } else {
-            toast.error(apiError?.message ?? 'Dados inválidos. Verifique os campos.');
-          }
-          return;
-        }
-
-        switch (code) {
-          case 'idempotency_conflict':
-            toast.error('Este registro já foi criado.');
-            break;
-          default:
-            toast.error(apiError?.message ?? 'Erro inesperado. Tente novamente.');
-        }
-      },
-    });
+  const confirmEdit = () => {
+    if (!pendingData) return;
+    setConfirmOpen(false);
+    submitEdit(pendingData);
   };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <header className="space-y-2">
         <h1 className="text-3xl font-bold text-foreground">
-          Novo Registro de Paciente
+          {isEdit ? 'Editar Paciente' : 'Novo Registro de Paciente'}
         </h1>
       </header>
 
@@ -309,18 +362,30 @@ export default function PatientCreateForm() {
 
       <Button
         type="submit"
-        disabled={createPatient.isPending}
+        disabled={mutation.isPending}
         className="w-full font-bold h-14"
         size="xl"
       >
-        {createPatient.isPending ? (
+        {mutation.isPending ? (
           <>
             <Loader2 className="mr-2 animate-spin" /> Salvando...
           </>
+        ) : isEdit ? (
+          'Salvar Alterações'
         ) : (
           'Concluir Cadastro'
         )}
       </Button>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Confirmar edição"
+        description={`Você irá editar ${patientName ?? 'este paciente'}. Deseja continuar?`}
+        confirmLabel="Sim, editar"
+        isPending={updatePatient.isPending}
+        onConfirm={confirmEdit}
+      />
     </form>
   );
 }

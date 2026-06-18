@@ -54,7 +54,11 @@ class PacienteSerializer(serializers.ModelSerializer):
             "telefone",
             "alergias",
             "sintomas",
+            "status",
+            "data_alta",
         ]
+        # status/data_alta só mudam pela action de alta, nunca por POST/PATCH.
+        read_only_fields = ["status", "data_alta"]
 
     def to_representation(self, instance):
         """Na leitura, serializa manualmente alergias/sintomas como lista de strings."""

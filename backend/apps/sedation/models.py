@@ -9,7 +9,7 @@ class SedationConversion(models.Model):
     )
     patient = models.ForeignKey(
         "pacientes.Paciente",
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
     )

@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -30,6 +31,20 @@ class PacienteViewSet(viewsets.ModelViewSet):
         suggestions = ProtocolSuggester().suggest(patient)
         serializer = ProtocolSuggestionSerializer(suggestions, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=["post"], url_path="alta")
+    def alta(self, request, pk=None, **kwargs):
+        # Dá alta ao paciente: arquiva mantendo todo o histórico.
+        patient = self.get_object()
+        if patient.status == Paciente.Status.ALTA:
+            return Response(
+                {"detail": "Paciente já recebeu alta."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        patient.status = Paciente.Status.ALTA
+        patient.data_alta = timezone.now()
+        patient.save(update_fields=["status", "data_alta"])
+        return Response(self.get_serializer(patient).data)
 
 
 class SintomaViewSet(viewsets.ReadOnlyModelViewSet):

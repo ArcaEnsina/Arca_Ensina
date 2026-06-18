@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { useNavigate, Link } from 'react-router'
-import { LogOut, Plus, ArrowRight, History } from 'lucide-react'
+import { LogOut, Plus, ArrowRight, History, Trash2 } from 'lucide-react'
 import { useAuth } from '@/features/auth'
 import { usePatients, useSuggestedProtocols } from '@/features/patient/api'
 import { usePatientStore } from '@/features/patient/store'
 import PatientPill from '@/features/patient/components/PatientPill'
+import PatientDeleteDialog from '@/features/patient/components/PatientDeleteDialog'
 import { useActiveExecution } from '@/features/guidedProtocol/hooks/useActiveExecution'
 import { ActiveProtocolCard } from '@/features/guidedProtocol/components/ActiveProtocolCard'
 import { SuggestedProtocolCard } from '@/features/guidedProtocol/components/SuggestedProtocolCard'
@@ -71,9 +73,13 @@ function formatAge(dataNascimento: string): string {
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const { data: patients = [], isLoading } = usePatients()
+  const { data: allPatients = [], isLoading } = usePatients()
+  // O dashboard lista e conta apenas os pacientes ativos (não dados de alta).
+  const patients = allPatients.filter((p) => p.status !== 'alta')
   const setActivePatient = usePatientStore((s) => s.setActivePatient)
   const activePatient = usePatientStore((s) => s.activePatient)
+  const clearPatient = usePatientStore((s) => s.clearPatient)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const { data: activeExecution } = useActiveExecution(activePatient?.id ?? null)
   const {
     data: suggestions = [],
@@ -203,13 +209,15 @@ export default function Dashboard() {
           <span className="text-caption font-medium tracking-widest text-muted-foreground tablet:text-body-md">
             PACIENTE SELECIONADO
           </span>
-          <Link
-            to="/patients"
-            className="inline-flex items-center gap-1 text-body-md font-medium text-primary transition-colors hover:text-primary/80 tablet:text-body-lg"
-          >
-            Editar Dados
-            <ArrowRight size={14} className="tablet:size-4" />
-          </Link>
+          {activePatient ? (
+            <Link
+              to={`/patients/${activePatient.id}/edit`}
+              className="inline-flex items-center gap-1 text-body-md font-medium text-primary transition-colors hover:text-primary/80 tablet:text-body-lg"
+            >
+              Editar Dados
+              <ArrowRight size={14} className="tablet:size-4" />
+            </Link>
+          ) : null}
         </div>
 
         {activePatient ? (
@@ -225,12 +233,30 @@ export default function Dashboard() {
               {activePatient.peso} kg
             </p>
             <div className="my-4 border-t border-border tablet:my-5" />
-            <Button variant="outline" size="lg" className="w-full rounded-full" asChild>
-              <Link to={`/patients/${activePatient.id}/history`} className="inline-flex items-center justify-center gap-2">
-                <History size={18} />
-                Ver histórico de protocolos
-              </Link>
-            </Button>
+            <div className="flex flex-col gap-2 tablet:flex-row">
+              <Button variant="outline" size="lg" className="w-full rounded-full" asChild>
+                <Link to={`/patients/${activePatient.id}/history`} className="inline-flex items-center justify-center gap-2">
+                  <History size={18} />
+                  Ver histórico de protocolos
+                </Link>
+              </Button>
+              <Button
+                variant="destructive"
+                size="lg"
+                className="w-full rounded-full tablet:w-auto"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2 size={18} />
+                Excluir
+              </Button>
+            </div>
+            <PatientDeleteDialog
+              patientId={activePatient.id}
+              patientName={activePatient.nome}
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              onDeleted={clearPatient}
+            />
           </div>
         ) : (
           <div className="bg-card border border-border rounded-2xl shadow-sm p-5 tablet:p-6 flex flex-col items-center justify-center gap-2 py-8 text-center">

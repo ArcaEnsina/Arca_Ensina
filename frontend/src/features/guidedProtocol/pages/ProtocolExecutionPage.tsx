@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router';
-import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, LogOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePatientStore } from '@/features/patient/store';
+import type { Patient } from '@/features/patient/types';
 import PatientSelector from '@/features/calculator/components/PatientSelector';
+import PatientDeleteDialog from '@/features/patient/components/PatientDeleteDialog';
+import PatientDischargeDialog from '@/features/patient/components/PatientDischargeDialog';
 import { useProtocolExecution } from '../hooks/useProtocolExecution';
 import { useDelayedFlag } from '../hooks/useDelayedFlag';
 import { ProtocolExecutionShell } from '../components/ProtocolExecutionShell';
@@ -19,8 +23,17 @@ function LoadingSkeleton() {
   );
 }
 
-function CompletionView() {
+function CompletionView({ patient }: { patient: Patient }) {
   const navigate = useNavigate();
+  const clearPatient = usePatientStore((s) => s.clearPatient);
+  const [dischargeOpen, setDischargeOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const backToDashboard = () => {
+    clearPatient();
+    navigate('/dashboard');
+  };
+
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-4 py-12 text-center">
@@ -35,13 +48,48 @@ function CompletionView() {
           A execução foi finalizada. As decisões ficam registradas na linha do
           tempo e no histórico do paciente.
         </p>
-        <Button
-          size="lg"
-          className="rounded-2xl"
-          onClick={() => navigate('/dashboard')}
-        >
-          Voltar ao dashboard
-        </Button>
+        <div className="flex w-full max-w-sm flex-col gap-2">
+          <Button
+            size="lg"
+            className="rounded-2xl"
+            onClick={() => navigate('/dashboard')}
+          >
+            Voltar ao dashboard
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="rounded-2xl"
+            onClick={() => setDischargeOpen(true)}
+          >
+            <LogOut size={18} />
+            Dar alta ao paciente
+          </Button>
+          <Button
+            size="lg"
+            variant="destructive"
+            className="rounded-2xl"
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 size={18} />
+            Excluir paciente
+          </Button>
+        </div>
+
+        <PatientDischargeDialog
+          patientId={patient.id}
+          patientName={patient.nome}
+          open={dischargeOpen}
+          onOpenChange={setDischargeOpen}
+          onDischarged={backToDashboard}
+        />
+        <PatientDeleteDialog
+          patientId={patient.id}
+          patientName={patient.nome}
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          onDeleted={backToDashboard}
+        />
       </CardContent>
     </Card>
   );
@@ -126,7 +174,7 @@ function ExecutionRunner({ protocolId }: { protocolId: number }) {
       ) : error ? (
         <ErrorState />
       ) : completed || !step ? (
-        <CompletionView />
+        <CompletionView patient={activePatient} />
       ) : (
         <StepRenderer
           step={step}

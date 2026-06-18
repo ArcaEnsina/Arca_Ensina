@@ -21,6 +21,19 @@ export const usePatients = () =>
     staleTime: 5 * 60_000,
   });
 
+export const usePatient = (patientId: string | number | null) =>
+  useQuery({
+    queryKey: ['patients', 'detail', String(patientId)],
+    queryFn: async () => {
+      const res = await api.get<Record<string, unknown>>(
+        `pacientes/${patientId}/`,
+      );
+      return toCamelCase(res.data) as unknown as Patient;
+    },
+    enabled: !!patientId,
+    staleTime: 30_000,
+  });
+
 export const useCreatePatient = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -32,6 +45,56 @@ export const useCreatePatient = () => {
         clientUuid: crypto.randomUUID(),
       });
       const res = await api.post('pacientes/', payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['patients', 'list'] });
+    },
+    retry: 0, // safety-critical: no automatic retry
+  });
+};
+
+export const useUpdatePatient = (patientId: string | number) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: PatientCreateInput) => {
+      const payload = toSnakeCase({
+        ...input,
+        alergias: input.alergias ?? [],
+        sintomas: input.sintomas ?? [],
+      });
+      const res = await api.patch(`pacientes/${patientId}/`, payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['patients', 'list'] });
+      qc.invalidateQueries({
+        queryKey: ['patients', 'detail', String(patientId)],
+      });
+    },
+    retry: 0, // safety-critical: no automatic retry
+  });
+};
+
+export const useDeletePatient = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (patientId: string | number) => {
+      await api.delete(`pacientes/${patientId}/`);
+      return patientId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['patients', 'list'] });
+    },
+    retry: 0, // safety-critical: no automatic retry
+  });
+};
+
+export const useDischargePatient = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (patientId: string | number) => {
+      const res = await api.post(`pacientes/${patientId}/alta/`);
       return res.data;
     },
     onSuccess: () => {
