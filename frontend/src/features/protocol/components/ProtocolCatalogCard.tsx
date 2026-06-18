@@ -80,7 +80,7 @@ export default function ProtocolCatalogCard({
       </div>
       <CardFooter className="gap-2">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={onPreview}
           className="min-h-11"
