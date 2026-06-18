@@ -131,6 +131,49 @@ docs/            ← planejamento (stories, infra, roadmap)
 
 ---
 
+## 📖 Histórias Épicas
+
+### Épico 1 - Fundamentos clínicos + design foundation
+
+**Período:** 06/05 – 13/05 (Sprint 1, 1 semana)
+**Prioridade:** Must Have
+**Objetivo:** Entregar fundações de dados (modelo dual guiado+painel, engine de dose, modelo de paciente) **e** fundação visual (design tokens, shadcn base, AppShell, disclaimer-ready) que destravam todo o trabalho FE de Sprint 2 sem retrabalho.
+
+**Stories:** CORE-001 , CORE-002a, CORE-003, CORE-007, CORE-013 , CORE-014  - 51 pts
+
+---
+
+### Épico 2 - Fluxo end-to-end + offline + coleta + painel BE + auth UX polida
+
+**Período:** 13/05 – 27/05 (Sprint 2, 2 semanas)
+**Prioridade:** Must Have
+**Objetivo:** Fluxo clínico utilizável de ponta a ponta + experiência de auth com identidade ARCA + disclaimer educacional pronto para safety-critical.
+
+**Stories:** CORE-002b, CORE-004, CORE-005, CORE-009, EXP-001a, EXP-003, EXP-004, PAINEL-001, CORE-011, CORE-012 - 67 pts
+
+---
+
+### Épico 3 - Inteligência + dados + painel FE + offline pleno
+
+**Período:** 27/05 – 10/06 (Sprint 3, 2 semanas)
+**Prioridade:** Should Have / Could Have
+**Objetivo:** Sugestão automática, modo emergência, painel sedação FE, engine offline guiada, sync, calculadora offline, painel pesquisa, exportação, notificações.
+
+**Stories:** CORE-008, CORE-010, PAINEL-002, EXP-001b, EXP-001c, EXP-002, ADV-001, ADV-002, ADV-004 — 70 pts
+
+---
+
+### Épico 4 - Polimento, agenda + buffer
+
+**Período:** 10/06 – 01/07 (3 semanas)
+**Prioridade:** Should/Could
+**Objetivo:** Estabilizar, polir, dashboard pessoal, agenda de doses, E2E e documentação de handoff.
+
+**Stories:** EXP-006, ADV-006, ADV-007, PAINEL-003 — 23 pts + buffer
+
+---
+
+
 ## 👨‍💻 Equipe
 
 ### Desenvolvedores
