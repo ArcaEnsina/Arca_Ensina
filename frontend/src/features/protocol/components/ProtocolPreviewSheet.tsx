@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import { Check } from 'lucide-react'
 
 import {
@@ -29,7 +30,11 @@ export default function ProtocolPreviewSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       {protocol && (
-        <PreviewContent protocol={protocol} onStart={onStart} />
+        <PreviewContent
+          protocol={protocol}
+          onStart={onStart}
+          onOpenChange={onOpenChange}
+        />
       )}
     </Sheet>
   )
@@ -38,12 +43,18 @@ export default function ProtocolPreviewSheet({
 function PreviewContent({
   protocol,
   onStart,
+  onOpenChange,
 }: {
   protocol: ProtocolListItem
   onStart: () => void
+  onOpenChange: (open: boolean) => void
 }) {
   const { data: cacheStatus } = useProtocolCacheStatus(protocol)
   const download = useDownloadProtocol()
+
+  const [translateY, setTranslateY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const startYRef = useRef(0)
 
   const isCached = cacheStatus === 'current'
   const downloadLabel = download.isPending
@@ -52,13 +63,55 @@ function PreviewContent({
       ? 'Salvo no aparelho'
       : 'Baixar no dispositivo'
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    setIsDragging(true)
+    startYRef.current = e.clientY
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return
+    const deltaY = e.clientY - startYRef.current
+    if (deltaY > 0) {
+      setTranslateY(deltaY)
+    } else {
+      setTranslateY(0)
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return
+    setIsDragging(false)
+    e.currentTarget.releasePointerCapture(e.pointerId)
+
+    const threshold = 100 // pixels dragged down to dismiss
+    if (translateY > threshold) {
+      onOpenChange(false)
+    } else {
+      setTranslateY(0)
+    }
+  }
+
   return (
     <SheetContent
       side="bottom"
       className="mx-auto max-h-[80vh] w-full overflow-y-auto rounded-t-3xl border-x border-t bg-white shadow-2xl transition-all duration-300 tablet:bottom-6 tablet:max-w-lg tablet:rounded-3xl tablet:border"
+      style={{
+        transform: translateY > 0 ? `translateY(${translateY}px)` : undefined,
+        transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
     >
-      {/* Drag handle/grabber indicator for the pull-up drawer look */}
-      <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-neutral-200" />
+      {/* Interactive Drag Handle / Touch Area */}
+      <div
+        className="mx-auto mt-2 flex h-6 w-24 shrink-0 cursor-grab items-center justify-center select-none touch-none active:cursor-grabbing"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        aria-hidden="true"
+      >
+        <div className="h-1.5 w-12 rounded-full bg-neutral-200" />
+      </div>
 
       <SheetHeader>
         <SheetTitle className="flex items-center gap-2">
