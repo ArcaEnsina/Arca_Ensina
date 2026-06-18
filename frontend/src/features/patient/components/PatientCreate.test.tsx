@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import PatientCreateForm from './PatientCreateForm';
+import PatientForm from './PatientForm';
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn(), loading: vi.fn() },
@@ -16,8 +16,13 @@ const mockCreatePatient = {
   mutate: vi.fn(),
   isPending: false,
 };
+const mockUpdatePatient = {
+  mutate: vi.fn(),
+  isPending: false,
+};
 vi.mock('../api', () => ({
   useCreatePatient: () => mockCreatePatient,
+  useUpdatePatient: () => mockUpdatePatient,
   useSymptoms: () => ({ data: [], isLoading: false }),
 }));
 
@@ -42,6 +47,15 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
+// Preenche os campos obrigatórios da etapa 1 e avança para a etapa 2 (Avaliação).
+async function fillStep1AndAdvance(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/nome completo/i), 'João Silva');
+  // O DatePicker aceita só dígitos no formato ddMMyyyy → vira 2020-01-15.
+  await user.type(screen.getByLabelText(/data de nasc/i), '15012020');
+  await user.type(screen.getByLabelText(/telefone/i), '5581999999999');
+  await user.click(screen.getByRole('button', { name: /avançar/i }));
+}
+
 describe('PatientCreateForm', () => {
   beforeEach(() => {
     mockCreatePatient.mutate.mockClear();
@@ -50,23 +64,30 @@ describe('PatientCreateForm', () => {
     vi.mocked(toast.success).mockClear();
   });
 
-  it('renders form fields', () => {
-    render(<PatientCreateForm />, { wrapper });
+  it('renders form fields', async () => {
+    const user = userEvent.setup();
+    render(<PatientForm mode="create" />, { wrapper });
 
+    // Etapa 1 — Identificação
     expect(screen.getByLabelText(/nome completo/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/data de nasc/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/gênero/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/telefone/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/peso/i)).toBeInTheDocument();
+
+    // Etapa 2 — Avaliação (peso/altura só aparecem após avançar)
+    await fillStep1AndAdvance(user);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/peso/i)).toBeInTheDocument();
+    });
     expect(screen.getByLabelText(/altura/i)).toBeInTheDocument();
   });
 
   it('shows validation error when nome is empty', async () => {
     const user = userEvent.setup();
-    render(<PatientCreateForm />, { wrapper });
+    render(<PatientForm mode="create" />, { wrapper });
 
-    const submit = screen.getByRole('button', { name: /concluir cadastro/i });
-    await user.click(submit);
+    await user.click(screen.getByRole('button', { name: /avançar/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Nome obrigatório')).toBeInTheDocument();
@@ -75,11 +96,9 @@ describe('PatientCreateForm', () => {
 
   it('shows validation error for invalid peso', async () => {
     const user = userEvent.setup();
-    render(<PatientCreateForm />, { wrapper });
+    render(<PatientForm mode="create" />, { wrapper });
 
-    await user.type(screen.getByLabelText(/nome completo/i), 'João Silva');
-    await user.type(screen.getByLabelText(/data de nasc/i), '2020-01-15');
-    await user.type(screen.getByLabelText(/telefone/i), '5581999999999');
+    await fillStep1AndAdvance(user);
     await user.type(screen.getByLabelText(/peso/i), '-5');
 
     const submit = screen.getByRole('button', { name: /concluir cadastro/i });
@@ -100,11 +119,9 @@ describe('PatientCreateForm', () => {
       },
     );
 
-    render(<PatientCreateForm />, { wrapper });
+    render(<PatientForm mode="create" />, { wrapper });
 
-    await user.type(screen.getByLabelText(/nome completo/i), 'João Silva');
-    await user.type(screen.getByLabelText(/data de nasc/i), '2020-01-15');
-    await user.type(screen.getByLabelText(/telefone/i), '5581999999999');
+    await fillStep1AndAdvance(user);
     await user.type(screen.getByLabelText(/peso/i), '22.5');
     await user.type(screen.getByLabelText(/altura/i), '110');
 
@@ -131,12 +148,15 @@ describe('PatientCreateForm', () => {
     });
   });
 
-  it('shows loading state while pending', () => {
+  it('shows loading state while pending', async () => {
+    const user = userEvent.setup();
     mockCreatePatient.isPending = true;
 
-    render(<PatientCreateForm />, { wrapper });
+    render(<PatientForm mode="create" />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /salvando/i });
+    await fillStep1AndAdvance(user);
+
+    const button = await screen.findByRole('button', { name: /salvando/i });
     expect(button).toBeDisabled();
     expect(button).toHaveTextContent('Salvando...');
   });
@@ -149,11 +169,9 @@ describe('PatientCreateForm', () => {
       },
     );
 
-    render(<PatientCreateForm />, { wrapper });
+    render(<PatientForm mode="create" />, { wrapper });
 
-    await user.type(screen.getByLabelText(/nome completo/i), 'João Silva');
-    await user.type(screen.getByLabelText(/data de nasc/i), '2020-01-15');
-    await user.type(screen.getByLabelText(/telefone/i), '5581999999999');
+    await fillStep1AndAdvance(user);
     await user.type(screen.getByLabelText(/peso/i), '22.5');
     await user.type(screen.getByLabelText(/altura/i), '110');
 
@@ -172,15 +190,15 @@ describe('PatientCreateForm', () => {
     const user = userEvent.setup();
     mockCreatePatient.mutate.mockImplementation(
       (_data: unknown, opts: { onError?: (e: unknown) => void }) => {
-        opts.onError?.({ response: { data: { code: 'validation_error' } } });
+        opts.onError?.({
+          response: { data: { error: { code: 'validation_error', details: {} } } },
+        });
       },
     );
 
-    render(<PatientCreateForm />, { wrapper });
+    render(<PatientForm mode="create" />, { wrapper });
 
-    await user.type(screen.getByLabelText(/nome completo/i), 'João Silva');
-    await user.type(screen.getByLabelText(/data de nasc/i), '2020-01-15');
-    await user.type(screen.getByLabelText(/telefone/i), '5581999999999');
+    await fillStep1AndAdvance(user);
     await user.type(screen.getByLabelText(/peso/i), '22.5');
     await user.type(screen.getByLabelText(/altura/i), '110');
 
