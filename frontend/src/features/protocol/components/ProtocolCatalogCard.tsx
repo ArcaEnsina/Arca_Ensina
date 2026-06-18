@@ -64,7 +64,7 @@ export default function ProtocolCatalogCard({
         </CardHeader>
         <CardContent>
           {protocol.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-2">
               {protocol.tags.map((tag) => (
                 <Badge
                   key={tag}
