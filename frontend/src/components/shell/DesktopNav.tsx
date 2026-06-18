@@ -42,11 +42,18 @@ export function DesktopNav() {
     >
       <div className="flex items-center gap-1 rounded-full border border-neutral-200 bg-white p-1.5 pl-2 shadow-md">
         {/* marca ARCA */}
-        <img
-          src={arcaLogo}
-          alt="ARCA"
-          className="mr-3 size-10 shrink-0 object-contain"
-        />
+        <Link
+          to="/"
+          className="mr-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-arca-blue-500/40"
+          aria-label="Ir para a página inicial"
+        >
+          <img
+            src={arcaLogo}
+            alt="ARCA Logo"
+            className="size-10 shrink-0 object-contain"
+          />
+        </Link>
+
 
         <ul className="flex items-center gap-1">
           {NAV_ITEMS.map((item) => {
