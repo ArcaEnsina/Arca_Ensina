@@ -11,7 +11,11 @@ import {
   startMedicationAutoDownload,
 } from './lib/offline'
 import { startReminderScheduler } from './lib/notifications'
+import { guardAgainstReloadLoop } from './lib/swReloadGuard'
 import './index.css'
+
+// Deve rodar antes do registro do service worker (UpdatePromptToast).
+guardAgainstReloadLoop()
 
 startSyncListener()
 startProtocolAutoUpdate()
