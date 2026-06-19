@@ -14,6 +14,8 @@ import {
 import PatientSymptomSelector from '@/features/patient/components/PatientSymptomSelector';
 import { usePatientStore } from '@/features/patient/store';
 import { startEmergency } from '../services/emergencyService';
+import { isOfflineError, protocolCache } from '@/lib/offline';
+import type { Patient } from '@/features/patient/types';
 
 type EmergencyPatientFormData = {
   peso: string;
@@ -62,12 +64,55 @@ export default function EmergencyPatientForm() {
       });
       setActivePatient(patient);
       navigate(`/guided-protocol/${execution.version}`);
-    } catch {
-      toast.error('Erro ao iniciar emergência. Tente novamente.');
+    } catch (err) {
+      if (isOfflineError(err)) {
+        try {
+          const cachedProtocols = await protocolCache.listCached();
+          const guidedProtocols = cachedProtocols.filter(
+            (p) => p.current_version?.protocol_type === 'guiado',
+          );
+          if (guidedProtocols.length === 0) {
+            toast.error(
+              'Nenhum protocolo guiado disponível offline para emergência. Conecte-se à internet para baixar os protocolos.',
+            );
+            return;
+          }
+          // Sort by updatedAt desc to get the latest/most relevant protocol
+          guidedProtocols.sort(
+            (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+          );
+          const selectedProtocol = guidedProtocols[0]!;
+
+          // eslint-disable-next-line react-hooks/purity
+          const nowMs = Date.now();
+          const birthYear = new Date().getFullYear() - idade_anos;
+          const tempPatient: Patient = {
+            id: `-${nowMs}`,
+            nome: `Emergência ${nowMs.toString().slice(-4)} (Offline)`,
+            dataNascimento: `${birthYear}-01-01`,
+            genero: 'O',
+            telefone: '00000000000',
+            peso: peso.toString(),
+            altura: '0',
+            alergias: [],
+            sintomas: data.sintomas,
+            status: 'ativo',
+          };
+
+          setActivePatient(tempPatient);
+          toast.success('Iniciando protocolo de emergência em modo offline.');
+          navigate(`/guided-protocol/${selectedProtocol.id}`);
+        } catch {
+          toast.error('Erro ao iniciar emergência offline.');
+        }
+      } else {
+        toast.error('Erro ao iniciar emergência. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
   }
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
