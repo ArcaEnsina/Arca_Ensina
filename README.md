@@ -169,7 +169,7 @@ docs/            ← planejamento (stories, infra, roadmap)
 
 ### Épico 4 - Polimento, agenda + buffer
 
-**Período:** 10/06 – 01/07 (3 semanas)
+**Período:** 10/06 – 17/06 (1 semana)
 **Prioridade:** Should/Could
 **Objetivo:** Estabilizar, polir, dashboard pessoal, agenda de doses, E2E e documentação de handoff.
 
