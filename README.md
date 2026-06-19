@@ -31,7 +31,7 @@ Público-alvo: pediatras intensivistas recém-formados.
 
 ---
 
-## Quero rodar localmente
+## Quero executar localmente:
 
 Veja o [**CONTRIBUTING.md**](./.github/CONTRIBUTING.md) para o guia completo.
 
@@ -62,6 +62,10 @@ npm run dev                       # :5173
 ```
 
 Abra **http://localhost:5173** no navegador.
+
+#### Credenciais de teste:
+- Login: teste@arcaapp.com
+- Senha: punTaw5%
 
 ---
 
