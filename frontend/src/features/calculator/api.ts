@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import api from '@/lib/api/client'
-import { medicationCache, medicationDetailCache, executionQueue, isOffline } from '@/lib/offline'
+import { medicationCache, medicationDetailCache, executionQueue, isOfflineError } from '@/lib/offline'
 import { calculateForMedication } from '@/engines/calculator'
 import type { Medication, CalculatorFormData, CalculationResult, WarningLevel } from './types'
 
@@ -16,7 +16,7 @@ export const useMedications = () =>
         }
         return meds
       } catch (err) {
-        if (isOffline()) {
+        if (isOfflineError(err)) {
           const cached = await medicationCache.listCached()
           if (cached.length > 0) return cached
         }
@@ -38,7 +38,7 @@ export const useMedication = (id: number | null) =>
         medicationDetailCache.putDetail(res.data)
         return res.data
       } catch (err) {
-        if (isOffline()) {
+        if (isOfflineError(err)) {
           const cached = await medicationDetailCache.getDetail(id)
           if (cached) return cached
           const fallback = await medicationCache.getMedication(id)
@@ -75,7 +75,7 @@ export const useCalculateDose = () =>
         const res = await api.post<CalculationResult>('calculator/calculate/', payload)
         return res.data
       } catch (err) {
-        if (isOffline() && data.medication_id != null) {
+        if (isOfflineError(err) && data.medication_id != null) {
           const cached = await medicationDetailCache.getDetail(data.medication_id)
           if (!cached) throw err
 

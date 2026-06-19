@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/lib/api/client'
-import { protocolCache, isOffline } from '@/lib/offline'
+import { protocolCache, isOfflineError } from '@/lib/offline'
 import type { Protocol, ProtocolListItem } from './types'
 
 export interface PaginatedResponse<T> {
@@ -64,7 +64,7 @@ export function useProtocol(id: string) {
         })
         return data
       } catch (err) {
-        if (isOffline()) {
+        if (isOfflineError(err)) {
           const cached = await protocolCache.getProtocol(id)
           if (cached) {
             return cached as Protocol
