@@ -19,7 +19,9 @@ Aplicação web multiplataforma para centralizar protocolos médicos e oferecer 
 
 Público-alvo: pediatras intensivistas recém-formados.
 
-🔗[arcaapp.lat](https://arcaapp.lat/)
+🔗 [arcaapp.lat](https://arcaapp.lat/)
+<br>
+🔗 [Site sobre o projeto](https://sites.google.com/cesar.school/arca-grupo7/)
 
 </div>
 
@@ -134,7 +136,9 @@ docs/            ← planejamento (stories, infra, roadmap)
 </details>
 
 ---
-
+<details>
+<summary><strong>Status Report 2</strong></summary>
+  
 ## 📖 Histórias Épicas
 
 ### Épico 1 - Fundamentos clínicos + design foundation
@@ -177,6 +181,11 @@ docs/            ← planejamento (stories, infra, roadmap)
 
 ---
 
+Acesse nosso site sobre o projeto para todas as informações sobre a SR2: https://sites.google.com/cesar.school/arca-grupo7/
+
+</details>
+
+---
 
 ## 👨‍💻 Equipe
 
