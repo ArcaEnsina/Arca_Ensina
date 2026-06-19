@@ -7,6 +7,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // o módulo virtual do vite-plugin-pwa não existe nos testes (plugin não
+      // carregado); aponta para um stub resolvível.
+      'virtual:pwa-register/react': path.resolve(
+        __dirname,
+        './src/test/stubs/pwa-register-react.ts',
+      ),
     },
   },
   esbuild: {
