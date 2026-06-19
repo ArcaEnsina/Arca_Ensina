@@ -19,6 +19,14 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error),
 )
 
+// Redireciona para o login sem recarregar quando já estamos lá — evita loop de
+// reload quando um request autenticado dispara 401 já na própria tela de login.
+function redirectToLogin(): void {
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
 type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 type Resolver = (token: string) => void
 type Rejecter = (error: unknown) => void
@@ -78,7 +86,7 @@ api.interceptors.response.use(
       isRefreshing = false
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
-      window.location.href = '/login'
+      redirectToLogin()
       return Promise.reject(error)
     }
 
@@ -100,7 +108,7 @@ api.interceptors.response.use(
       processQueue(refreshError, null)
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
-      window.location.href = '/login'
+      redirectToLogin()
       return Promise.reject(refreshError)
     } finally {
       isRefreshing = false

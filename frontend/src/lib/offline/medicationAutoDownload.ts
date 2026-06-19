@@ -18,6 +18,9 @@ let running = false
 export async function runMedicationDownload(): Promise<void> {
   if (running) return
   if (typeof navigator !== 'undefined' && !navigator.onLine) return
+  // Sem sessão não adianta tentar: o endpoint exige autenticação e o 401
+  // dispararia o redirect para /login.
+  if (typeof localStorage !== 'undefined' && !localStorage.getItem('refresh_token')) return
 
   running = true
   try {
