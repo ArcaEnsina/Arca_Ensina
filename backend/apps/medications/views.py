@@ -22,6 +22,21 @@ class MedicationListView(APIView):
             )
 
 
+class MedicationBulkDetailView(APIView):
+    """Todos os medicamentos já com o schema rico, em uma única requisição.
+
+    Usado pelo auto-download offline: o app baixa tudo enquanto online para que
+    a calculadora funcione offline sem depender de abrir cada medicamento antes.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, version=None):
+        medications = Medication.objects.all().order_by("name")
+        serializer = MedicationDetailSerializer(medications, many=True)
+        return Response(serializer.data, status=200)
+
+
 class MedicationDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
