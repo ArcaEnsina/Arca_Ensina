@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { StepHeading } from '../StepHeading';
-import { formatRemaining } from '../ReminderCountdown';
+import { formatRemaining } from '../../utils/time';
 import type { Reminder, WaitReassessStepData } from '../../types';
 
 interface WaitReassessStepProps {

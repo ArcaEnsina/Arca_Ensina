@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { AxiosError } from 'axios'
+import { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { isOffline, isOfflineError, OfflineResourceError } from '../gracefulDegrade'
 
 describe('gracefulDegrade', () => {
@@ -43,7 +43,7 @@ describe('gracefulDegrade', () => {
         status: 400,
         statusText: 'Bad Request',
         headers: {},
-        config: {} as any,
+        config: {} as InternalAxiosRequestConfig,
         data: {},
       })
       expect(isOfflineError(error)).toBe(false)
